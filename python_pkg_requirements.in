@@ -1,0 +1,17 @@
+numpy
+scipy
+pandas
+alive_progress
+uproot
+matplotlib
+plotly
+pickle-mixin
+pyyaml
+xgboost
+git+https://github.com/hipe4ml/hipe4ml@dev
+optuna
+scikit-learn
+shap
+torch
+torchic
+boost-histogram
