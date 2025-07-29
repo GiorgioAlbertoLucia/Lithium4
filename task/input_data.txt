@@ -1,0 +1,4 @@
+/data/galucia/lithium_local/MC/raw/LHC25a4_001_raw.root
+/data/galucia/lithium_local/MC/raw/LHC25a4_002_raw.root
+/data/galucia/lithium_local/MC/raw/LHC25a4_003_raw.root
+/data/galucia/lithium_local/MC/raw/LHC25a4_004_raw.root

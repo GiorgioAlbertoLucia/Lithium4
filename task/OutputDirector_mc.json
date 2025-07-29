@@ -1,0 +1,16 @@
+{ "OutputDirector": {
+    "debug_mode": true,
+    "resfile": "AO2D_lit_mc",
+    "OutputDescriptors": [
+      {
+        "table": "AOD/HE3HADTABLE/0"
+      },
+      {
+        "table": "AOD/HE3HADTABLEMC/0"
+      },
+      {
+        "table": "AOD/HE3HADMULT/0"
+      }
+    ],
+    "ntfmerge": 1
+  } }

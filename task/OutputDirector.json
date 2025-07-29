@@ -1,0 +1,13 @@
+{ "OutputDirector": {
+    "debug_mode": true,
+    "resfile": "LHC23zzh_test_correct",
+    "OutputDescriptors": [
+      {
+        "table":"AOD/HE3HADTABLE/0"
+      },
+      {
+        "table":"AOD/HE3HADMULT/0"
+      }
+    ],
+    "ntfmerge": 1
+  } }
