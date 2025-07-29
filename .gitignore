@@ -1,0 +1,55 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Data
+*.root
+
+# Figures
+*.pdf
+
+# Logs
+*.log
+
+# pycache
+*.pyc
+
+# ROOT compilation
+*.pcm
+
+# Directories
+old/**
+tmpLauncher/**
+o2physics-workflow/**
+framework/**
+
+.DS_Store
