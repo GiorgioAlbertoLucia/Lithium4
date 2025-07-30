@@ -10,6 +10,7 @@ pyyaml
 xgboost
 git+https://github.com/hipe4ml/hipe4ml@dev
 optuna
+particle
 scikit-learn
 shap
 torch
