@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from ROOT import RDataFrame, TFile
 
+from torchic.utils.terminal_colors import TerminalColors as tc
+
 @dataclass
 class RegistryEntry:
 
@@ -56,7 +58,7 @@ class HistogramRegistry:
 
     def save_histograms(self, output_file: TFile):
 
-        print("\nSaving histograms to output file")
+        print(f"\n{tc.BOLD}Saving histograms to output file{tc.RESET}")
         if not self._registry:
             raise ValueError("No histograms to save.")
         
@@ -75,7 +77,7 @@ class HistogramRegistry:
                 hist = self._registry.get(entry.name)
                 if hist:
                     hist.Write(entry.name)
-                    print(f"Saved histogram: {idir}:{entry.name}")
+                    print(f"\tSaved histogram: {tc.CYAN+tc.UNDERLINE}{idir}:{entry.name}{tc.RESET}")
                 else:
-                    print(f"Histogram {entry.name} not found in registry.")
+                    print(f"\t{tc.RED}WARNING{tc.RESET}Histogram {tc.CYAN+tc.UNDERLINE}{entry.name}{tc.RESET} not found in registry.")
 
