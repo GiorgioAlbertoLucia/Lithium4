@@ -441,6 +441,7 @@
         "settingSaveUSandLS": "true",
         "settingIsMC": "true",
         "settingFillMultiplicity": "true",
+        "settingFillPrimariesAndMixedMc": "true",
         "settingSkimmedProcessing": "false",
         "settingSkipAmbiTracks": "false",
         "settingCustomVertexerTimeMargin": "800",
