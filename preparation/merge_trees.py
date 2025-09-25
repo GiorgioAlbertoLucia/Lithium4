@@ -9,11 +9,11 @@ import uproot
 
 if __name__ == '__main__':
 
-    infile = '/data/galucia/lithium_local/MC/LHC25a4.root'
-    table_names = ['O2he3hadtable', 'O2he3hadtablemc', 'O2he3hadmult']
+    infile = '/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same_small.root'
+    table_names = ['O2he3hadtable', 'O2he3hadmult'] #, 'O2he3hadtablemc']
     base = 'DF'
 
-    outfile = uproot.recreate('input/mc.root')
+    outfile = uproot.recreate('/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass5_same_small.root')
 
     f = uproot.open(infile)
     keys = list(f.keys())
