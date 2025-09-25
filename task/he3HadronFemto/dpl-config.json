@@ -1,0 +1,411 @@
+{
+    "internal-dpl-clock": "",
+    "internal-dpl-aod-reader": {
+        "aod-file-private": "@input_data.txt",
+        "aod-max-io-rate": "0",
+        "time-limit": "0",
+        "orbit-offset-enumeration": "0",
+        "orbit-multiplier-enumeration": "0",
+        "start-value-enumeration": "0",
+        "end-value-enumeration": "-1",
+        "step-value-enumeration": "1"
+    },
+    "internal-dpl-aod-spawner": "",
+    "internal-dpl-aod-index-builder": "",
+    "eventselection-run3": {
+        "timestamp": {
+            "verbose": "false",
+            "fatalOnInvalidTimestamp": "false",
+            "rct-path": "RCT\/Info\/RunInformation",
+            "orbit-reset-path": "CTP\/Calib\/OrbitReset",
+            "isRun2MC": "-1"
+        },
+        "bcselOpts": {
+            "amIneeded": "-1",
+            "triggerBcShift": "0",
+            "ITSROFrameStartBorderMargin": "-1",
+            "ITSROFrameEndBorderMargin": "-1",
+            "TimeFrameStartBorderMargin": "-1",
+            "TimeFrameEndBorderMargin": "-1",
+            "checkRunDurationLimits": "false",
+            "maxInactiveChipsPerLayer": {
+                "values": [
+                    "8",
+                    "8",
+                    "8",
+                    "111",
+                    "111",
+                    "195",
+                    "195"
+                ]
+            },
+            "NumberOfOrbitsPerTF": "-1"
+        },
+        "evselOpts": {
+            "amIneeded": "-1",
+            "muonSelection": "0",
+            "maxDiffZvtxFT0vsPV": "1",
+            "isMC": "-1",
+            "confSigmaBCforHighPtTracks": "4",
+            "TimeIntervalForOccupancyCalculationMin": "-40",
+            "TimeIntervalForOccupancyCalculationMax": "100",
+            "TimeRangeVetoOnCollStandard": "10",
+            "TimeRangeVetoOnCollNarrow": "2",
+            "FT0CamplPerCollCutVetoOnCollInTimeRange": "8000",
+            "FT0CamplPerCollCutVetoOnCollInROF": "5000",
+            "EpsilonVzDiffVetoInROF": "0.300000012",
+            "UseWeightsForOccupancyEstimator": "true",
+            "NumberOfOrbitsPerTF": "-1",
+            "TestAlternativeBcMatching": "0",
+            "TestModifyTimeVetoOnNearbyColl": "0",
+            "TestVetoOnTRDinPast": "0",
+            "TestVzDiffNsigma": "3",
+            "TestVzDiffMargin": "0.200000003"
+        },
+        "lumiOpts": {
+            "amIneeded": "-1"
+        },
+        "ccdburl": "http:\/\/alice-ccdb.cern.ch"
+    },
+    "tof-signal": "",
+    "mult-cent-table": {
+        "enabledTables": {
+            "labels_rows": [
+                "FV0Mults",
+                "FV0AOuterMults",
+                "FT0Mults",
+                "FDDMults",
+                "ZDCMults",
+                "TrackletMults",
+                "TPCMults",
+                "PVMults",
+                "MultsExtra",
+                "MultSelections",
+                "FV0MultZeqs",
+                "FT0MultZeqs",
+                "FDDMultZeqs",
+                "PVMultZeqs",
+                "GlobalMultZeqs",
+                "MFTMultZeqs",
+                "MultMCExtras",
+                "Mult2MCExtras",
+                "MFTMults",
+                "MultsGlobal",
+                "CentRun2V0Ms",
+                "CentRun2V0As",
+                "CentRun2SPDTrks",
+                "CentRun2SPDClss",
+                "CentRun2CL0s",
+                "CentRun2CL1s",
+                "CentFV0As",
+                "CentFT0Ms",
+                "CentFT0As",
+                "CentFT0Cs",
+                "CentFT0CVariant1s",
+                "CentFDDMs",
+                "CentNTPVs",
+                "CentNGlobals",
+                "CentMFTs",
+                "BCCentFT0Ms",
+                "BCCentFT0As",
+                "BCCentFT0Cs"
+            ],
+            "labels_cols": [
+                "enable"
+            ],
+            "values": [
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ]
+            ]
+        },
+        "autoConfigureProcess": "false",
+        "doVertexZeq": "1",
+        "minPtGlobalTrack": "0.150000006",
+        "maxPtGlobalTrack": "1e+10",
+        "minNclsITSGlobalTrack": "5",
+        "minNclsITSibGlobalTrack": "1",
+        "ccdbPathVtxZ": "Centrality\/Calibration",
+        "ccdbPathCentrality": "Centrality\/Estimators",
+        "reconstructionPass": "1",
+        "generatorName": "",
+        "embedINELgtZEROselection": "false",
+        "ccdburl": "http:\/\/alice-ccdb.cern.ch",
+        "processRun2": "false",
+        "processRun3": "true",
+        "processRun3WithGlobalCounters": "false",
+        "processMFT": "false",
+        "processMonteCarlo": "false",
+        "processMonteCarlo2Mults": "false",
+        "processCentralityRun2": "false",
+        "processCentralityRun3": "true"
+    },
+    "pid-tpc-service": {
+        "ccdburl": "http:\/\/alice-ccdb.cern.ch",
+        "pidTPC": {
+            "param-file": "",
+            "ccdbPath": "Analysis\/PID\/TPC\/Response",
+            "recoPass": "1",
+            "ccdb-timestamp": "0",
+            "useNetworkCorrection": "false",
+            "autofetchNetworks": "true",
+            "skipTPCOnly": "false",
+            "networkPathLocally": "network.onnx",
+            "networkPathCCDB": "Analysis\/PID\/TPC\/ML",
+            "enableNetworkOptimizations": "true",
+            "networkSetNumThreads": "0",
+            "savedEdxsCorrected": "-1",
+            "useCorrecteddEdx": "false",
+            "pid-full-el": "-1",
+            "pid-full-mu": "-1",
+            "pid-full-pi": "-1",
+            "pid-full-ka": "-1",
+            "pid-full-pr": "-1",
+            "pid-full-de": "-1",
+            "pid-full-tr": "-1",
+            "pid-full-he": "-1",
+            "pid-full-al": "-1",
+            "pid-tiny-el": "-1",
+            "pid-tiny-mu": "-1",
+            "pid-tiny-pi": "-1",
+            "pid-tiny-ka": "-1",
+            "pid-tiny-pr": "-1",
+            "pid-tiny-de": "-1",
+            "pid-tiny-tr": "-1",
+            "pid-tiny-he": "-1",
+            "pid-tiny-al": "-1",
+            "enableTuneOnDataTable": "-1",
+            "useNetworkEl": "1",
+            "useNetworkMu": "1",
+            "useNetworkPi": "1",
+            "useNetworkKa": "1",
+            "useNetworkPr": "1",
+            "useNetworkDe": "1",
+            "useNetworkTr": "1",
+            "useNetworkHe": "1",
+            "useNetworkAl": "1",
+            "networkBetaGammaCutoff": "0.449999988"
+        },
+        "processTracks": "false",
+        "processTracksMC": "false",
+        "processTracksIU": "true",
+        "processTracksMCIU": "false"
+    },
+    "ft0-corrected-table": {
+        "resoFT0A": "20",
+        "resoFT0C": "20",
+        "addHistograms": "false",
+        "collisionSystem": "-2",
+        "ccdb-url": "http:\/\/alice-ccdb.cern.ch",
+        "ccdb-path-grplhcif": "GLO\/Config\/GRPLHCIF",
+        "ccdb-timestamp": "-1",
+        "processStandard": "true",
+        "processWithBypassFT0timeInMC": "false"
+    },
+    "tof-event-time": {
+        "minMomentum": "0.5",
+        "maxMomentum": "2",
+        "maxEvTimeTOF": "100000",
+        "sel8TOFEvTime": "false",
+        "computeEvTimeWithTOF": "-1",
+        "computeEvTimeWithFT0": "-1",
+        "maxNtracksInSet": "10",
+        "processRun2": "false",
+        "processRun3": "true"
+    },
+    "tof-pid-merge": "",
+    "he3-hadron-femto": {
+        "settingHadPDGCode": "211",
+        "settingCutVertex": "10",
+        "settingCutRigidityMinHe3": "0.800000012",
+        "settingCutEta": "0.899999976",
+        "settingCutDCAxy": "2",
+        "settingCutDCAz": "2",
+        "settingCutChi2tpcLow": "0.5",
+        "settingCutInvMass": "0",
+        "settingCutPtMinhe3Had": "0",
+        "settingCutClSizeItsHe3": "4",
+        "settingCutNCls": "5",
+        "settingCutChi2NClITS": "36",
+        "settingCutNsigmaTPC": "3",
+        "settingCutNsigmaITS": "-1.5",
+        "settingCutPtMinTOFHad": "0.400000006",
+        "settingCutNsigmaTOF": "3",
+        "settingNoMixedEvents": "5",
+        "settingEnableBkgUS": "false",
+        "settingEnableDCAfitter": "false",
+        "settingSaveUSandLS": "true",
+        "settingIsMC": "false",
+        "settingFillMultiplicity": "false",
+        "settingFillPrimariesAndMixedMc": "false",
+        "settingSkimmedProcessing": "false",
+        "settingSkipAmbiTracks": "false",
+        "settingCustomVertexerTimeMargin": "800",
+        "settingDbz": "-999",
+        "settingCcdburl": "http:\/\/alice-ccdb.cern.ch",
+        "settingGrpPath": "GLO\/GRP\/GRP",
+        "settingGrpmagPath": "GLO\/Config\/GRPMagField",
+        "settingLutPath": "GLO\/Param\/MatLUT",
+        "settingGeoPath": "GLO\/Config\/GeometryAligned",
+        "settingPidPath": "",
+        "settingBetheBlochParams": {
+            "labels_rows": [
+                "He3"
+            ],
+            "labels_cols": [
+                "p0",
+                "p1",
+                "p2",
+                "p3",
+                "p4",
+                "resolution"
+            ],
+            "values": [
+                [
+                    "-1.0000000000000001e+32",
+                    "-1.0000000000000001e+32",
+                    "-1.0000000000000001e+32",
+                    "-1.0000000000000001e+32",
+                    "-1.0000000000000001e+32",
+                    "-1.0000000000000001e+32"
+                ]
+            ]
+        },
+        "settingCompensatePIDinTracking": "false",
+        "settingMaterialCorrection": "0",
+        "axisVertex": {
+            "values": [
+                "30",
+                "-10",
+                "10"
+            ]
+        },
+        "axisCentrality": {
+            "values": [
+                "40",
+                "0",
+                "100"
+            ]
+        },
+        "processSameEvent": "false",
+        "processMixedEvent": "false",
+        "processMC": "false",
+        "processPiHe3MC": "false",
+        "processSameEventPools": "false",
+        "processMcPools": "false"
+    },
+    "internal-dpl-aod-writer": "",
+    "internal-dpl-aod-global-analysis-file-sink": "",
+    "internal-dpl-injected-dummy-sink": ""
+}

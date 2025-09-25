@@ -1,6 +1,6 @@
 { "OutputDirector": {
     "debug_mode": true,
-    "resfile": "LHC23zzh_test_correct",
+    "resfile": "mixed_event_test",
     "OutputDescriptors": [
       {
         "table":"AOD/HE3HADTABLE/0"

@@ -1,0 +1,10 @@
+{ "OutputDirector": {
+    "debug_mode": true,
+    "resfile": "mixed_event_test",
+    "OutputDescriptors": [
+      {
+        "table":"AOD/NUCLEITABLERED/0"
+      }
+    ],
+    "ntfmerge": 1
+  } }
