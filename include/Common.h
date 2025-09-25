@@ -21,13 +21,18 @@ using std::vector;
 
 namespace constant
 {
-    float kMassHe = 2.8089; // GeV
-    float kMassPr = 0.938272; // GeV
+    const float kMassHe = 2.8089; // GeV
+    const float kMassPr = 0.938272; // GeV
 
 }
 
 namespace parametrisation
 {
+    std::array<float, 3> kHeDCAxyResolutionParams = {8.214e-3, 1.253, 1.041e-3};
+    std::array<float, 3> kPrDCAxyResolutionParams = {3.755e-3, 7.035e-1, 1.264e-4};
+    std::array<float, 3> kHeDCAzResolutionParams = {6.420e-3, 3.485, 5.118e-3};
+    std::array<float, 3> kPrDCAzResolutionParams = {2.937e-4, 2.322, 5.121e-3};
+
     std::array<float, 5> kHeTpcParams = {-251.9, 0.3223, 1.355, 0.6456, 2.675};
     float kHeTpcResolution = 0.07;
 
@@ -42,6 +47,38 @@ namespace parametrisation
     std::array<float, 2> kHePidTrkParams = {0.1593, -0.0445};
 }
 
+// -------------------------------------------- DCA ----------------------------------------------------
+
+float NsigmaDCAxyHe(const float pt, const float dcaxy) {
+  const float sigma = parametrisation::kHeDCAxyResolutionParams[0] /
+                      std::pow(pt, parametrisation::kHeDCAxyResolutionParams[1]) +
+                      parametrisation::kHeDCAxyResolutionParams[2];
+  return dcaxy / sigma;
+}
+
+float NsigmaDCAxyPr(const float pt, const float dcaxy) {
+  const float sigma = parametrisation::kPrDCAxyResolutionParams[0] /
+                      std::pow(pt, parametrisation::kPrDCAxyResolutionParams[1]) +
+                      parametrisation::kPrDCAxyResolutionParams[2];
+  return dcaxy / sigma;
+}
+
+float NsigmaDCAzHe(const float pt, const float dcaz) {
+  const float sigma = parametrisation::kHeDCAzResolutionParams[0] /
+                      std::pow(pt, parametrisation::kHeDCAzResolutionParams[1]) +
+                      parametrisation::kHeDCAzResolutionParams[2];
+  return dcaz / sigma;
+}
+
+float NsigmaDCAzPr(const float pt, const float dcaz) {
+  const float sigma = parametrisation::kPrDCAzResolutionParams[0] /
+                      std::pow(pt, parametrisation::kPrDCAzResolutionParams[1]) +
+                      parametrisation::kPrDCAzResolutionParams[2];
+  return dcaz / sigma;
+}
+
+// -------------------------------------------- TPC ----------------------------------------------------
+
 double BetheBlochParametrisation(double bg, double kp1, double kp2, double kp3, double kp4, double kp5)
 {
   double beta = bg / std::sqrt(1. + bg * bg);
@@ -51,7 +88,7 @@ double BetheBlochParametrisation(double bg, double kp1, double kp2, double kp3, 
   return (kp2 - aa - bb) * kp1 / aa;
 }
 
-float BetheBlochHe(float momentum)
+float BetheBlochHe(const float momentum)
 {
   float betagamma = std::abs(momentum) / constant::kMassHe;
   return BetheBlochParametrisation(betagamma, parametrisation::kHeTpcParams[0], parametrisation::kHeTpcParams[1],
@@ -59,27 +96,14 @@ float BetheBlochHe(float momentum)
                                    parametrisation::kHeTpcParams[4]);
 }
 
-float NsigmaTpcHe(float momentum, float tpcSignal)
+float NsigmaTpcHe(const float momentum, const float tpcSignal)
 {
   return (tpcSignal / BetheBlochHe(std::abs(momentum)) - 1.) / parametrisation::kHeTpcResolution;
 }
 
-//float DCAxyCut(float pt, float nsigma)
-//{
-//  float invPt = 1.f / pt;
-//  return (7.62783e-04 + 4.59326e-03 * invPt + 6.89163e-03 * invPt * invPt) * nsigma;
-//}
-//float nSigmaDCAxy(double pt, float dcaxy) {
-//  return dcaxy / DCAxyCut(pt, 1);
-//}
-//
-//float DCAzCut(float pt, float nsigma)
-//{
-//  float invPt = 1.f / pt;
-//  return (5.00000e-04 + 8.73690e-03 * invPt + 9.62329e-04 * invPt * invPt) * nsigma;
-//}
+// -------------------------------------------- ITS ----------------------------------------------------
 
-float averageClusterSize(uint32_t itsClusterSizes)
+float averageClusterSize(const uint32_t itsClusterSizes, const bool useTruncatedMean = true)
 {
   float sum = 0;
   int nclusters = 0;
@@ -94,59 +118,69 @@ float averageClusterSize(uint32_t itsClusterSizes)
       }
     }
   }
+  
   if (nclusters == 0) {
     return 0;
   }
-  // truncated mean
-  return (sum - max) / (nclusters - 1);
+  
+  if (useTruncatedMean && nclusters > 1) {
+    return (sum - max) / (nclusters - 1);
+  }
+  return sum / nclusters;
 };
 
-float ExpectedClusterSizeCosLambdaHe(float momentum)
+float ExpectedClusterSizeCosLambdaHe(const float momentum)
 {
-    float betagamma = std::abs(momentum) / constant::kMassHe;
+    const float betagamma = std::abs(momentum) / constant::kMassHe;
     return parametrisation::kHeITSParams[0] / std::pow(betagamma, parametrisation::kHeITSParams[1]) +
            parametrisation::kHeITSParams[2];
 }
 
-float NsigmaITSHe(float momentum, float averageClusterSizeCosLambda)
+float NsigmaITSHe(const float momentum, const float averageClusterSizeCosLambda)
 {
-    float betagamma = std::abs(momentum) / constant::kMassHe;
-    float expected = ExpectedClusterSizeCosLambdaHe(momentum);
-    float resolution = parametrisation::kHeITSResolutionParams[0] * 
+    const float betagamma = std::abs(momentum) / constant::kMassHe;
+    const float expected = ExpectedClusterSizeCosLambdaHe(momentum);
+    const float resolution = parametrisation::kHeITSResolutionParams[0] * 
                   TMath::Erf((betagamma - parametrisation::kHeITSResolutionParams[1]) / parametrisation::kHeITSResolutionParams[2]);
     return (averageClusterSizeCosLambda - expected) / (resolution * expected);
 }
 
-float ExpectedClusterSizeCosLambdaPr(float momentum)
+float ExpectedClusterSizeCosLambdaPr(const float momentum)
 {
-    float betagamma = std::abs(momentum) / constant::kMassPr;
+    const float betagamma = std::abs(momentum) / constant::kMassPr;
     return parametrisation::kPrITSParams[0] / std::pow(betagamma, parametrisation::kPrITSParams[1]) +
            parametrisation::kPrITSParams[2];
 }
 
-float NsigmaITSPr(float momentum, float averageClusterSizeCosLambda)
+float NsigmaITSPr(const float momentum, const float averageClusterSizeCosLambda)
 {
-    float betagamma = std::abs(momentum) / constant::kMassPr;
-    float expected = ExpectedClusterSizeCosLambdaPr(momentum);
-    float resolution = parametrisation::kPrITSResolutionParams[0] *
+    const float betagamma = std::abs(momentum) / constant::kMassPr;
+    const float expected = ExpectedClusterSizeCosLambdaPr(momentum);
+    const float resolution = parametrisation::kPrITSResolutionParams[0] *
                   TMath::Erf((betagamma - parametrisation::kPrITSResolutionParams[1]) / parametrisation::kPrITSResolutionParams[2]);
     return (averageClusterSizeCosLambda - expected) / (resolution * expected);
 }
 
-float NsigmaTOFPr(float momentum, float tofMass)
+// -------------------------------------------- TOF ----------------------------------------------------
+
+float NsigmaTOFPr(const float momentum, const float tofMass)
 {
-  float expected = constant::kMassPr;
-  float resolution = parametrisation::kPrTofResolutionParams[0] * std::exp(std::abs(momentum) + parametrisation::kPrTofResolutionParams[1]);
+  const float expected = constant::kMassPr;
+  const float resolution = parametrisation::kPrTofResolutionParams[0] * std::exp(std::abs(momentum) + parametrisation::kPrTofResolutionParams[1]);
   return (tofMass - expected) / (resolution * expected);
 }
 
-float CorrectPidTrkHe(float momentum)
+// -------------------------------------- PID in Tracking ----------------------------------------------
+
+float CorrectPidTrkHe(const float momentum)
 {
     return momentum * (1. - parametrisation::kHePidTrkParams[0] -
            parametrisation::kHePidTrkParams[1] * momentum);
 }
 
-float Kstar(double pt1, double eta1, double phi1, double m1, double pt2, double eta2, double phi2, double m2)
+// ------------------------------------------- Femto ---------------------------------------------------
+
+float Kstar(const double pt1, const double eta1, const double phi1, const double m1, const double pt2, const double eta2, const double phi2, const double m2)
 {
     using namespace ROOT::Math;
 
@@ -164,12 +198,7 @@ float Kstar(double pt1, double eta1, double phi1, double m1, double pt2, double 
     auto p2mu_star = P_boost(p2mu_to_boost);
 
     PtEtaPhiMVector kmu_star = p1mu_star - p2mu_star;
-    double kstar = 0.5 * kmu_star.P();
+    const double kstar = 0.5 * kmu_star.P();
 
     return kstar;
 }
-
-
-//float nSigmaDCAz(double pt, float dcaz) {
-//  return dcaz / DCAzCut(pt, 1);
-//}
