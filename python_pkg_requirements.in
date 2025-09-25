@@ -16,3 +16,4 @@ shap
 torch
 torchic
 boost-histogram
+uncertainties
