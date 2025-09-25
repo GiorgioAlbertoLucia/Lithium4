@@ -1,8 +1,10 @@
 # Same event
 input_data:   [ 
-                'input/LHC23_PbPb_pass4_long_same_lsus_merged.root',
-                'input/LHC24ar_pass1_same_merged.root',
-                'input/LHC24as_pass1_same_merged.root'
+                #'input/LHC23_PbPb_pass4_long_same_lsus_merged.root',
+                #'input/LHC24ar_pass1_same_merged.root',
+                #'input/LHC24as_pass1_same_merged.root'
+                '/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass5_same_small.root',
+                '/data/galucia/lithium_local/same_merged/LHC24ar_pass2_same_small.root',
               ]
 tree_name:    'O2he3hadtable'
 mode:         'DF'
@@ -25,19 +27,22 @@ output_file:  'output/same_event.root'
 #mode:         'DF'
 #output_file:  'output/mc.root'
 
-selections:     ['((fDeltaPhi/0.006)*(fDeltaPhi/0.006) + (fDeltaEta/0.012)*(fDeltaEta/0.012) > 1)',
+selections:     [
+                # quality cuts
+                 '((fDeltaPhi/0.006)*(fDeltaPhi/0.006) + (fDeltaEta/0.012)*(fDeltaEta/0.012) > 1)',
+                 '((fChi2TPCHe3 > 0.5) && (fChi2TPCHe3 < 4))',
+                 '((fChi2TPCHad > 0.5) && (fChi2TPCHad < 4))',
                  '(std::abs(fEtaHe3) < 0.9)',
+                 '(std::abs(fEtaHad) < 0.9)',
+                 
                  '((fPtHe3 < 2.5) || (fPIDtrkHe3 == 7))',
                  '((fPIDtrkHe3 == 6) || (fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8))',
-                 '((0.5 < fChi2TPCHe3) && (fChi2TPCHe3 < 4))',
                  '((-1.5 < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 2.5))',
                  '(std::abs(fDCAxyHe3) < 0.1)',
                  '(std::abs(fDCAzHe3) < 1.0)',
                  '(fClusterSizeCosLamHe3 > 4)',
                  '(fNSigmaITSHe3 > -1.5)',
 
-                 '(std::abs(fEtaHad) < 0.9)',
-                 '((0.5 < fChi2TPCHad) && (fChi2TPCHad < 4))',
                  '(std::abs(fNSigmaTPCHad) < 2)',
                  '((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2))',
                  '(fNSigmaITSHad > -1.5)',
