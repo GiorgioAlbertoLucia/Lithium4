@@ -9,10 +9,12 @@ import uproot
 
 if __name__ == '__main__':
 
+    #infile = '/data/galucia/lithium_local/same/LHC24ar_pass2_same_small.root'
     infile = '/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same_small.root'
     table_names = ['O2he3hadtable', 'O2he3hadmult'] #, 'O2he3hadtablemc']
     base = 'DF'
 
+    #outfile = uproot.recreate('/data/galucia/lithium_local/same_merged/LHC24ar_pass2_same_small.root')
     outfile = uproot.recreate('/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass5_same_small.root')
 
     f = uproot.open(infile)
@@ -33,5 +35,6 @@ if __name__ == '__main__':
             dfs.append(uproot.open(table_path).arrays(library='pd'))
 
         df = pd.concat(dfs, axis=1)
+        df['fIs23'] = True if 'LHC23' in infile else False
         folder_clean = folder.split(';')[0]  # Clean folder name
         outfile[f'{folder_clean}/{table_names[0]}'] = df

@@ -1,7 +1,7 @@
 import sys
 import yaml
 import ROOT
-from ROOT import TFile, TChain
+from ROOT import TFile, TChain, gInterpreter
 
 from torchic.utils.terminal_colors import TerminalColors as tc
 
@@ -11,7 +11,7 @@ from utils.histogram_registry import HistogramRegistry
 from utils.histogram_archive import register_qa_histograms, register_kstar_histograms, register_kstar_matter_histograms, \
     register_kstar_antimatter_histograms
 
-ROOT.gROOT.LoadMacro('../include/Common.h++')
+gInterpreter.ProcessLine(f'#include "../include/Common.h"')
 from ROOT import NsigmaTpcHe, NsigmaITSHe, NsigmaITSPr, NsigmaTOFPr, averageClusterSize, CorrectPidTrkHe, \
   Kstar, ExpectedClusterSizeCosLambdaHe, ExpectedClusterSizeCosLambdaPr
 

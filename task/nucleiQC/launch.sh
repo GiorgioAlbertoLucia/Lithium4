@@ -19,17 +19,15 @@ OUTPUT_DIR="OutputDirector.json"
 o2-analysis-lf-nucleiqc $CONF |
     
     #o2-analysis-mc-converter $CONF|
-    #o2-analysis-mccollision-converter $CONF|
+    o2-analysis-mccollision-converter $CONF|
     #o2-analysis-run2bcinfos-converter $CONF |
 
     o2-analysis-propagationservice $CONF |
     o2-analysis-tracks-extra-v002-converter $CONF |
     o2-analysis-event-selection-service $CONF |
-    #o2-analysis-pid-tof-merge $CONF |
+    o2-analysis-pid-tof-merge $CONF |
     o2-analysis-pid-tpc-service $CONF |
-    #o2-analysis-multcenttable $CONF |
-    o2-analysis-multiplicity-table $CONF |
-    #o2-analysis-centrality-table $CONF |
+    o2-analysis-multcenttable $CONF |
     o2-analysis-ft0-corrected-table $CONF --aod-writer-json $OUTPUT_DIR --aod-file @input_data.txt > $LOGFILE
 
 # report the status of the workflow

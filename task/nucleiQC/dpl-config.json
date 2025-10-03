@@ -12,6 +12,7 @@
     },
     "internal-dpl-aod-spawner": "",
     "internal-dpl-aod-index-builder": "",
+    "mc-collision-converter": "",
     "tracks-extra-v002-converter": {
         "processV000ToV002": "false",
         "processV001ToV002": "true"
@@ -123,15 +124,15 @@
         "processTracksMCIU": "true"
     },
     "ft0-corrected-table": {
-        "resoFT0A": "20",
-        "resoFT0C": "20",
+        "resoFT0A": "5.6500001",
+        "resoFT0C": "5.6500001",
         "addHistograms": "false",
         "collisionSystem": "-2",
         "ccdb-url": "http:\/\/alice-ccdb.cern.ch",
         "ccdb-path-grplhcif": "GLO\/Config\/GRPLHCIF",
         "ccdb-timestamp": "-1",
-        "processStandard": "true",
-        "processWithBypassFT0timeInMC": "false"
+        "processStandard": "false",
+        "processWithBypassFT0timeInMC": "true"
     },
     "propagation-service": {
         "ccdburl": "http:\/\/alice-ccdb.cern.ch",
@@ -534,12 +535,11 @@
         "processRealDataWithPID": "false",
         "processMonteCarloWithPID": "true"
     },
-    "multiplicity-table": {
-        "doVertexZeq": "1",
-        "fractionOfEvents": "2",
+    "mult-cent-table": {
         "enabledTables": {
             "labels_rows": [
                 "FV0Mults",
+                "FV0AOuterMults",
                 "FT0Mults",
                 "FDDMults",
                 "ZDCMults",
@@ -552,12 +552,107 @@
                 "FT0MultZeqs",
                 "FDDMultZeqs",
                 "PVMultZeqs",
-                "MultMCExtras"
+                "GlobalMultZeqs",
+                "MFTMultZeqs",
+                "MultMCExtras",
+                "Mult2MCExtras",
+                "MFTMults",
+                "MultsGlobal",
+                "CentRun2V0Ms",
+                "CentRun2V0As",
+                "CentRun2SPDTrks",
+                "CentRun2SPDClss",
+                "CentRun2CL0s",
+                "CentRun2CL1s",
+                "CentFV0As",
+                "CentFT0Ms",
+                "CentFT0As",
+                "CentFT0Cs",
+                "CentFT0CVariant1s",
+                "CentFDDMs",
+                "CentNTPVs",
+                "CentNGlobals",
+                "CentMFTs",
+                "BCCentFT0Ms",
+                "BCCentFT0As",
+                "BCCentFT0Cs"
             ],
             "labels_cols": [
-                "Enable"
+                "enable"
             ],
             "values": [
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
+                [
+                    "-1"
+                ],
                 [
                     "-1"
                 ],
@@ -602,25 +697,124 @@
                 ]
             ]
         },
-        "ccdburl": "http:\/\/alice-ccdb.cern.ch",
-        "ccdbPath": "Centrality\/Calibration",
-        "reconstructionPass": "",
-        "produceHistograms": "false",
-        "autoSetupFromMetadata": "true",
+        "autoConfigureProcess": "false",
+        "doVertexZeq": "1",
         "minPtGlobalTrack": "0.150000006",
         "maxPtGlobalTrack": "1e+10",
         "minNclsITSGlobalTrack": "5",
         "minNclsITSibGlobalTrack": "1",
+        "ccdbPathVtxZ": "Centrality\/Calibration",
+        "ccdbPathCentrality": "Centrality\/Estimators",
+        "reconstructionPass": "",
+        "generatorName": "PYTHIA",
+        "embedINELgtZEROselection": "false",
+        "ccdburl": "http:\/\/alice-ccdb.cern.ch",
         "processRun2": "false",
         "processRun3": "true",
-        "processGlobalTrackingCounters": "false",
-        "processMC": "true",
-        "processMC2Mults": "false",
-        "processHepMCHeavyIons": "false",
-        "processRun3MFT": "false"
+        "processRun3WithGlobalCounters": "false",
+        "processMFT": "false",
+        "processMonteCarlo": "true",
+        "processMonteCarlo2Mults": "true",
+        "processCentralityRun2": "false",
+        "processCentralityRun3": "true"
+    },
+    "tof-signal": {
+        "enableQaHistograms": "false",
+        "ccdb-url": "http:\/\/alice-ccdb.cern.ch",
+        "ccdb-path-grplhcif": "GLO\/Config\/GRPLHCIF",
+        "ccdb-timestamp": "-1",
+        "timeShiftCCDBPathPos": "Analysis\/PID\/TOFOffsetPos",
+        "timeShiftCCDBPathNeg": "Analysis\/PID\/TOFOffsetPos",
+        "timeShiftCCDBPathPosMC": "",
+        "timeShiftCCDBPathNegMC": "",
+        "paramFileName": "",
+        "parametrizationPath": "TOF\/Calib\/Params",
+        "reconstructionPass": "metadata",
+        "reconstructionPassDefault": "unanchored",
+        "fatalOnPassNotAvailable": "false",
+        "enableTimeDependentResponse": "true",
+        "collisionSystem": "-1",
+        "autoSetProcessFunctions": "true",
+        "processRun3": "true",
+        "processRun2": "false"
+    },
+    "tof-event-time": {
+        "minMomentum": "0.5",
+        "maxMomentum": "2",
+        "maxEvTimeTOF": "100000",
+        "sel8TOFEvTime": "false",
+        "computeEvTimeWithTOF": "1",
+        "computeEvTimeWithFT0": "1",
+        "maxNtracksInSet": "10",
+        "processRun2": "false",
+        "processRun3": "true"
+    },
+    "tof-pid-merge": {
+        "enableQaHistograms": "false",
+        "enableTOFParamsForBetaMass": "false",
+        "enableParticle": {
+            "labels_rows": [
+                "El",
+                "Mu",
+                "Pi",
+                "Ka",
+                "Pr",
+                "De",
+                "Tr",
+                "He",
+                "Al"
+            ],
+            "labels_cols": [
+                "Enable",
+                "EnableFull"
+            ],
+            "values": [
+                [
+                    "-1",
+                    "-1"
+                ],
+                [
+                    "-1",
+                    "-1"
+                ],
+                [
+                    "-1",
+                    "-1"
+                ],
+                [
+                    "-1",
+                    "-1"
+                ],
+                [
+                    "-1",
+                    "-1"
+                ],
+                [
+                    "-1",
+                    "-1"
+                ],
+                [
+                    "-1",
+                    "-1"
+                ],
+                [
+                    "-1",
+                    "-1"
+                ],
+                [
+                    "-1",
+                    "-1"
+                ]
+            ]
+        },
+        "processRun3": "true",
+        "processRun2": "false",
+        "processRun2BetaM": "false",
+        "processRun3BetaM": "true"
     },
     "nuclei-q-c": {
         "cfgFillTable": "true",
+        "cfgDoCheckPdgCode": "true",
         "cfgSpeciesToProcess": {
             "labels_rows": [
                 "proton",
@@ -629,12 +823,9 @@
                 "He3",
                 "alpha"
             ],
-            "labels_cols": [
-                "processNucleus"
-            ],
             "values": [
                 [
-                    "0"
+                    "1"
                 ],
                 [
                     "0"
@@ -643,7 +834,7 @@
                     "0"
                 ],
                 [
-                    "0"
+                    "1"
                 ],
                 [
                     "0"
@@ -672,22 +863,22 @@
                     "1"
                 ],
                 [
-                    "0"
+                    "1"
+                ],
+                [
+                    "1"
+                ],
+                [
+                    "1"
+                ],
+                [
+                    "1"
                 ],
                 [
                     "0"
                 ],
                 [
-                    "0"
-                ],
-                [
-                    "0"
-                ],
-                [
-                    "0"
-                ],
-                [
-                    "0"
+                    "1"
                 ]
             ]
         },
@@ -734,12 +925,12 @@
                     "0.089999999999999997"
                 ],
                 [
-                    "-321.33999999999997",
-                    "0.65390000000000004",
-                    "1.591",
-                    "0.82250000000000001",
-                    "2.363",
-                    "0.089999999999999997"
+                    "-114.38",
+                    "1.8131",
+                    "30.871",
+                    "2.0802",
+                    "2.6461",
+                    "0.09"
                 ],
                 [
                     "-586.65999999999997",
@@ -760,11 +951,11 @@
                 "alpha"
             ],
             "labels_cols": [
-                "UseCentralTpcCalibration"
+                "UseCentralTpcSelection"
             ],
             "values": [
                 [
-                    "1"
+                    "0"
                 ],
                 [
                     "1"
@@ -773,7 +964,7 @@
                     "1"
                 ],
                 [
-                    "1"
+                    "0"
                 ],
                 [
                     "1"
@@ -782,7 +973,7 @@
         },
         "cfgRapidityMin": "-1",
         "cfgRapidityMax": "1",
-        "cfgRapidityCenterMass": "0",
+        "cfgRapidityCenterMass": "-1",
         "cfgCutVertex": "10",
         "cfgCutEta": "0.800000012",
         "cfgCutTpcMom": "0.200000003",
@@ -858,7 +1049,9 @@
                 ]
             ]
         },
-        "processMc": "false"
+        "cfgMaterialCorrection": "2",
+        "ccdb-url": "http:\/\/alice-ccdb.cern.ch",
+        "processMc": "true"
     },
     "internal-dpl-aod-writer": "",
     "internal-dpl-aod-global-analysis-file-sink": "",
