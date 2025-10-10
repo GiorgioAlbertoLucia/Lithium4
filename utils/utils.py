@@ -120,9 +120,10 @@ def calibration_fit_slice(model, hist: TH1F, x: RooRealVar, signal_pars, pt_low_
     model.plotOn(frame, LineColor=2)
     model.paramOn(frame)
     for icomp, component in enumerate(model.getComponents(), start=3):
-        component.plotOn(frame, LineColor=icomp, LineStyle='--')
+        #component.plotOn(frame, LineColor=icomp, LineStyle='--')
+        model.plotOn(frame, Components={component}, LineColor=icomp, LineStyle='--')
 
-    mean_err = signal_pars['sigma'].getVal() / np.sqrt(hist.Integral())
+    mean_err = signal_pars['sigma'].getVal() / np.sqrt(hist.Integral()) if hist.Integral() > 0 else 0.
     resolution = signal_pars['sigma'].getVal() / signal_pars['mean'].getVal()
     resolution_error = resolution * np.sqrt((mean_err / signal_pars['mean'].getVal())**2 + (signal_pars['sigma'].getError() / signal_pars['sigma'].getVal())**2)
     fit_results = {
