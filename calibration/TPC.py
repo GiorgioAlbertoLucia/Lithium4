@@ -100,7 +100,7 @@ def fit_parametrisation(fit_results: pd.DataFrame, sign: str, outfile: TFile):
     g_mean = create_graph(fit_results, 'bg', 'mean', 'bg_err', 'mean_err', 
                             f'g_mean_{sign}', ';#beta#gamma;#LT #rm{d}E/#rm{d}x #GT (GeV/#it{c}^{2})')
     
-    betagamma_min, betagamma_max = 0.8, 3.8
+    betagamma_min, betagamma_max = 0.6, 3.8
     f_mean = TF1('f_mean', BetheBloch, betagamma_min, betagamma_max, 5)
     f_mean.SetParameters(-241.4902, 0.374245, 1.397847, 1.0782504, 2.048336)
     g_mean.Fit(f_mean, 'RMS+')
@@ -123,7 +123,7 @@ def fit_parametrisation(fit_results: pd.DataFrame, sign: str, outfile: TFile):
 def TPC_calibration(dataset: Dataset, outfile:TFile, column_names:dict=DATASET_COLUMN_NAMES):
 
     axis_spec_betagamma = AxisSpec(160, -8, 8, 'beta_gamma', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)')
-    axis_spec_tpcsignal = AxisSpec(100, 0, 1200, 'tpc_signal', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)')
+    axis_spec_tpcsignal = AxisSpec(200, 0, 1200, 'tpc_signal', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)')
     h2_tpc = dataset.build_th2('fBetaGamma', column_names['TpcSignal'], axis_spec_betagamma, axis_spec_tpcsignal)
     
     tpc_signal = RooRealVar('fSignalTPC', 'd#it{E}/d#it{x} (a.u.)', 0., 1200.)
@@ -227,13 +227,17 @@ def visualize_distributions_and_fit(dataset: Dataset, outfile: TFile, fit_params
 
 if __name__ == '__main__':
 
-    
-    infile_path = '/data/galucia/lithium_local/MC/LHC25a4_with_primaries_and_mixed.root'
+    #infile_path = '/data/galucia/lithium_local/MC/LHC25a4_with_primaries_and_mixed.root',
+    infile_path = ['/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root',
+                   '/data/galucia/lithium_local/same/LHC24_PbPb_pass2_same.root',]
     folder_name = 'DF*'
     tree_name = 'O2he3hadtable'
     column_names = {key: value for key, value in DATASET_COLUMN_NAMES.items()}
     dataset = Dataset.from_root(infile_path, tree_name, folder_name, columns=[col for col in column_names.values()])
 
+    ITSclusterSize, __ = average_cluster_size(dataset['fItsClusterSizeHe3'])
+    dataset['fClusterSizeCosLamHe3'] = ITSclusterSize / np.cosh(dataset['fEtaHe3'].values)
+    dataset.query('fClusterSizeCosLamHe3 > 4.5', inplace=True)
     dataset.query(f'{column_names["PIDinTrk"]} == 7', inplace=True)     # He3
     dataset.query(f'0.5 < {column_names["Chi2TPC"]} < 4', inplace=True)
     dataset[column_names['P']] = dataset[column_names['P']] * 2         # rigidity * charge
@@ -243,7 +247,7 @@ if __name__ == '__main__':
     
     define_variables(dataset, DATASET_COLUMN_NAMES=DATASET_COLUMN_NAMES)
     #standard_selections(dataset, particle='He', DATASET_COLUMN_NAMES=DATASET_COLUMN_NAMES)
-    outfile = TFile('output/TPC_he_mc.root', 'recreate')
+    outfile = TFile('output/TPC_he.root', 'recreate')
 
     fit_params, resolution = TPC_calibration(dataset, outfile, column_names)
     visualize_distributions_and_fit(dataset, outfile, fit_params, resolution, column_names)

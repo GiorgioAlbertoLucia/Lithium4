@@ -16,46 +16,51 @@ CONFIG = {
     'He3': {
         'xy': {
             'axis_title': 'DCA_{#it{xy}} (cm)',
-            'x_min_fit': -5.0,
-            'x_max_fit': .0,
+            'x_min_fit': -4.5,
+            'x_max_fit': -1.5,
             'x_max_bkg': 1.5,
-            'y_min': -0.3,
-            'y_max': 0.3,
+            'y_nbins': 150,
+            'y_min': -0.15,
+            'y_max': 0.15,
         },
         'z': {
             'axis_title': 'DCA_{#it{z}} (cm)',
-            'x_min_fit': -5.0,
-            'x_max_fit': .0,
+            'x_min_fit': -4.5,
+            'x_max_fit': -1.5,
             'x_max_bkg': 1.5,
-            'y_min': -1,
-            'y_max': 1,
+            'y_min': -0.3,
+            'y_max': 0.3,
+            'y_nbins': 150
         }
     },
     'Had': {
         'xy': {
             'axis_title': 'DCA_{#it{xy}} (cm)',
-            'x_min_fit': -5.0,
-            'x_max_fit': .0,
+            'x_min_fit': -4.5,
+            'x_max_fit': -1.5,
             'x_max_bkg': 1.5,
-            'y_min': -0.3,
-            'y_max': 0.3,
+            'y_nbins': 150,
+            'y_min': -0.15,
+            'y_max': 0.15,
         },
         'z': {
             'axis_title': 'DCA_{#it{z}} (cm)',
             'x_min_fit': -5.0,
-            'x_max_fit': .0,
+            'x_max_fit': -1.5,
             'x_max_bkg': 1.5,
-            'y_min': -1,
-            'y_max': 1,
+            'y_min': -0.3,
+            'y_max': 0.3,
+            'y_nbins': 150
         }
     }
 }
 
 def visualise(dataset:Dataset, outfile:TDirectory, particle:str = 'He3', is_mc:bool = True):
 
+    cfg = CONFIG[particle]
     axis_spec_pt = AxisSpec(100, -5, 5, 'pt', '')
-    axis_spec_dcaxy = AxisSpec(240, -0.3, 0.3, 'DCAxy', ';#it{p}_{T};DCA_{xy} (cm)')
-    axis_spec_dcaz = AxisSpec(200, -1, 1, 'DCAz', ';#it{p}_{T};DCA_{z} (cm)')
+    axis_spec_dcaxy = AxisSpec(cfg['xy']['y_nbins'], cfg['xy']['y_min'], cfg['xy']['y_max'], 'DCAxy', ';#it{p}_{T};DCA_{xy} (cm)')
+    axis_spec_dcaz = AxisSpec(cfg['z']['y_nbins'], cfg['z']['y_min'], cfg['z']['y_max'], 'DCAz', ';#it{p}_{T};DCA_{z} (cm)')
 
     h2_dcaxy_pt = dataset.build_th2(f'fPt{particle}', f'fDCAxy{particle}', axis_spec_pt, axis_spec_dcaxy, name='h2DCAxyPt', title=';#it{p}_{T} (GeV/#it{c});DCA_{xy} (cm)')
     h2_dcaz_pt = dataset.build_th2(f'fPt{particle}', f'fDCAz{particle}', axis_spec_pt, axis_spec_dcaz, name='h2DCAzPt', title=';#it{p}_{T} (GeV/#it{c});DCA_{z} (cm)')
@@ -176,8 +181,8 @@ def visualize_fit_results(fit_results_df, particle, particle_dir, x:str):
 
     g_sigma = create_graph(fit_results_df, 'x', 'sigma', 'x_error', 'sigma_err', 
                                 f'g_sigma', f'{particle};#it{{p}}_{{T}} (GeV/#it{{c}});#sigma {CONFIG[particle][x]["axis_title"]}')
-    f_sigma = TF1('f_sigma', '[0]/(abs(x)^[1]) + [2]', x_min, x_max)
-    f_sigma.SetParameters(0.1, 1e3, 0.001)
+    f_sigma = TF1('f_sigma', '[0]*exp(-abs(x)*[1]) + [2]', x_min, x_max)
+    f_sigma.SetParameters(0.005, 0.5, 0.0025)
     f_sigma.SetParLimits(2, 0., 8e-3)
     g_sigma.Fit(f_sigma, 'RMS+')
     c_sigma = TCanvas('c_sigma', 'c_sigma', 800, 600)
@@ -310,8 +315,8 @@ def main_data():
     #input_files = ['/data/galucia/lithium_local/same/LHC23_PbPb_pass4_long_same_lsus.root',
     #               '/data/galucia/lithium_local/same/LHC24ar_pass1_same.root',
     #               '/data/galucia/lithium_local/same/LHC24as_pass1_same.root',]
-    input_files = ['/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same_small.root',
-                   '/data/galucia/lithium_local/same/LHC24ar_pass2_same_small.root',
+    input_files = ['/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root',
+                   '/data/galucia/lithium_local/same/LHC24_PbPb_pass2_same.root',
                    #'/data/galucia/lithium_local/same/LHC24as_pass1_same.root',
                    ]
     tree_names = ['O2he3hadtable'
