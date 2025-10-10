@@ -713,7 +713,7 @@
         },
         "cfgRapidityMin": "-1",
         "cfgRapidityMax": "1",
-        "cfgRapidityCenterMass": "-1",
+        "cfgRapidityCenterMass": "0",
         "cfgCutVertex": "10",
         "cfgCutEta": "0.8",
         "cfgCutTpcMom": "0.2",

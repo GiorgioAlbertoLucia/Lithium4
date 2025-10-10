@@ -117,7 +117,8 @@
             "useNetworkTr": "0",
             "useNetworkHe": "0",
             "useNetworkAl": "0",
-            "networkBetaGammaCutoff": "0.449999988"
+            "networkBetaGammaCutoff": "0.449999988",
+            "irSource": "ZNC hadronic"
         },
         "processTracksIU": "false",
         "processTracksIUWithTracksQA": "false",
@@ -973,7 +974,7 @@
         },
         "cfgRapidityMin": "-1",
         "cfgRapidityMax": "1",
-        "cfgRapidityCenterMass": "-1",
+        "cfgRapidityCenterMass": "0",
         "cfgCutVertex": "10",
         "cfgCutEta": "0.800000012",
         "cfgCutTpcMom": "0.200000003",
