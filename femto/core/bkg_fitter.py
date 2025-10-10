@@ -1,15 +1,22 @@
-from ROOT import TFile, \
-                 RooRealVar, RooCrystalBall, RooFit
+from ROOT import TFile, TCanvas, TH1F, \
+                 RooRealVar, RooCrystalBall, RooFit, RooHistPdf, RooDataHist, RooWorkspace, RooExtendPdf
 from torchic import AxisSpec
-from fitter import Fitter
-from utils import write_params_to_text
+
+
+import sys
+sys.path.append('/home/galucia/Lithium4/femto')
+from core.fitter import Fitter
+from core.utils import write_params_to_text
 
 class BkgFitter(Fitter):
 
-    def __init__(self, name, xvar_spec: AxisSpec, outfile:TFile):
-        super().self.__init__(name, xvar_spec, outfile)
-        self._bkg_pars = None
-        self._singal_pdf = None
+    def __init__(self, name, xvar_spec: AxisSpec, outfile:TFile, workspace:RooWorkspace = None):
+        super().__init__(name, xvar_spec, outfile, workspace)
+        self._bkg_pars = {}
+        self._bkg_pdf = None
+
+        self._bkg_datahist = None
+        self._bkg_normalisation = None
 
         self._outdir = self._outfile.mkdir('bkg')
 
@@ -18,41 +25,100 @@ class BkgFitter(Fitter):
         return self._bkg_pars
     
     @property
+    def bkg_normalisation(self):
+        return self._bkg_normalisation
+    
+    @property
     def bkg_pdf(self):
         return self._bkg_pdf
 
-    def init_bkg(self, name:str='bkg_pdf'):
+    def _init_bkg_from_mc(self, h_bkg, name:str='bkg_pdf', extended:bool=False):
         
-        self._bkg_pars = {
-            'mean': RooRealVar('sig_mean', '#mu', 0.081, 0.06, 0.1, 'GeV/c'),
-            'sigma': RooRealVar('sig_sigma', '#sigma', 0.01, 0.001, 0.1, 'GeV/c'),
-            'aL': RooRealVar('sig_aL', 'a_{L}', 1.3, 0.1, 10.),
-            'nL': RooRealVar('sig_nL', 'n_{L}', 2.7, 0.1, 10.),
-            'aR': RooRealVar('sig_aR', 'a_{R}', 1.1, 0.1, 10.),
-            'nR': RooRealVar('sig_nR', 'n_{R}', 5.7, 0.1, 10.),
-        }
-        self._bkg_pdf = RooCrystalBall(name, name, *self._bkg_pars.values())
-
-    def fit_bkg(self, range_limits:tuple):
-
         xvar = self._roo_workspace.obj(self._xvar_name)
-        datahist = self._roo_workspace.get(self._roo_data_hist_name)
-        self._bkg_pdf.fitTo(datahist, RooFit.Save(), 
-                              RooFit.Range(range_limits[0], range_limits[1]), SumW2Error=True, Extended=True)
+        self._bkg_datahist = RooDataHist('bkg_dh', 'bkg_dh', [xvar], Import=h_bkg)
+
+        bkg_pdf = RooHistPdf('tmp', 'tmp', [xvar], self._bkg_datahist)
+
+        self._bkg_normalisation = RooRealVar('bkg_normalisation', '#it{N}_{bkg}', 1., 0, 1e4)
+        
+        if extended:
+            self._bkg_pdf = RooExtendPdf(name, name, bkg_pdf, self._bkg_normalisation)
+        else:
+            self._bkg_pdf = RooHistPdf(name, name, [xvar], self._bkg_datahist)
+
+
+        frame = xvar.frame()
+        self._bkg_datahist.plotOn(frame)
+        self._bkg_pdf.plotOn(frame)
+
+        self._outdir.cd()
+        canvas = TCanvas('bkg_pdf')
+        frame.Draw()
+        canvas.Write()
+
+        del canvas
+        
+    def init_bkg(self, mode:str, *args, **kwargs):
+
+        if mode == 'from_mc':   self._init_bkg_from_mc(*args, **kwargs)
+        else:                   raise ValueError('Only supported modes are "from_mc"')
+        
+        
+    def fit_bkg(self, hist:TH1F, range_limits:tuple=None, range_name:str=None, use_chi2_method:bool=True, save_normalisation_value=True):
+        
+        xvar = self._roo_workspace.obj(self._xvar_name)
+        old_limits = (xvar.getMin(), xvar.getMax())
+        range_limits = range_limits if range_limits is not None else old_limits
+
+        if range_limits is not None:
+            xvar.setRange(range_limits[0], range_limits[1])
+            if range_name is not None and range_limits is not None:
+                xvar.setRange(range_name, range_limits[0], range_limits[1])
+
+        fit_options = [RooFit.Save()] #, RooFit.Extended(True)]
+        if range_name is not None:
+            #fit_options.append(RooFit.NormRange(range_name))
+            fit_options.append(RooFit.Range(range_name))
+        #if range_limits is not None:
+        #    fit_options.append(RooFit.Range(range_limits[0], range_limits[1]))
+
+        datahist = RooDataHist(hist.GetName()+'_datahist', hist.GetName()+'_datahist', [xvar], Import=hist)
+        if use_chi2_method:
+            self._bkg_pdf.chi2FitTo(datahist, *fit_options)
+        else:
+            self._bkg_pdf.fitTo(datahist, *fit_options)
+
+        xvar.setRange("full", range_limits[0], range_limits[1])
+        integral_full = self._bkg_pdf.createIntegral([xvar], Range="full").getVal()
+        if save_normalisation_value:
+            self._bkg_normalisation.setVal(integral_full)
+
         frame = xvar.frame()
         datahist.plotOn(frame)
         self._bkg_pdf.plotOn(frame)
 
-        text = write_params_to_text(self.sig_params.values(), coordinates=(0.7, 0.3, 0.9, 0.5))
+        text = write_params_to_text(self._bkg_pars.values(), coordinates=(0.7, 0.3, 0.85, 0.5))
+        text.AddText(f'{self._bkg_normalisation.GetTitle()} = {self._bkg_normalisation.getVal():.2f} #pm {self._bkg_normalisation.getError():.2f}')
+        text.AddText(f'#chi^{{2}} / ndf = {frame.chiSquare():.2f}')
         frame.addObject(text)
 
         self._outdir.cd()
-        frame.Write(f'fit_bkg')
+        canvas = TCanvas('fit_bkg')
+        frame.Draw()
+        canvas.Write()
+
+        xvar.setRange(old_limits[0], old_limits[1])
+
+        del datahist, canvas
 
     def save_to_workspace(self):
 
         getattr(self._roo_workspace, 'import')(self._bkg_pdf)
         for param in self._bkg_pars.values():
             getattr(self._roo_workspace, 'import')(param)
+        if self._bkg_datahist is not None:
+            getattr(self._roo_workspace, 'import')(self._bkg_datahist)
+        if self._bkg_normalisation is not None:
+            getattr(self._roo_workspace, 'import')(self._bkg_normalisation)
 
     

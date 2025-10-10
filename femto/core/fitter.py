@@ -6,15 +6,27 @@ from torchic import AxisSpec
 
 class Fitter(ABC):
 
-    def __init__(self, name, xvar_spec: AxisSpec, outfile:TFile): 
-        
+
+    def __init__(self, name, xvar_spec: AxisSpec, outfile: TFile, workspace: RooWorkspace = None): 
+    
         self._hist_data = None
         self._outfile = outfile
-        self._roo_workspace = RooWorkspace(name if name else 'roows')
 
-        self._xvar_name = xvar_spec.name
-        xvar = RooRealVar(xvar_spec.name, xvar_spec.title, xvar_spec.xmin, xvar_spec.xmax)
-        getattr(self._roo_workspace, 'import')(xvar)
+        # Use provided workspace or create new one
+        if workspace is None:
+            self._roo_workspace = RooWorkspace(name if name else 'roows')
+            # Create and import xvar
+            self._xvar_name = xvar_spec.name
+            xvar = RooRealVar(xvar_spec.name, xvar_spec.title, xvar_spec.xmin, xvar_spec.xmax)
+            getattr(self._roo_workspace, 'import')(xvar)
+        else:
+            self._roo_workspace = workspace
+            self._xvar_name = xvar_spec.name
+            # Verify xvar exists in workspace
+            if not self._roo_workspace.obj(self._xvar_name):
+                xvar = RooRealVar(xvar_spec.name, xvar_spec.title, xvar_spec.xmin, xvar_spec.xmax)
+                getattr(self._roo_workspace, 'import')(xvar)
+    
         self._roo_data_hist_name = None
 
     @property
