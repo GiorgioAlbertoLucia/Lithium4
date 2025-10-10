@@ -9,23 +9,34 @@ import uproot
 
 if __name__ == '__main__':
 
-    #infile = '/data/galucia/lithium_local/same/LHC24ar_pass2_same_small.root'
-    infile = '/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same_small.root'
-    table_names = ['O2he3hadtable', 'O2he3hadmult'] #, 'O2he3hadtablemc']
-    base = 'DF'
+    #infile = '/data/galucia/lithium_local/same/LHC24_PbPb_pass2_same.root'
+    #infile = '/data/galucia/lithium_local/mixing/LHC24_PbPb_pass2_event_mixing.root'
+    #infile = '/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root'
+    infile = '/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_event_mixing.root'
+    
+    #table_names = ['O2he3hadtable', 'O2he3hadmult'] #, 'O2he3hadtablemc']
+    table_names = ['MixedTree']
+    
+    #base = 'DF' 
+    base = ''
 
-    #outfile = uproot.recreate('/data/galucia/lithium_local/same_merged/LHC24ar_pass2_same_small.root')
-    outfile = uproot.recreate('/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass5_same_small.root')
+    #outfile = uproot.recreate('/data/galucia/lithium_local/same_merged/LHC24_PbPb_pass2_same.root')
+    #outfile = uproot.recreate('/data/galucia/lithium_local/mixing_merged/LHC24_PbPb_pass2_event_mixing.root')
+    #outfile = uproot.recreate('/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass5_same.root')
+    outfile = uproot.recreate('/data/galucia/lithium_local/mixing_merged/LHC23_PbPb_pass5_event_mixing.root')
 
     f = uproot.open(infile)
     keys = list(f.keys())
-    _file_folders = [folder for folder in keys if (folder.startswith(base) and '/' not in folder)]
-    file_folders_duplicated = [folder.split(';')[0] for folder in _file_folders] # list with potentially duplicated folders
-    seen = {}
-    for idx, val in enumerate(file_folders_duplicated):
-        if val not in seen:
-            seen[val] = idx
-    file_folders = [_file_folders[idx] for idx in seen.values()]
+    
+    file_folders = []
+    if base != '':
+        _file_folders = [folder for folder in keys if (folder.startswith(base) and '/' not in folder)]
+        file_folders_duplicated = [folder.split(';')[0] for folder in _file_folders] # list with potentially duplicated folders
+        seen = {}
+        for idx, val in enumerate(file_folders_duplicated):
+            if val not in seen:
+                seen[val] = idx
+        file_folders = [_file_folders[idx] for idx in seen.values()]
 
     for folder in file_folders:
         dfs = []
@@ -38,3 +49,14 @@ if __name__ == '__main__':
         df['fIs23'] = True if 'LHC23' in infile else False
         folder_clean = folder.split(';')[0]  # Clean folder name
         outfile[f'{folder_clean}/{table_names[0]}'] = df
+
+    if len(file_folders) == 0:
+        dfs = []
+        for table_name in table_names:
+            table_path = f'{infile}:{table_name}'
+            print(tc.GREEN+'[INFO]: '+tc.RESET+'Opening file: '+tc.UNDERLINE+tc.BLUE+table_path+tc.RESET)
+            dfs.append(uproot.open(table_path).arrays(library='pd'))
+
+        df = pd.concat(dfs, axis=1)
+        df['fIs23'] = True if 'LHC23' in infile else False
+        outfile[f'{table_names[0]}'] = df

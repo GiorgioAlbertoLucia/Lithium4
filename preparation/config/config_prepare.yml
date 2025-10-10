@@ -1,7 +1,7 @@
 # Same event
 input_data:   [ 
-                '/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass5_same_small.root',
-                '/data/galucia/lithium_local/same_merged/LHC24ar_pass2_same_small.root',
+                '/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass5_same.root',
+                '/data/galucia/lithium_local/same_merged/LHC24_PbPb_pass2_same.root',
               ]
 tree_name:    'O2he3hadtable'
 mode:         'DF'
@@ -9,12 +9,13 @@ output_file:  'output/same_event.root'
 
 # Mixed event
 #input_data:   [
-#                #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_event_mixing_small.root',
-#                '/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_rotation_mixing_small.root',
+#                '/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_event_mixing.root',
+#                '/data/galucia/lithium_local/mixing/LHC24_PbPb_pass2_event_mixing.root',
+#                #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_rotation_mixing_small.root',
 #              ]
 #tree_name:    'MixedTree'
 #mode:         'tree'
-##output_file:  'output/mixed_event.root'
+#output_file:  'output/mixed_event.root'
 #output_file:  'output/mixed_rotation.root'
 
 ## MC
@@ -26,7 +27,7 @@ output_file:  'output/same_event.root'
 
 selections:     [
                 # quality cuts
-                 '((fDeltaPhi/0.006)*(fDeltaPhi/0.006) + (fDeltaEta/0.012)*(fDeltaEta/0.012) > 1)',
+                 #'((fDeltaPhi/0.006)*(fDeltaPhi/0.006) + (fDeltaEta/0.012)*(fDeltaEta/0.012) > 1)',
                  '(((fChi2TPCHe3 > 0.5) || (fIs23 == false)) && (fChi2TPCHe3 < 4))', # the cut on chi2tpc should be only applied to 2023
                  '((fChi2TPCHad < 4))',
                  '(std::abs(fEtaHe3) < 0.9)',
@@ -34,13 +35,15 @@ selections:     [
                  
                  '((fPtHe3 < 2.5) || (fPIDtrkHe3 == 7))',
                  '((fPIDtrkHe3 == 6) || (fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8))',
-                 '((-1.5 < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 2.5))',
-                 '(std::abs(fDCAxyHe3) < 0.1)',
-                 '(std::abs(fDCAzHe3) < 1.0)',
-                 '(fClusterSizeCosLamHe3 > 4)',
+                 '((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 2.))',
+                 '(std::abs(fNSigmaDCAxyHe3) < 3)',
+                 '(std::abs(fNSigmaDCAzHe3) < 3)',
+                 #'(fClusterSizeCosLamHe3 > 4)',
                  '(fNSigmaITSHe3 > -1.5)',
 
                  '(std::abs(fNSigmaTPCHad) < 2)',
                  '((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2))',
-                 '(fNSigmaITSHad > -1.5)',
+                 '(fNSigmaITSHad > -2.)',
+                 '(std::abs(fNSigmaDCAxyHad) < 3)',
+                 '(std::abs(fNSigmaDCAzHad) < 3)',
                 ]
