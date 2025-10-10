@@ -19,68 +19,87 @@ using std::map;
 using std::string;
 using std::vector;
 
+enum class species {
+  kPr = 0,
+  kHe = 1,
+  kNspecies
+};
+
 namespace constant
 {
-    const float kMassHe = 2.8089; // GeV
-    const float kMassPr = 0.938272; // GeV
-
+  const float kMass[static_cast<int>(species::kNspecies)] = {0.938272, 2.8089}; // GeV
 }
 
 namespace parametrisation
 {
-    std::array<float, 3> kHeDCAxyResolutionParams = {8.214e-3, 1.253, 1.041e-3};
-    std::array<float, 3> kPrDCAxyResolutionParams = {3.755e-3, 7.035e-1, 1.264e-4};
-    std::array<float, 3> kHeDCAzResolutionParams = {6.420e-3, 3.485, 5.118e-3};
-    std::array<float, 3> kPrDCAzResolutionParams = {2.937e-4, 2.322, 5.121e-3};
+    std::array<float, 3> kDCAxyResolutionParams[static_cast<int>(species::kNspecies)] = {
+      {0.0032, 0.5206, 0.0012}, // Pr
+      {0.0118, 0.6889, 0.0017}     // He
+    };
+    std::array<float, 3> kDCAzResolutionParams[static_cast<int>(species::kNspecies)] = {
+      {0.0021, 1.1122, 0.0021},    // Pr
+      {0.1014, 1.7512, 0.0024}     // He
+    };
+    
+    std::array<float, 5> kHeTPCParams = {-178.17, 0.2942, 2.0095, 1.6669, 3.4239};
+    float kHeTPCResolution = 0.063;
 
-    std::array<float, 5> kHeTpcParams = {-251.9, 0.3223, 1.355, 0.6456, 2.675};
-    float kHeTpcResolution = 0.07;
+    std::array<float, 3> kITSParams[static_cast<int>(species::kNspecies)] = {
+      {1.0228, 1.9634, 2.2081},  // Pr from Ka fitting
+      //{0.6389, 3.4378, 2.3707},  // Pr
+      {2.6916, 1.2630, 4.8939}   // He
+    };
+    
+    std::array<float, 3> kITSResolutionParams[static_cast<int>(species::kNspecies)] = {
+      //{0.1564, 0.6588, 0.5633}, // Pr
+      {0.1575, 0., 0.},          // Pr, constant
+      {0.1132, -0.0135, 0.0001}  // He
+    };
 
-    std::array<float, 3> kHeITSParams = {2.35117, 1.80347, 5.14355};
-    std::array<float, 3> kHeITSResolutionParams = {8.74371e-02, -1.82804, 5.06449e-01};
-
-    std::array<float, 2> kPrTofResolutionParams = {1.22204e-02, 7.48467e-01};
-
-    std::array<float, 3> kPrITSParams = {1.18941, 1.53792, 1.69961,};
-    std::array<float, 3> kPrITSResolutionParams = {1.94669e-01, -2.08616e-01, 1.30753,};
+    std::array<float, 3> kPrTOFParams = {0.9443, -0.0101, 0.0037};
+    std::array<float, 2> kPrTOFResolutionParams = {-0.0059, 0.0302};
 
     std::array<float, 2> kHePidTrkParams = {0.1593, -0.0445};
 }
 
 // -------------------------------------------- DCA ----------------------------------------------------
 
-float NsigmaDCAxyHe(const float pt, const float dcaxy) {
-  const float sigma = parametrisation::kHeDCAxyResolutionParams[0] /
-                      std::pow(pt, parametrisation::kHeDCAxyResolutionParams[1]) +
-                      parametrisation::kHeDCAxyResolutionParams[2];
-  return dcaxy / sigma;
+float ComputeNsigmaDCA(const float pt, const float dca, const int iSpecies, const char * dcaType = "xy") {
+  
+  std::array<float, 3> parameters;
+  if (std::strcmp(dcaType, "xy") == 0) {
+    parameters = parametrisation::kDCAxyResolutionParams[iSpecies];
+  } else if (std::strcmp(dcaType, "z") == 0) {
+    parameters = parametrisation::kDCAxyResolutionParams[iSpecies];
+  } else {
+    std::cout << "Invalid dcaType. Accepted types are 'xy' 'z'" << std::endl;
+    parameters = {0., 0., 0.};
+  }
+  const float sigma = parameters[0] *
+                      std::exp(- std::abs(pt) * parameters[1]) +
+                      parameters[2];
+  return dca / sigma;
 }
 
-float NsigmaDCAxyPr(const float pt, const float dcaxy) {
-  const float sigma = parametrisation::kPrDCAxyResolutionParams[0] /
-                      std::pow(pt, parametrisation::kPrDCAxyResolutionParams[1]) +
-                      parametrisation::kPrDCAxyResolutionParams[2];
-  return dcaxy / sigma;
+float ComputeNsigmaDCAxyHe(const float pt, const float dcaxy) {
+  return ComputeNsigmaDCA(pt, dcaxy, static_cast<int>(species::kHe), "xy");
 }
 
-float NsigmaDCAzHe(const float pt, const float dcaz) {
-  const float sigma = parametrisation::kHeDCAzResolutionParams[0] /
-                      std::pow(pt, parametrisation::kHeDCAzResolutionParams[1]) +
-                      parametrisation::kHeDCAzResolutionParams[2];
-  return dcaz / sigma;
+float ComputeNsigmaDCAzHe(const float pt, const float dcaxy) {
+  return ComputeNsigmaDCA(pt, dcaxy, static_cast<int>(species::kHe), "z");
 }
 
-float NsigmaDCAzPr(const float pt, const float dcaz) {
-  const float sigma = parametrisation::kPrDCAzResolutionParams[0] /
-                      std::pow(pt, parametrisation::kPrDCAzResolutionParams[1]) +
-                      parametrisation::kPrDCAzResolutionParams[2];
-  return dcaz / sigma;
+float ComputeNsigmaDCAxyPr(const float pt, const float dcaxy) {
+  return ComputeNsigmaDCA(pt, dcaxy, static_cast<int>(species::kPr), "xy");
+}
+
+float ComputeNsigmaDCAzPr(const float pt, const float dcaxy) {
+  return ComputeNsigmaDCA(pt, dcaxy, static_cast<int>(species::kPr), "z");
 }
 
 // -------------------------------------------- TPC ----------------------------------------------------
 
-double BetheBlochParametrisation(double bg, double kp1, double kp2, double kp3, double kp4, double kp5)
-{
+double BetheBlochParametrisation(double bg, double kp1, double kp2, double kp3, double kp4, double kp5) {
   double beta = bg / std::sqrt(1. + bg * bg);
   double aa = std::pow(beta, kp4);
   double bb = std::pow(1. / bg, kp5);
@@ -88,23 +107,20 @@ double BetheBlochParametrisation(double bg, double kp1, double kp2, double kp3, 
   return (kp2 - aa - bb) * kp1 / aa;
 }
 
-float BetheBlochHe(const float momentum)
-{
-  float betagamma = std::abs(momentum) / constant::kMassHe;
-  return BetheBlochParametrisation(betagamma, parametrisation::kHeTpcParams[0], parametrisation::kHeTpcParams[1],
-                                   parametrisation::kHeTpcParams[2], parametrisation::kHeTpcParams[3],
-                                   parametrisation::kHeTpcParams[4]);
+float BetheBlochHe(const float momentum)  {
+  float betagamma = std::abs(momentum) / constant::kMass[static_cast<int>(species::kHe)];
+  return BetheBlochParametrisation(betagamma, parametrisation::kHeTPCParams[0], parametrisation::kHeTPCParams[1],
+                                   parametrisation::kHeTPCParams[2], parametrisation::kHeTPCParams[3],
+                                   parametrisation::kHeTPCParams[4]);
 }
 
-float NsigmaTpcHe(const float momentum, const float tpcSignal)
-{
-  return (tpcSignal / BetheBlochHe(std::abs(momentum)) - 1.) / parametrisation::kHeTpcResolution;
+float ComputeNsigmaTPCHe(const float momentum, const float tpcSignal) {
+  return (tpcSignal / BetheBlochHe(std::abs(momentum)) - 1.) / parametrisation::kHeTPCResolution;
 }
 
 // -------------------------------------------- ITS ----------------------------------------------------
 
-float averageClusterSize(const uint32_t itsClusterSizes, const bool useTruncatedMean = true)
-{
+float ComputeAverageClusterSize(const uint32_t itsClusterSizes, const bool useTruncatedMean = false)  {
   float sum = 0;
   int nclusters = 0;
   int max = 0;
@@ -129,59 +145,86 @@ float averageClusterSize(const uint32_t itsClusterSizes, const bool useTruncated
   return sum / nclusters;
 };
 
-float ExpectedClusterSizeCosLambdaHe(const float momentum)
-{
-    const float betagamma = std::abs(momentum) / constant::kMassHe;
-    return parametrisation::kHeITSParams[0] / std::pow(betagamma, parametrisation::kHeITSParams[1]) +
-           parametrisation::kHeITSParams[2];
+
+float ComputeExpectedClusterSizeCosLambda(const float momentum, const int iSpecies) { 
+  const float mass = constant::kMass[iSpecies];
+  const std::array<float, 3>& parameters = parametrisation::kITSParams[iSpecies];
+  const float betagamma = std::abs(momentum) / mass;
+  return parameters[0] / std::pow(betagamma, parameters[1]) + parameters[2];
 }
 
-float NsigmaITSHe(const float momentum, const float averageClusterSizeCosLambda)
-{
-    const float betagamma = std::abs(momentum) / constant::kMassHe;
-    const float expected = ExpectedClusterSizeCosLambdaHe(momentum);
-    const float resolution = parametrisation::kHeITSResolutionParams[0] * 
-                  TMath::Erf((betagamma - parametrisation::kHeITSResolutionParams[1]) / parametrisation::kHeITSResolutionParams[2]);
-    return (averageClusterSizeCosLambda - expected) / (resolution * expected);
+float ComputeExpectedClusterSizeCosLambdaHe(const float momentum) {
+  return ComputeExpectedClusterSizeCosLambda(momentum, static_cast<int>(species::kHe));
 }
 
-float ExpectedClusterSizeCosLambdaPr(const float momentum)
-{
-    const float betagamma = std::abs(momentum) / constant::kMassPr;
-    return parametrisation::kPrITSParams[0] / std::pow(betagamma, parametrisation::kPrITSParams[1]) +
-           parametrisation::kPrITSParams[2];
+float ComputeExpectedClusterSizeCosLambdaPr(const float momentum) {
+  return ComputeExpectedClusterSizeCosLambda(momentum, static_cast<int>(species::kPr));
 }
 
-float NsigmaITSPr(const float momentum, const float averageClusterSizeCosLambda)
-{
-    const float betagamma = std::abs(momentum) / constant::kMassPr;
-    const float expected = ExpectedClusterSizeCosLambdaPr(momentum);
-    const float resolution = parametrisation::kPrITSResolutionParams[0] *
-                  TMath::Erf((betagamma - parametrisation::kPrITSResolutionParams[1]) / parametrisation::kPrITSResolutionParams[2]);
-    return (averageClusterSizeCosLambda - expected) / (resolution * expected);
+
+float ComputeClusterSizeResolutionHe(const float momentum)  {
+  const float mass = constant::kMass[static_cast<int>(species::kHe)];
+  const float betagamma = std::abs(momentum) / mass;
+  const std::array<float, 3>& parameters = parametrisation::kITSResolutionParams[static_cast<int>(species::kHe)];
+  return parameters[0] + betagamma * parameters[1] + betagamma * betagamma * parameters[2];
+}
+
+float ComputeClusterSizeResolutionPr(const float momentum)  {
+  const std::array<float, 3>& parameters = parametrisation::kITSResolutionParams[static_cast<int>(species::kPr)];
+  //const float mass = constant::kMass[static_cast<int>(species::kPr)];
+  //const float betagamma = std::abs(momentum) / mass;
+  //return parameters[0] * TMath::Erf((betagamma - parameters[1]) / parameters[2]);
+  return parameters[0]; // constant
+}
+
+float ComputeClusterSizeResolution(const float momentum, const int iSpecies)  { 
+  if (iSpecies == static_cast<int>(species::kPr)) {
+    return ComputeClusterSizeResolutionPr(momentum);
+  } else if (iSpecies == static_cast<int>(species::kHe)) {
+    return ComputeClusterSizeResolutionHe(momentum);
+  } else {
+    std::cout << "Invalid species" << std::endl;
+  }
+  return 1.;
+}
+
+
+float ComputeNsigmaITS(const float momentum, const float averageClusterSizeCosLambda, const int iSpecies) { 
+  const float mass = constant::kMass[iSpecies];
+  const std::array<float, 3>& parameters = parametrisation::kITSParams[iSpecies];
+
+  const float betagamma = std::abs(momentum) / mass;
+  const float expected = ComputeExpectedClusterSizeCosLambda(momentum, iSpecies);
+  const float resolution = ComputeClusterSizeResolution(momentum, iSpecies);
+  return (averageClusterSizeCosLambda - expected) / (resolution * expected);
+}
+
+float ComputeNsigmaITSHe(const float momentum, const float averageClusterSizeCosLambda) {
+  return ComputeNsigmaITS(momentum, averageClusterSizeCosLambda, static_cast<int>(species::kHe));
+}
+
+float ComputeNsigmaITSPr(const float momentum, const float averageClusterSizeCosLambda) {
+  return ComputeNsigmaITS(momentum, averageClusterSizeCosLambda, static_cast<int>(species::kPr));
 }
 
 // -------------------------------------------- TOF ----------------------------------------------------
 
-float NsigmaTOFPr(const float momentum, const float tofMass)
-{
-  const float expected = constant::kMassPr;
-  const float resolution = parametrisation::kPrTofResolutionParams[0] * std::exp(std::abs(momentum) + parametrisation::kPrTofResolutionParams[1]);
+float ComputeNsigmaTOFPr(const float pt, const float tofMass) {
+  const float expected = parametrisation::kPrTOFParams[0] + parametrisation::kPrTOFParams[1]*std::abs(pt) + parametrisation::kPrTOFParams[2]*std::abs(pt)*std::abs(pt);
+  const float resolution = parametrisation::kPrTOFResolutionParams[0] + std::abs(pt) * parametrisation::kPrTOFResolutionParams[1];
   return (tofMass - expected) / (resolution * expected);
 }
 
 // -------------------------------------- PID in Tracking ----------------------------------------------
 
-float CorrectPidTrkHe(const float momentum)
-{
+float CorrectPidTrkHe(const float momentum) {
     return momentum * (1. - parametrisation::kHePidTrkParams[0] -
            parametrisation::kHePidTrkParams[1] * momentum);
 }
 
 // ------------------------------------------- Femto ---------------------------------------------------
 
-float Kstar(const double pt1, const double eta1, const double phi1, const double m1, const double pt2, const double eta2, const double phi2, const double m2)
-{
+float ComputeKstar(const double pt1, const double eta1, const double phi1, const double m1, const double pt2, const double eta2, const double phi2, const double m2)  {
     using namespace ROOT::Math;
 
     PtEtaPhiMVector p1mu(pt1, eta1, phi1, m1);
