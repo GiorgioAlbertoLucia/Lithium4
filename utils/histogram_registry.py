@@ -25,6 +25,9 @@ class HistogramRegistry:
         self._registry = {}
         self._registry_entries = {}
 
+    def __getitem__(self, key):
+        return self._registry[key]
+
     def register(self, entry: RegistryEntry):
         if entry.name in self._registry_entries:
             raise ValueError(f"Histogram '{entry.name}' is already registered.")

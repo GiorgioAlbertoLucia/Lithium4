@@ -12,12 +12,6 @@
     },
     "internal-dpl-aod-spawner": "",
     "internal-dpl-aod-index-builder": "",
-    "mc-collision-converter": "",
-    "tracks-extra-v002-converter": {
-        "processV000ToV002": "false",
-        "processV001ToV002": "true"
-    },
-    "tracks-extra-spawner": "",
     "eventselection-run3": {
         "timestamp": {
             "verbose": "false",
@@ -141,6 +135,7 @@
             "ccdb-url": "http:\/\/alice-ccdb.cern.ch",
             "lutPath": "GLO\/Param\/MatLUTInner",
             "grpmagPath": "GLO\/Config\/GRPMagField",
+            "grpPath": "GLO\/GRP\/GRP",
             "mVtxPath": "GLO\/Calib\/MeanVertex"
         },
         "enabledTables": {
@@ -570,6 +565,7 @@
                 "CentFT0As",
                 "CentFT0Cs",
                 "CentFT0CVariant1s",
+                "CentFT0CVariant2s",
                 "CentFDDMs",
                 "CentNTPVs",
                 "CentNGlobals",
@@ -695,6 +691,9 @@
                 ],
                 [
                     "-1"
+                ],
+                [
+                    "-1"
                 ]
             ]
         },
@@ -707,15 +706,15 @@
         "ccdbPathVtxZ": "Centrality\/Calibration",
         "ccdbPathCentrality": "Centrality\/Estimators",
         "reconstructionPass": "",
-        "generatorName": "PYTHIA",
+        "generatorName": "",
         "embedINELgtZEROselection": "false",
         "ccdburl": "http:\/\/alice-ccdb.cern.ch",
         "processRun2": "false",
         "processRun3": "true",
         "processRun3WithGlobalCounters": "false",
         "processMFT": "false",
-        "processMonteCarlo": "true",
-        "processMonteCarlo2Mults": "true",
+        "processMonteCarlo": "false",
+        "processMonteCarlo2Mults": "false",
         "processCentralityRun2": "false",
         "processCentralityRun3": "true"
     },
@@ -816,6 +815,7 @@
     "nuclei-q-c": {
         "cfgFillTable": "true",
         "cfgDoCheckPdgCode": "true",
+        "cfgFillOnlyPhysicalPrimaries": "false",
         "cfgSpeciesToProcess": {
             "labels_rows": [
                 "proton",
@@ -956,19 +956,19 @@
             ],
             "values": [
                 [
+                    "1"
+                ],
+                [
+                    "1"
+                ],
+                [
+                    "1"
+                ],
+                [
                     "0"
                 ],
                 [
-                    "1"
-                ],
-                [
-                    "1"
-                ],
-                [
                     "0"
-                ],
-                [
-                    "1"
                 ]
             ]
         },
@@ -1052,7 +1052,8 @@
         },
         "cfgMaterialCorrection": "2",
         "ccdb-url": "http:\/\/alice-ccdb.cern.ch",
-        "processMc": "true"
+        "processMc": "true",
+        "processMcParticle": "false"
     },
     "internal-dpl-aod-writer": "",
     "internal-dpl-aod-global-analysis-file-sink": "",

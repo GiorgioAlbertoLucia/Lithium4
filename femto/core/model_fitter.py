@@ -85,18 +85,22 @@ class ModelFitter(Fitter):
 
         xvar.setRange('full', old_limits[0], old_limits[1])
         xvar.setRange('prefit', range_limits[0], range_limits[1])
-        I_full = self._model_pdf.createIntegral([xvar], Range='full').getVal()
-        I_side = self._model_pdf.createIntegral([xvar], Range='prefit').getVal()
-        bkg_full_correction = (I_full / I_side)
+
+        for bkg_name in self._bkg_pdfs.keys():
+            if bkg_name in self.fractions.keys():
+
+                bkg_pdf = self._bkg_pdfs[bkg_name]
+                I_full = bkg_pdf.createIntegral([xvar], Range='full').getVal()
+                I_side = bkg_pdf.createIntegral([xvar], Range='prefit').getVal()
+                bkg_full_correction = (I_full / I_side)
+
+                norm = self.fractions[bkg_name].getVal()
+                self.fractions[bkg_name].setVal(norm * bkg_full_correction)
+                #self.fractions[bkg_name].setConstant(True)
 
         for signal_name in self._signal_pdfs.keys():
             if signal_name in self.fractions.keys():
                 self.fractions[signal_name].setConstant(False)
-        for bkg_name in self._bkg_pdfs.keys():
-            if bkg_name in self.fractions.keys():
-                norm = self.fractions[bkg_name].getVal()
-                self.fractions[bkg_name].setVal(norm * bkg_full_correction)
-                self.fractions[bkg_name].setConstant(True)
 
 
         xvar.setRange(old_limits[0], old_limits[1])
@@ -109,8 +113,8 @@ class ModelFitter(Fitter):
         self._roo_data_hist = RooDataHist(h_data.GetName()+'_datahist', h_data.GetName()+'_datahist', [xvar], Import=h_data)
 
         fit_options = [RooFit.Save(), RooFit.SumW2Error(True), RooFit.Extended(True)]
-        #if norm_range is not None:
-            #fit_options.append(RooFit.NormRange(norm_range))
+        if norm_range is not None:
+            fit_options.append(RooFit.NormRange(norm_range))
 
         if use_chi2_fit_method:
             self._model_pdf.chi2FitTo(self._roo_data_hist, *fit_options)

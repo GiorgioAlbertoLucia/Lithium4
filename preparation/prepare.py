@@ -1,7 +1,7 @@
 import sys
 import yaml
 import ROOT
-from ROOT import TFile, TChain, gInterpreter
+from ROOT import TFile, TChain, gInterpreter, RDataFrame
 
 from torchic.utils.terminal_colors import TerminalColors as tc
 
@@ -61,20 +61,29 @@ def prepare_input_tchain(config):
 
 def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
    
-    rdf = ROOT.ROOT.RDataFrame(chain_data) \
-      .Define('fSignedPtHad', 'fPtHad') \
+    rdf = RDataFrame(chain_data) 
+    if 'fNSigmaTPCHadPr' in rdf.GetColumnNames():
+        rdf = rdf.Define('fNSigmaTPCHad', 'fNSigmaTPCHadPr')
+    if 'fNSigmaTOFHadPr' not in rdf.GetColumnNames():
+        rdf = rdf.Define('fNSigmaTOFHad', 'ComputeNsigmaTOFPr(std;;abs(fPtHad), fMassTOFHad)')
+    else:
+       rdf = rdf.Define('fNSigmaTOFHad', 'fNSigmaTOFHadPr')
+    
+      # Recalibration
+      #.Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3)') \
+      # Correct for PID in tracking
+      
+    rdf = rdf.Define('fSignedPtHad', 'fPtHad') \
       .Define('fSignHe3', 'fPtHe3/std::abs(fPtHe3)') \
       .Redefine('fPtHe3', 'std::abs(fPtHe3)') \
       .Redefine('fPtHad', 'std::abs(fPtHad)') \
-      .Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
       .Define('fSignedPtHe3', 'fPtHe3 * fSignHe3') \
+      .Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
       .Define(f'fEHe3', f'std::sqrt((fPtHe3 * std::cosh(fEtaHe3))*(fPtHe3 * std::cosh(fEtaHe3)) + {ParticleMasses["He"]}*{ParticleMasses["He"]})') \
       .Define(f'fEHad', f'std::sqrt((fPtHad * std::cosh(fEtaHad))*(fPtHad * std::cosh(fEtaHad)) + {ParticleMasses["Pr"]}*{ParticleMasses["Pr"]})') \
       .Define('fDeltaEta', 'fEtaHe3 - fEtaHad') \
       .Define('fDeltaPhi', 'fPhiHe3 - fPhiHad') \
       .Redefine('fInnerParamTPCHe3', 'fInnerParamTPCHe3 * 2') \
-      .Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3)') \
-      .Define('fNSigmaTOFHad', 'ComputeNsigmaTOFPr(fPtHad, fMassTOFHad)') \
       .Define('fClusterSizeCosLamHe3', 'ComputeAverageClusterSize(fItsClusterSizeHe3) / cosh(fEtaHe3)') \
       .Define('fClusterSizeCosLamHad', 'ComputeAverageClusterSize(fItsClusterSizeHad) / cosh(fEtaHad)') \
       .Define('fExpectedClusterSizeHe3', 'ComputeExpectedClusterSizeCosLambdaHe(fPtHe3 * std::cosh(fEtaHe3))') \

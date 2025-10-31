@@ -1,1 +1,1 @@
-/data/galucia/its_pid/AOD_raw/LHC25a3_AOD2.root
+/data/galucia/lithium_local/raw/LHC25g12_001_raw.root

@@ -245,3 +245,7 @@ float ComputeKstar(const double pt1, const double eta1, const double phi1, const
 
     return kstar;
 }
+
+inline int ReadPidTrkFromFlags(const int flags) { return (flags >> 12) & 0x1F; }
+
+inline int ReadBitFromFlags(const int flags, const int indexBit) { return (flags >> indexBit) & 0b1; }

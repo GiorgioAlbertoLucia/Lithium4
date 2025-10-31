@@ -1,6 +1,6 @@
 { "OutputDirector": {
     "debug_mode": true,
-    "resfile": "mixed_event_test",
+    "resfile": "local_test",
     "OutputDescriptors": [
       {
         "table":"AOD/NUCLEITABLERED/0"

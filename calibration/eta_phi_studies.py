@@ -10,7 +10,7 @@ import sys
 sys.path.append('..')
 from preparation.prepare import prepare_selections, prepare_input_tchain, prepare_rdataframe
 
-gInterpreter.ProcessLine(f'#include "EtaPhiUtils.h"')
+gInterpreter.ProcessLine(f'#include "include/EtaPhiUtils.h"')
 from ROOT import ComputePhiStar
 
 def run_on_delta_phi_rdf(rdataframe: Dataset, radius:float, iter: int, outfile: TFile):

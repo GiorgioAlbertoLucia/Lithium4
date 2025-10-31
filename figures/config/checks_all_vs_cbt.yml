@@ -1,0 +1,329 @@
+#
+# Configuration file for plots
+#
+
+outPath: /home/galucia/Lithium4/preparation/checks/checks_all_vs_cbt.root
+
+plots:
+  [
+
+    # ALL - correlation function - antimatter - cent 0-50%
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.805,
+            name: 'antimatter_all_comparison',
+            title: 'all; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.3,
+            name: 'antimatter_all_comparison',
+            title: 'all; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_all_pass1_pass4.root,
+            histName: CorrelationAntimatter/hCorrelation050,
+            histLabel: 'standard selections',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_all_pass1_pass4_tof_veto.root,
+            histName: CorrelationAntimatter/hCorrelation050,
+            histLabel: 'TOF veto',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_all_pass1_pass4_no_triton.root,
+            histName: CorrelationAntimatter/hCorrelation050,
+            histLabel: 'no triton',
+            kwargs: {
+                      line_color: 418, line_width: 1, line_style: 1,
+                      marker_color: 418, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_all_pass1_pass4_only105_offline_tpc.root,
+            histName: CorrelationAntimatter/hCorrelation050,
+            histLabel: 'offline TPC - only batch 105',
+            kwargs: {
+                      line_color: 880, line_width: 1, line_style: 1,
+                      marker_color: 880, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/preparation/checks/correlation_all_pass1_pass4_checks.pdf
+    },
+
+    # CBT - correlation function - antimatter - cent 0-50%
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.805,
+            name: 'antimatter_cbt_comparison',
+            title: 'cbt; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.3,
+            name: 'antimatter_cbt_comparison',
+            title: 'cbt; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_cbt_pass1_pass4.root,
+            histName: CorrelationAntimatter/hCorrelation050,
+            histLabel: 'standard selections',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_cbt_pass1_pass4_tof_veto.root,
+            histName: CorrelationAntimatter/hCorrelation050,
+            histLabel: 'TOF veto',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_cbt_pass1_pass4_no_triton.root,
+            histName: CorrelationAntimatter/hCorrelation050,
+            histLabel: 'no triton',
+            kwargs: {
+                      line_color: 418, line_width: 1, line_style: 1,
+                      marker_color: 418, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/preparation/checks/correlation_cbt_pass1_pass4_checks.pdf
+    },
+    
+    # ALL vs CBT vs hadronPID - correlation function - antimatter - cent 0-50%
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.805,
+            name: 'antimatter_comparison',
+            title: '#bar{p} - ^{3}#bar{He}; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.3,
+            name: 'antimatter_comparison',
+            title: '#bar{p} - ^{3}#bar{He}; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_all_pass1_pass4.root,
+            histName: CorrelationAntimatter/hCorrelation050,
+            histLabel: 'all',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_cbt_pass1_pass4.root,
+            histName: CorrelationAntimatter/hCorrelation050,
+            histLabel: 'CBT',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4.root,
+            histName: CorrelationAntimatter/hCorrelation050,
+            histLabel: 'hadronPID',
+            kwargs: {
+                      line_color: 418, line_width: 1, line_style: 1,
+                      marker_color: 418, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/preparation/checks/correlation_comparison_antimatter_pass1_pass4_checks.pdf
+    },
+
+    # ALL vs CBT vs hadronPID - correlation function - matter - cent 0-50%
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.805,
+            name: 'matter_comparison',
+            title: 'p - ^{3}He; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.3,
+            name: 'matter_comparison',
+            title: 'p - ^{3}He; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_all_pass1_pass4.root,
+            histName: CorrelationMatter/hCorrelation050,
+            histLabel: 'all',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_cbt_pass1_pass4.root,
+            histName: CorrelationMatter/hCorrelation050,
+            histLabel: 'CBT',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4.root,
+            histName: CorrelationMatter/hCorrelation050,
+            histLabel: 'hadronPID',
+            kwargs: {
+                      line_color: 418, line_width: 1, line_style: 1,
+                      marker_color: 418, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/preparation/checks/correlation_comparison_matter_pass1_pass4_checks.pdf
+    },
+
+  ]

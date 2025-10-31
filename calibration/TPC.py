@@ -4,7 +4,7 @@
 
 import numpy as np
 import pandas as pd
-from ROOT import TFile, TCanvas, TF1
+from ROOT import TFile, TCanvas, TF1, TMath
 from ROOT import RooRealVar, RooCrystalBall, RooAddPdf, RooGaussian
 
 from particle import Particle
@@ -110,19 +110,21 @@ def fit_parametrisation(fit_results: pd.DataFrame, sign: str, outfile: TFile):
                                 f'g_resolution_{sign}', ';#beta#gamma;#sigma_{TPC} / #LT #rm{d}E/#rm{d}x #GT')
 
     BETAGAMMA_MIN_RES, BETAGAMMA_MAX_RES = 0.6, 3
-    f_resolution = TF1('f_resolution', '[0]', BETAGAMMA_MIN_RES, BETAGAMMA_MAX_RES)
-    f_resolution.SetParameters(0.07)
+    #f_resolution = TF1('f_resolution', '[0]', BETAGAMMA_MIN_RES, BETAGAMMA_MAX_RES)
+    f_resolution = TF1('f_resolution', '[0] / (1 + std::exp(-(x-[1])/[2]))', BETAGAMMA_MIN_RES, BETAGAMMA_MAX_RES)
+    f_resolution.SetParameters(0.07, 1, 0.5)
     g_resolution.Fit(f_resolution, 'RMS+')
+    resolution_params = [f_resolution.GetParameter(iparam) for iparam in range(3)]
         
     outfile.cd()
     g_mean.Write()
     g_resolution.Write()
 
-    return fit_params, f_resolution.GetParameter(0)
+    return fit_params, resolution_params
 
 def TPC_calibration(dataset: Dataset, outfile:TFile, column_names:dict=DATASET_COLUMN_NAMES):
 
-    axis_spec_betagamma = AxisSpec(160, -8, 8, 'beta_gamma', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)')
+    axis_spec_betagamma = AxisSpec(320, -8, 8, 'beta_gamma', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)')
     axis_spec_tpcsignal = AxisSpec(200, 0, 1200, 'tpc_signal', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)')
     h2_tpc = dataset.build_th2('fBetaGamma', column_names['TpcSignal'], axis_spec_betagamma, axis_spec_tpcsignal)
     
@@ -130,7 +132,7 @@ def TPC_calibration(dataset: Dataset, outfile:TFile, column_names:dict=DATASET_C
     signal_pdf, signal_pars = init_signal_roofit(tpc_signal, function='gausexp')
     bkg_pdf, bkg_pars = init_background_roofit(tpc_signal, function='gausexp')
 
-    fit_params, resolution, model = {}, {}, None
+    fit_params, resolution_params, model = {}, {}, None
 
     for sign in ['matter', 'antimatter']:
 
@@ -154,6 +156,8 @@ def TPC_calibration(dataset: Dataset, outfile:TFile, column_names:dict=DATASET_C
             bg_high_edge = h2_tpc.GetXaxis().GetBinLowEdge(bg_bin+1)
             
             h_tpc = h2_tpc.ProjectionY(f'tpc_signal_{bg:.2f}', bg_bin, bg_bin, 'e')
+            if h_tpc.GetEntries() < 100:
+                continue
             if np.abs(bg) < BETAGAMMA_BKG_FIT[sign]:
                 sig_frac = RooRealVar('sig_frac', 'sig_frac', 0.5, 0., 1.)
                 model = RooAddPdf('model', 'model', [signal_pdf, bkg_pdf], [sig_frac])
@@ -183,18 +187,22 @@ def TPC_calibration(dataset: Dataset, outfile:TFile, column_names:dict=DATASET_C
             del iframe, canvas, h_tpc
         fit_results_df = pd.DataFrame(fit_results)
         
-        fit_params[sign], resolution[sign] = fit_parametrisation(fit_results_df, sign, tpc_dir)
+        fit_params[sign], resolution_params[sign] = fit_parametrisation(fit_results_df, sign, tpc_dir)
 
-    return fit_params['matter'], resolution['matter']
+    return fit_params['matter'], resolution_params['matter']
 
-def visualize_distributions_and_fit(dataset: Dataset, outfile: TFile, fit_params:list, resolution:float, column_names:dict=DATASET_COLUMN_NAMES):
+def visualize_distributions_and_fit(dataset: Dataset, outfile: TFile, fit_params:list, resolution_params:list, column_names:dict=DATASET_COLUMN_NAMES):
 
     np_bethe_bloch = np.vectorize(py_BetheBloch)
 
     dataset['fExpTpcSignal'] = np_bethe_bloch(np.abs(dataset['fBetaGamma']), *fit_params)
-    dataset['fNSigmaTPC'] = (dataset[column_names['TpcSignal']] - dataset['fExpTpcSignal']) / (dataset['fExpTpcSignal'] * resolution)
+    #compute_resolution = lambda betagamma: resolution_params[0] * TMath.Erf((betagamma-resolution_params[1])/resolution_params[2])
+    compute_resolution = lambda betagamma: resolution_params[0] * 1/ (1 + np.exp(-(betagamma-resolution_params[1])/resolution_params[2]))
+    compute_resolution_vectorised = np.vectorize(compute_resolution)
+    dataset['fResolution'] = compute_resolution_vectorised(abs(dataset['fBetaGamma']))
+    dataset['fNSigmaTPC'] = (dataset[column_names['TpcSignal']] - dataset['fExpTpcSignal']) / (dataset['fExpTpcSignal'] * dataset['fResolution'])
 
-    axis_spec_betagamma = AxisSpec(160, -8, 8, 'beta_gamma', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)')
+    axis_spec_betagamma = AxisSpec(320, -8, 8, 'beta_gamma', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)')
     axis_spec_tpcsignal = AxisSpec(100, 0, 1200, 'tpc_signal', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)')
     axis_spec_nsigmatpc = AxisSpec(100, -5, 5, 'nsigma_tpc', ';#beta#gamma;n#sigma_{TPC}')
     axis_spec_clsize = AxisSpec(90, 0, 15., 'cl_size', ';#beta#gamma;#LT ITS cluster size (a.u.)#GT #times #LT cos#lambda#GT')
@@ -228,8 +236,9 @@ def visualize_distributions_and_fit(dataset: Dataset, outfile: TFile, fit_params
 if __name__ == '__main__':
 
     #infile_path = '/data/galucia/lithium_local/MC/LHC25a4_with_primaries_and_mixed.root',
-    infile_path = ['/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root',
-                   '/data/galucia/lithium_local/same/LHC24_PbPb_pass2_same.root',]
+    infile_path = [#'/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root',
+                   '/data/galucia/lithium_local/same/LHC24_PbPb_pass2_same.root',
+                   ]
     folder_name = 'DF*'
     tree_name = 'O2he3hadtable'
     column_names = {key: value for key, value in DATASET_COLUMN_NAMES.items()}
@@ -247,7 +256,7 @@ if __name__ == '__main__':
     
     define_variables(dataset, DATASET_COLUMN_NAMES=DATASET_COLUMN_NAMES)
     #standard_selections(dataset, particle='He', DATASET_COLUMN_NAMES=DATASET_COLUMN_NAMES)
-    outfile = TFile('output/TPC_he.root', 'recreate')
+    outfile = TFile('output/TPC_he_24.root', 'recreate')
 
     fit_params, resolution = TPC_calibration(dataset, outfile, column_names)
     visualize_distributions_and_fit(dataset, outfile, fit_params, resolution, column_names)

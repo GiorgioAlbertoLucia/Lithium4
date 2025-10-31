@@ -111,6 +111,7 @@ def load_mixed():
           .Define('fNSigmaITSHe3', 'NsigmaITSHe(fPtHe3 * std::cosh(fEtaHe3), fClusterSizeCosLamHe3)') \
           .Define('fNSigmaITSHad', 'NsigmaITSPr(fPtHad * std::cosh(fEtaHad), fClusterSizeCosLamHad)') \
           .Filter(base_selection) \
+          .Filter('(fCentralityFT0C < 50)') \
           .Define('fKstar', f'Kstar(fPtHe3, fEtaHe3, fPhiHe3, {ParticleMasses["He"]}, fPtHad, fEtaHad, fPhiHad, {ParticleMasses["Pr"]})') \
           
     return rdf, chainData
@@ -137,8 +138,7 @@ def run_systematics():
             condition = f'((std::abs(fDCAxyHe3) < {dcaxy_he3_max}) && (std::abs(fDCAzHe3) < {dcaz_he3_max}) && ' \
                         f'((fNSigmaTPCHe3 < {n_sigma_tpc_he3_high}) && (fNSigmaTPCHe3 > {n_sigma_tpc_he3_low})) && ' \
                         f'((fNSigmaTPCHe3 < {n_sigma_tpc_had_max}) && (fNSigmaTPCHe3 > -{n_sigma_tpc_had_max})) && ' \
-                        f'((fNSigmaTOFHad < {n_sigma_tof_had_max}) && (fNSigmaTOFHad > -{n_sigma_tof_had_max})) && ' \
-                        f'(fCentralityFT0C < 50))'
+                        f'((fNSigmaTOFHad < {n_sigma_tof_had_max}) && (fNSigmaTOFHad > -{n_sigma_tof_had_max})) '
 
             h_same_iter = rdf_same.Filter(condition).Histo1D((f"hKstarSameIter{iter}", ";#it{k}^{*} (GeV/#it{c});", 100, 0, 1.), "fKstar").GetValue()
             h_mixed_iter = rdf_mixed.Filter(condition).Histo1D((f"hKstarMixedIter{iter}", ";#it{k}^{*} (GeV/#it{c});", 100, 0, 1.), "fKstar").GetValue()

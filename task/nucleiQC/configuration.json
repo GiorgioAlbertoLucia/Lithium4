@@ -581,6 +581,8 @@
                 ]
             ]
         },
+        "cfgDoCheckPdgCode": "true",
+        "cfgFillOnlyPhysicalPrimaries": "false",
         "cfgEventSelections": {
             "labels_rows": [
                 "TVX",
@@ -695,19 +697,19 @@
             ],
             "values": [
                 [
+                    "1"
+                ],
+                [
+                    "1"
+                ],
+                [
+                    "1"
+                ],
+                [
                     "0"
                 ],
                 [
-                    "1"
-                ],
-                [
-                    "1"
-                ],
-                [
                     "0"
-                ],
-                [
-                    "1"
                 ]
             ]
         },
@@ -789,6 +791,7 @@
                 ]
             ]
         },
-        "processMc": "true"
+        "processMc": "true",
+        "processMcParticle": "false"
     }
 }

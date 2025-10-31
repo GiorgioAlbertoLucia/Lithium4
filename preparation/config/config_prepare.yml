@@ -1,22 +1,72 @@
 # Same event
 input_data:   [ 
-                '/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass5_same.root',
-                '/data/galucia/lithium_local/same_merged/LHC24_PbPb_pass2_same.root',
+                #'/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass5_same.root',
+                #'/data/galucia/lithium_local/same_merged/LHC24_PbPb_pass2_same.root',
+                '/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass4_hadronpid_same.root',
+                '/data/galucia/lithium_local/same_merged/LHC24ar_pass1_hadronpid_same.root',
+                '/data/galucia/lithium_local/same_merged/LHC24as_pass1_hadronpid_same.root',
               ]
 tree_name:    'O2he3hadtable'
 mode:         'DF'
-output_file:  'output/same_event.root'
+#output_file:  'output/same_event.root'
+output_file:  'checks/same_event_hadronpid_pass1_pass4.root'
 
 # Mixed event
 #input_data:   [
-#                '/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_event_mixing.root',
-#                '/data/galucia/lithium_local/mixing/LHC24_PbPb_pass2_event_mixing.root',
+#                #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_event_mixing_batch1995.root',
+#                #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_event_mixing_batch42.root',
+#                #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_event_mixing_batch105.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24_PbPb_pass2_event_mixing_batch1995.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24_PbPb_pass2_event_mixing_batch42.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24_PbPb_pass2_event_mixing_batch105.root',
+#
+#                # all - pass1, pass4
+#                #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_all_event_mixing_batch1995.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24ar_pass1_all_event_mixing_batch1995.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24as_pass1_all_event_mixing_batch1995.root',
+#                #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_all_event_mixing_batch105.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24ar_pass1_all_event_mixing_batch105.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24as_pass1_all_event_mixing_batch105.root',
+#                #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_all_event_mixing_batch42.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24ar_pass1_all_event_mixing_batch42.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24as_pass1_all_event_mixing_batch42.root',
+#
+#                # CBT - pass1, pass4
+#                #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_cbt_event_mixing_batch1995.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24ar_pass1_cbt_event_mixing_batch1995.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24as_pass1_cbt_event_mixing_batch1995.root',
+#                #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_cbt_event_mixing_batch105.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24ar_pass1_cbt_event_mixing_batch105.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24as_pass1_cbt_event_mixing_batch105.root',
+#                #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_cbt_event_mixing_batch42.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24ar_pass1_cbt_event_mixing_batch42.root',
+#                #'/data/galucia/lithium_local/mixing/LHC24as_pass1_cbt_event_mixing_batch42.root',
+#
+#                # hadronPID - pass1, pass4
+#                '/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_hadronpid_event_mixing_batch1995.root',
+#                '/data/galucia/lithium_local/mixing/LHC24ar_pass1_hadronpid_event_mixing_batch1995.root',
+#                '/data/galucia/lithium_local/mixing/LHC24as_pass1_hadronpid_event_mixing_batch1995.root',
+#                '/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_hadronpid_event_mixing_batch105.root',
+#                '/data/galucia/lithium_local/mixing/LHC24ar_pass1_hadronpid_event_mixing_batch105.root',
+#                '/data/galucia/lithium_local/mixing/LHC24as_pass1_hadronpid_event_mixing_batch105.root',
+#                '/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_hadronpid_event_mixing_batch42.root',
+#                '/data/galucia/lithium_local/mixing/LHC24ar_pass1_hadronpid_event_mixing_batch42.root',
+#                '/data/galucia/lithium_local/mixing/LHC24as_pass1_hadronpid_event_mixing_batch42.root',
+#
+#                #'/data/galucia/lithium_local/mixing_merged/LHC23_PbPb_pass4_all_event_mixing_grid.root',
+#                #'/data/galucia/lithium_local/mixing_merged/LHC24ar_pass1_all_event_mixing_grid.root',
+#                #'/data/galucia/lithium_local/mixing_merged/LHC24as_pass1_all_event_mixing_grid.root'
+#
 #                #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_rotation_mixing_small.root',
 #              ]
 #tree_name:    'MixedTree'
 #mode:         'tree'
-#output_file:  'output/mixed_event.root'
-#output_file:  'output/mixed_rotation.root'
+##tree_name:    'O2he3hadtable'
+##mode:         'DF'
+##output_file:  'output/mixed_event.root'
+##output_file:  'output/mixed_event_grid.root'
+##output_file:  'output/mixed_rotation.root'
+#output_file:  'checks/mixed_event_hadronpid_pass1_pass4.root'
 
 ## MC
 #input_data:   ['input/mc.root',
@@ -35,6 +85,7 @@ selections:     [
                  
                  '((fPtHe3 < 2.5) || (fPIDtrkHe3 == 7))',
                  '((fPIDtrkHe3 == 6) || (fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8))',
+                 #'((fPIDtrkHe3 == 7))',
                  '((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 2.))',
                  '(std::abs(fNSigmaDCAxyHe3) < 3)',
                  '(std::abs(fNSigmaDCAzHe3) < 3)',
@@ -42,7 +93,9 @@ selections:     [
                  '(fNSigmaITSHe3 > -1.5)',
 
                  '(std::abs(fNSigmaTPCHad) < 2)',
-                 '((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2))',
+                 #'(std::abs(fNSigmaTPCHadPr) < 2)',
+                 '((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2))',  # TOF hard cut
+                 #'((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2) || (fNSigmaTOFHad < -9.9))', # TOF veto
                  '(fNSigmaITSHad > -2.)',
                  '(std::abs(fNSigmaDCAxyHad) < 3)',
                  '(std::abs(fNSigmaDCAzHad) < 3)',

@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
-from ROOT import RooRealVar, RooDataHist, TH1F, TGraphErrors
+from ROOT import RooRealVar, RooDataHist, TH1F, TPaveText
 
 def initialize_means_and_covariances_kmeans(hist: TH1F, n_components: int):
     '''

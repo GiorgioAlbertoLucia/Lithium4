@@ -3,7 +3,7 @@ from ROOT import TFile, TH1F, TDirectory, TCanvas, TDirectory, TF1
 from torchic.utils.root import set_root_object
 
 NORM_LOW_KSTAR = 0.2 # 0.25
-NORM_HIGH_KSTAR = 0.4 # 0.75
+NORM_HIGH_KSTAR = 0.4 # 0.8
 NBINS_KSTAR = 40 # 20
 
 def normalise_histograms_and_compute_correlation(outdir:TDirectory, mode:str, centrality:str, rebin:int=1):
@@ -73,12 +73,17 @@ def correlation_function_centrality_integrated(h_sames, h_mixeds, outdir:TDirect
 
 if __name__ == '__main__':
     
-    infile_same = 'output/same_event.root'
-    infile_mixed = 'output/mixed_event.root'
-    outfile = TFile.Open('output/correlation.root', 'RECREATE')   
+    #infile_same = 'output/same_event.root'
+    #infile_mixed = 'output/mixed_event.root'
+    #_outfile = 'output/correlation.root'
+
+    infile_same = 'checks/same_event_hadronpid_pass1_pass4.root'
+    infile_mixed = 'checks/mixed_event_hadronpid_pass1_pass4.root'
+    _outfile = 'checks/correlation_hadronpid_pass1_pass4.root'
 
     file_same = TFile.Open(infile_same)
     file_mixed = TFile.Open(infile_mixed)
+    outfile = TFile.Open(_outfile, 'RECREATE')   
 
     for mode in ['', 'Matter', 'Antimatter']:
     

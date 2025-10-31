@@ -1,0 +1,38 @@
+# Same event
+input_data:   [ 
+                #'/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass5_same.root',
+                #'/data/galucia/lithium_local/same_merged/LHC24_PbPb_pass2_same.root',
+                '/data/galucia/lithium_local/same_merged/LHC23zzh_pass4_all_small_purity.root',
+                '/data/galucia/lithium_local/same_merged/LHC24ar_pass1_all_small_purity.root',
+                '/data/galucia/lithium_local/same_merged/LHC24as_pass1_all_small_purity.root',
+              ]
+tree_name:    'O2he3hadtable'
+mode:         'DF'
+#output_file:  'output/same_event.root'
+output_file:  'checks/same_event_all_pass1_pass4.root'
+
+selections:     [
+                # quality cuts
+                 #'((fDeltaPhi/0.006)*(fDeltaPhi/0.006) + (fDeltaEta/0.012)*(fDeltaEta/0.012) > 1)',
+                 '(((fChi2TPCHe3 > 0.5) || (fIs23 == false)) && (fChi2TPCHe3 < 4))', # the cut on chi2tpc should be only applied to 2023
+                 '((fChi2TPCHad < 4))',
+                 '(std::abs(fEtaHe3) < 0.9)',
+                 '(std::abs(fEtaHad) < 0.9)',
+                 
+                 '((fPtHe3 < 2.5) || (fPIDtrkHe3 == 7))',
+                 '((fPIDtrkHe3 == 6) || (fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8))',
+                 #'((fPIDtrkHe3 == 7))',
+                 #'((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 2.))',
+                 '(std::abs(fNSigmaDCAxyHe3) < 3)',
+                 '(std::abs(fNSigmaDCAzHe3) < 3)',
+                 #'(fClusterSizeCosLamHe3 > 4)',
+                 '(fNSigmaITSHe3 > -1.5)',
+
+                 #'(std::abs(fNSigmaTPCHad) < 2)',
+                 #'(std::abs(fNSigmaTPCHadPr) < 2)',
+                 #'((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2))',  # TOF hard cut
+                 #'((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2) || (fNSigmaTOFHad < -9.9))', # TOF veto
+                 '(fNSigmaITSHad > -2.)',
+                 '(std::abs(fNSigmaDCAxyHad) < 3)',
+                 '(std::abs(fNSigmaDCAzHad) < 3)',
+                ]

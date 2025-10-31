@@ -23,9 +23,9 @@ PARAMETERISATION = {
 }
 
 MEASURED_POINTS = {
-    '0-10%': ufloat(1.416, 0.301),
-    '10-30%': ufloat(1.388, 0.299),
-    '30-50%': ufloat(1.333, 0.282),
+    '0-10%': ufloat(1.44, 0.31),
+    '10-30%': ufloat(1.41, 0.30),
+    '30-50%': ufloat(1.36, 0.27),
 }
 
 def draw_source_radius():
