@@ -9,19 +9,21 @@ import uproot
 
 if __name__ == '__main__':
 
-    infile = '/data/galucia/lithium_local/same/LHC23_PbPb_pass4_hadronpid_same.root'
+    #infile = '/data/galucia/lithium_local/MC/LHC25a4.root'
+    infile = '/data/galucia/lithium_local/same/LHC24as_pass1_hadronpid_same.root'
     #infile = '/data/galucia/lithium_local/same/LHC24_PbPb_pass2_same.root'
     #infile = '/data/galucia/lithium_local/mixing/LHC24_PbPb_pass2_event_mixing.root'
     #infile = '/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root'
     #infile = '/data/galucia/lithium_local/mixing/LHC24as_pass1_all_event_mixing_grid.root'
     
-    table_names = ['O2he3hadtable', 'O2he3hadmult'] #, 'O2he3hadtablemc']
+    table_names = ['O2he3hadtable', 'O2he3hadmult']#, 'O2he3hadtablemc']
     #table_names = ['MixedTree']
     
     base = 'DF' 
     #base = ''
 
-    outfile = uproot.recreate('/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass4_hadronpid_same.root')
+    #outfile = uproot.recreate('/data/galucia/lithium_local/MC_merged/LHC25a4.root')
+    outfile = uproot.recreate('/data/galucia/lithium_local/same_merged/LHC24as_pass1_hadronpid_same.root')
     #outfile = uproot.recreate('/data/galucia/lithium_local/same_merged/LHC24_PbPb_pass2_same.root')
     #outfile = uproot.recreate('/data/galucia/lithium_local/mixing_merged/LHC24_PbPb_pass2_event_mixing.root')
     #outfile = uproot.recreate('/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass5_same.root')
@@ -61,4 +63,4 @@ if __name__ == '__main__':
 
         df = pd.concat(dfs, axis=1)
         df['fIs23'] = True if 'LHC23' in infile else False
-        outfile[f'{table_names[0]}'] = df
+        outfile.mktree(f'{table_names[0]}', df)
