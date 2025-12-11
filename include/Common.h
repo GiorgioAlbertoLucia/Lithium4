@@ -41,8 +41,8 @@ namespace parametrisation
       {0.1014, 1.7512, 0.0024}     // He
     };
     
-    std::array<float, 5> kHeTPCParams = {-178.17, 0.2942, 2.0095, 1.6669, 3.4239};
-    float kHeTPCResolution = 0.063;
+    std::array<float, 5> kHeTPCParams = {-162.83, -0.4007, 1.1513, 0.9589, 2.7651};
+    float kHeTPCResolution = 0.061;
 
     std::array<float, 3> kITSParams[static_cast<int>(species::kNspecies)] = {
       {1.0228, 1.9634, 2.2081},  // Pr from Ka fitting
@@ -70,7 +70,7 @@ float ComputeNsigmaDCA(const float pt, const float dca, const int iSpecies, cons
   if (std::strcmp(dcaType, "xy") == 0) {
     parameters = parametrisation::kDCAxyResolutionParams[iSpecies];
   } else if (std::strcmp(dcaType, "z") == 0) {
-    parameters = parametrisation::kDCAxyResolutionParams[iSpecies];
+    parameters = parametrisation::kDCAzResolutionParams[iSpecies];
   } else {
     std::cout << "Invalid dcaType. Accepted types are 'xy' 'z'" << std::endl;
     parameters = {0., 0., 0.};
