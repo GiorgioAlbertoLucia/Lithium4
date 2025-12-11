@@ -49,18 +49,15 @@
             "confSigmaBCforHighPtTracks": "4",
             "TimeIntervalForOccupancyCalculationMin": "-40",
             "TimeIntervalForOccupancyCalculationMax": "100",
-            "TimeRangeVetoOnCollStandard": "10",
+            "TimeRangeVetoOnCollStrict": "10",
             "TimeRangeVetoOnCollNarrow": "2",
             "FT0CamplPerCollCutVetoOnCollInTimeRange": "8000",
             "FT0CamplPerCollCutVetoOnCollInROF": "5000",
             "EpsilonVzDiffVetoInROF": "0.300000012",
             "UseWeightsForOccupancyEstimator": "true",
             "NumberOfOrbitsPerTF": "-1",
-            "TestAlternativeBcMatching": "0",
-            "TestModifyTimeVetoOnNearbyColl": "0",
-            "TestVetoOnTRDinPast": "0",
-            "TestVzDiffNsigma": "3",
-            "TestVzDiffMargin": "0.200000003"
+            "VzDiffNsigma": "3",
+            "VzDiffMargin": "0.200000003"
         },
         "lumiOpts": {
             "amIneeded": "-1"
@@ -76,7 +73,12 @@
             "ccdb-timestamp": "0",
             "useNetworkCorrection": "true",
             "autofetchNetworks": "true",
-            "skipTPCOnly": "false",
+            "skipTPCOnly": "-1",
+            "devicesRequiringTPCOnlyPID": {
+                "values": [
+                    "photon-conversion-builder"
+                ]
+            },
             "networkPathLocally": "network.onnx",
             "networkPathCCDB": "Analysis\/PID\/TPC\/ML",
             "enableNetworkOptimizations": "false",
@@ -112,7 +114,7 @@
             "useNetworkHe": "0",
             "useNetworkAl": "0",
             "networkBetaGammaCutoff": "0.449999988",
-            "irSource": "ZNC hadronic"
+            "ccdb-path-grplhcif": "GLO\/Config\/GRPLHCIF"
         },
         "processTracksIU": "false",
         "processTracksIUWithTracksQA": "false",
@@ -455,7 +457,8 @@
             "usePvRefitCorrections": "false",
             "qOverPtMC": "-1",
             "qOverPtData": "-1",
-            "nPhiBins": "0"
+            "nPhiBins": "0",
+            "autoDetectDcaCalib": "false"
         },
         "trackPropagation": {
             "minPropagationDistance": "5",
@@ -815,7 +818,7 @@
     "nuclei-q-c": {
         "cfgFillTable": "true",
         "cfgDoCheckPdgCode": "true",
-        "cfgFillOnlyPhysicalPrimaries": "false",
+        "cfgFillOnlyPhysicalPrimaries": "true",
         "cfgSpeciesToProcess": {
             "labels_rows": [
                 "proton",
@@ -1052,8 +1055,7 @@
         },
         "cfgMaterialCorrection": "2",
         "ccdb-url": "http:\/\/alice-ccdb.cern.ch",
-        "processMc": "true",
-        "processMcParticle": "false"
+        "processMc": "true"
     },
     "internal-dpl-aod-writer": "",
     "internal-dpl-aod-global-analysis-file-sink": "",

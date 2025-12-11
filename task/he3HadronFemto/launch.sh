@@ -16,13 +16,15 @@ OUTPUT_DIR="OutputDirector.json"
 
 
 
-o2-analysis-lf-nucleiqc $CONF |
+o2-analysis-lf-he3hadronfemto $CONF |
     
     #o2-analysis-mc-converter $CONF|
-    o2-analysis-mccollision-converter $CONF --shm-segment-size 750000000000 --aod-memory-rate-limit 50000000000|
+    #o2-analysis-mccollision-converter $CONF --shm-segment-size 750000000000 --aod-memory-rate-limit 50000000000|
 
     o2-analysis-pid-tof-merge $CONF |
-    #o2-analysis-tracks-extra-v002-converter $CONF |
+    o2-analysis-trackselection $CONF |
+    o2-analysis-propagationservice $CONF |
+    o2-analysis-tracks-extra-v002-converter $CONF |
     o2-analysis-multcenttable $CONF |
     o2-analysis-event-selection-service $CONF |
     o2-analysis-pid-tpc-service $CONF |

@@ -7,6 +7,7 @@
 # mc: /data/galucia/lithium_local/MC/raw/LHC25a4_002_raw.root
 # mc: /data/galucia/lithium_local/MC/raw/LHC25a4_003_raw.root
 # mc: /data/galucia/lithium_local/MC/raw/LHC25a4_004_raw.root
+# mc: /data/galucia/lithium_local/raw/LHC25g12_001_raw.root
 
 LOGFILE="output.log"
 CONF="-b --configuration json://configuration.json"
@@ -39,5 +40,3 @@ else
     echo "Check the log file for more details: $LOGFILE"
     #exit $rc
 fi
-
-    

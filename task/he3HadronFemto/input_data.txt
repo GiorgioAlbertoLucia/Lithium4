@@ -1,1 +1,1 @@
-/data/galucia/lithium_local/raw/LHC24ar_pass1_001_raw.root
+/data/galucia/lithium_local/raw/LHC23zzh_pass4_001_raw.root

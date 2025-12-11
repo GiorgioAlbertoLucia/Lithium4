@@ -12,7 +12,6 @@
     },
     "internal-dpl-aod-spawner": "",
     "internal-dpl-aod-index-builder": "",
-    "mc-collision-converter": "",
     "eventselection-run3": {
         "timestamp": {
             "verbose": "false",
@@ -132,7 +131,33 @@
         "processStandard": "false",
         "processWithBypassFT0timeInMC": "true"
     },
-    "nuclei-from-hypertriton-map": "",
+    "nuclei-from-hypertriton-map": {
+        "min_ITS_nClusters": "7",
+        "min_ITS_InnerBarrel_nClusters": "1",
+        "max_ITS_InnerBarrel_nClusters": "3",
+        "min_TPC_nClusters": "100",
+        "min_TPC_nCrossedRows": "70",
+        "max_chi2_TPC": "4",
+        "min_chi2_ITS": "0.5",
+        "min_eta": "-0.800000012",
+        "max_eta": "0.800000012",
+        "max_dcaxy": "0.0500000007",
+        "max_dcaz": "0.0500000007",
+        "min_nsigmaTPC": "-2",
+        "max_nsigmaTPC": "2",
+        "settingCutVertex": "10",
+        "pt_axis": {
+            "values": [
+                "50",
+                "-10",
+                "10"
+            ]
+        },
+        "saveHelium": "true",
+        "cfgMaterialCorrection": "2",
+        "ccdb-url": "http:\/\/alice-ccdb.cern.ch",
+        "processMC": "true"
+    },
     "propagation-service": {
         "ccdburl": "http:\/\/alice-ccdb.cern.ch",
         "ccdb": {
