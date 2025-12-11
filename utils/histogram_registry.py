@@ -18,6 +18,8 @@ class RegistryEntry:
     ymax: float = 0.0
     condition: str = 'True'
     save_directory: str = ''
+    labels_x: list = None
+    labels_y: list = None 
 
 class HistogramRegistry:
     
@@ -32,20 +34,42 @@ class HistogramRegistry:
         if entry.name in self._registry_entries:
             raise ValueError(f"Histogram '{entry.name}' is already registered.")
         self._registry_entries[entry.name] = entry
+    
+    @staticmethod
+    def set_histogram_labels(hist, labels_x: list = None, labels_y: list = None):
+        
+        if labels_x:
+            for ilabel, label in enumerate(labels_x):
+                hist.GetXaxis().SetBinLabel(ilabel+1, label)
+        if labels_y:
+            for ilabel, label in enumerate(labels_y):
+                hist.GetYaxis().SetBinLabel(ilabel+1, label)
+
 
     def draw_histogram(self, rdf: RDataFrame):
         
+        column_names = rdf.GetColumnNames()
+
         for entry in self._registry_entries.values():
 
             if entry.nbinsy > 0:
+                if entry.xvar not in column_names or entry.yvar not in column_names:
+                    continue
+
                 hist = rdf.Filter(entry.condition).Histo2D((entry.name, entry.title, 
                                                             entry.nbinsx, entry.xmin, entry.xmax, 
                                                             entry.nbinsy, entry.ymin, entry.ymax), 
                                                             entry.xvar, entry.yvar)
+                self.set_histogram_labels(hist, entry.labels_x, entry.labels_y)
             else:
+                if entry.xvar not in column_names:
+                    continue
+                
                 hist = rdf.Filter(entry.condition).Histo1D((entry.name, entry.title, 
                                                             entry.nbinsx, entry.xmin, entry.xmax), 
                                                             entry.xvar)
+                self.set_histogram_labels(hist, entry.labels_x)
+                
             self._registry[entry.name] = hist
 
     def prepare_directories(self, output_file: TFile):
@@ -82,5 +106,5 @@ class HistogramRegistry:
                     hist.Write(entry.name)
                     print(f"\tSaved histogram: {tc.CYAN+tc.UNDERLINE}{idir}:{entry.name}{tc.RESET}")
                 else:
-                    print(f"\t{tc.RED}WARNING{tc.RESET}Histogram {tc.CYAN+tc.UNDERLINE}{entry.name}{tc.RESET} not found in registry.")
+                    print(f"\t{tc.RED}[WARNING]{tc.RESET} Histogram {tc.CYAN+tc.UNDERLINE}{entry.name}{tc.RESET} not found in registry.")
 
