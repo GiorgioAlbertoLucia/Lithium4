@@ -143,11 +143,15 @@ if __name__ == '__main__':
          ['/data/galucia/lithium_local/mixing_merged/LHC23_PbPb_pass4_all_event_mixing_grid.root',
           '/data/galucia/lithium_local/mixing_merged/LHC24ar_pass1_all_event_mixing_grid.root',
           '/data/galucia/lithium_local/mixing_merged/LHC24as_pass1_all_event_mixing_grid.root'
+          ],
+          ['/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass4_all_same.root',
+          '/data/galucia/lithium_local/same_merged/LHC24ar_pass1_all_same.root',
+          '/data/galucia/lithium_local/same_merged/LHC24as_pass1_all_same.root'
           ]
         ]
-    tree_names = ['MixedTree', 'MixedTree', 'MixedTree', 'O2he3hadtable']
-    modes = ['tree', 'tree', 'tree', 'DF']
-    folder_names = ['1995', '105', '42', 'grid']
+    tree_names = ['MixedTree', 'MixedTree', 'MixedTree', 'O2he3hadtable', 'O2he3hadtable']
+    modes = ['tree', 'tree', 'tree', 'DF', 'DF']
+    folder_names = ['1995', '105', '42', 'grid', 'same']
     
     output_file_path = 'output/comparison.root'
     output_file = ROOT.TFile(output_file_path, "RECREATE")
