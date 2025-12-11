@@ -55,7 +55,7 @@ def draw_source_radius():
         
         points[centrality] = TGraphErrors(1)
         points[centrality].SetPoint(0, MEASURED_POINTS[centrality].n, funcs[centrality].Eval(MEASURED_POINTS[centrality].n))
-        print(f'Measured {centrality}: {MEASURED_POINTS[centrality].n}, Rsource: {points[centrality].GetY()[0]}')
+        print(f'Measured {centrality}: {MEASURED_POINTS[centrality].n}, Rp: {points[centrality].GetY()[0]}, Rsource: {np.sqrt(2)*points[centrality].GetY()[0]}')
 
         bands[centrality] = TGraphAsymmErrors(NPOINTS)
         for ix, x in enumerate(X):
@@ -72,7 +72,7 @@ def draw_source_radius():
 
     canvas = TCanvas('canvas', 'Source Radius Parameterisation', 800, 600)
     gStyle.SetOptStat(0)
-    hframe = canvas.DrawFrame(XMIN, 2.2, XMAX, 7.5, ';#LT#it{m}_{T}#GT (GeV/#it{c}^{2});#it{R}_{source} (fm)')
+    hframe = canvas.DrawFrame(XMIN, 2.2, XMAX, 7.5, ';#LT#it{m}_{T}#GT (GeV/#it{c}^{2});#it{R}_{p} (fm)')
 
     watermark = TPaveText(0.15, 0.76, 0.45, 0.88, 'NDC')
     watermark.SetFillColor(0)
@@ -81,16 +81,17 @@ def draw_source_radius():
     watermark.AddText('#bf{ALICE Run 3}')
     watermark.AddText('#bf{Pb-Pb  #it{#sqrt{s_{NN}}} = 5.36 TeV}')
     
-    legend = TLegend(0.5, 0.6, 0.88, 0.88)
+    legend = TLegend(0.5, 0.68, 0.88, 0.88)
     legend.SetBorderSize(0)
     legend.SetFillStyle(0)
     legend.SetNColumns(2)
     legend.SetTextSize(0.03)
 
-    results_panel = TPaveText(0.5, 0.44, 0.88, 0.6, 'NDC')
+    results_panel = TPaveText(0.38, 0.48, 0.88, 0.64, 'NDC')
     results_panel.SetFillColor(0)
     results_panel.SetBorderSize(0)
-    results_panel.AddText('         #bf{#LT#it{m}_{T}#GT (GeV/#it{c}^{2})}  #bf{#it{R}_{source} (fm)}')
+    results_panel.SetTextSize(0.038)
+    results_panel.AddText('      #bf{#LT#it{m}_{T}#GT (GeV/#it{c}^{2})} #bf{#it{R}_{p} (fm)} #bf{#it{R}_{source} (fm)}')
 
     for color, centrality in zip([kRed, kBlue, kGreen], ['0-10%', '10-30%', '30-50%']):
 
@@ -106,7 +107,7 @@ def draw_source_radius():
         legend.AddEntry(bands[centrality], centrality, 'f')
         legend.AddEntry(points[centrality], f'Measured {centrality}', 'p')
 
-        results_panel.AddText(f'#bf{{{centrality}:}}    #bf{{{MEASURED_POINTS[centrality].n:.2f}}}     #bf{{{points[centrality].GetY()[0]:.2f}}}')
+        results_panel.AddText(f'#bf{{{centrality}:}}   #bf{{{MEASURED_POINTS[centrality].n:.2f}}}    #bf{{{points[centrality].GetY()[0]:.2f}}}    #bf{{{np.sqrt(2)*points[centrality].GetY()[0]:.2f}}}')
 
     watermark.Draw()
     results_panel.Draw()

@@ -36,16 +36,13 @@ class BkgFitter(Fitter):
         
         xvar = self._roo_workspace.obj(self._xvar_name)
         self._bkg_datahist = RooDataHist('bkg_dh', 'bkg_dh', [xvar], Import=h_bkg)
-
-        bkg_pdf = RooHistPdf('tmp', 'tmp', [xvar], self._bkg_datahist)
-
-        self._bkg_normalisation = RooRealVar('bkg_normalisation', '#it{N}_{bkg}', 1., 0, 1e4)
         
         if extended:
+            bkg_pdf = RooHistPdf('tmp', 'tmp', [xvar], self._bkg_datahist)
+            self._bkg_normalisation = RooRealVar('bkg_normalisation', '#it{N}_{bkg}', 1., 0, 1e4)
             self._bkg_pdf = RooExtendPdf(name, name, bkg_pdf, self._bkg_normalisation)
         else:
             self._bkg_pdf = RooHistPdf(name, name, [xvar], self._bkg_datahist)
-
 
         frame = xvar.frame()
         self._bkg_datahist.plotOn(frame)

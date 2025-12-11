@@ -221,7 +221,7 @@ def sampling(outfile: TFile, n_samples: int = 1_000_000) -> RooDataSet:
 
     return roo_dataset
 
-def draw_kstar_profile(roo_dataset: RooDataSet, outfile: TFile) -> None:
+def draw_kstar_profile(roo_dataset: RooDataSet, outfile: TFile) -> TH1F:
 
     h_kstar = TH1F('hKstar', ';#it{k}* (GeV/#it{c});Counts', 400, 0, 0.4)
     for ientry in range(roo_dataset.numEntries()):
@@ -229,10 +229,14 @@ def draw_kstar_profile(roo_dataset: RooDataSet, outfile: TFile) -> None:
         kstar = convert_invmass_to_kstar(invmass)
         h_kstar.Fill(kstar)
 
+    h_kstar.SetBinContent(1, 0.)    # in the conversion, this bin behaves as an underflow bin
+
     outfile.cd()
     h_kstar.Write()
 
-def draw_kstar_profile_from_hist(roo_dataset: RooDataSet, outfile: TFile) -> None:
+    return h_kstar
+
+def draw_kstar_profile_from_hist(roo_dataset: RooDataSet, outfile: TFile) -> TH1F:
 
     roo_datahist = roo_dataset.binnedClone()
 
@@ -249,6 +253,23 @@ def draw_kstar_profile_from_hist(roo_dataset: RooDataSet, outfile: TFile) -> Non
     outfile.cd()
     h_kstar.Write()
 
+    return h_kstar
+
+def draw_ck_profile_from_hist(h_signal:TH1F, h_mixed_event:TH1F, outfile: TFile) -> None:
+
+    h_ck = h_mixed_event.Clone('hCkHist')
+
+    for ibin in range(1, h_mixed_event.GetNbinsX()+1):
+
+        bin_center = h_ck.GetBinCenter(ibin)
+        value = h_signal.GetBinContent(h_signal.FindBin(bin_center)) / h_mixed_event.GetBinContent(ibin)
+        error = h_signal.GetBinError(h_signal.FindBin(bin_center)) / h_mixed_event.GetBinContent(ibin)
+        h_ck.SetBinContent(ibin, value)
+        h_ck.SetBinError(ibin, error)
+
+    outfile.cd()
+    h_mixed_event.Write('hMixedEvent')
+    h_ck.Write()
     
 
 if __name__ == '__main__':
@@ -257,7 +278,7 @@ if __name__ == '__main__':
     W_LI4 = 0.005 # GeV/c^2 (li4 width)
     E_TH = 3.7466 # GeV/c^2
 
-    outfile = TFile.Open('output/sampling.root', 'recreate')
+    outfile = TFile.Open('output/sampling_check.root', 'recreate')
 
     sampler = Sampler(M_LI4, W_LI4, 0, E_TH, outfile)
     
@@ -268,7 +289,10 @@ if __name__ == '__main__':
     sampler.sample('sill_gaus_conv_numpy', 10_000_000)
     
     sampler.save_sampling()
-    draw_kstar_profile(sampler.sampled_roo_dataset, outfile)
+    h_kstar = draw_kstar_profile(sampler.sampled_roo_dataset, outfile)
     draw_kstar_profile_from_hist(sampler.sampled_roo_dataset, outfile)
+
+    h_mixed_event = load_hist('/home/galucia/Lithium4/preparation/checks/correlation_all_pass1_pass4_nclstpc_unrebinned.root', 'Correlation/hMixedEvent050')
+    draw_ck_profile_from_hist(h_kstar, h_mixed_event, outfile)
     
     outfile.Close()

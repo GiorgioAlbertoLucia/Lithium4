@@ -26,6 +26,8 @@ class SignalFitter(Fitter):
     
     def _init_signal_from_mc(self, h_signal:TH1F, name:str='signal_pdf'):
         
+        h_signal.SetBinContent(h_signal.FindBin(0.), 0.)    # Cure the unphysical first bin behaving like an underflow bin
+
         xvar = self._roo_workspace.obj(self._xvar_name)
         self._signal_datahist = RooDataHist('signal_dh', 'signal_dh', [xvar], Import=h_signal)
         self._signal_pdf = RooHistPdf(name, name, [xvar], self._signal_datahist)
