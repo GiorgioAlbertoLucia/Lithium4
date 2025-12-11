@@ -9,11 +9,9 @@ sys.path.append('..')
 from utils.particles import ParticleMasses
 from utils.histogram_registry import HistogramRegistry
 from utils.histogram_archive import register_qa_histograms, register_kstar_histograms, register_kstar_matter_histograms, \
-    register_kstar_antimatter_histograms
+    register_kstar_antimatter_histograms, register_invmass_histograms
 
 gInterpreter.ProcessLine(f'#include "../include/Common.h"')
-from ROOT import ComputeNsigmaTPCHe, ComputeNsigmaITSHe, ComputeNsigmaITSPr, ComputeNsigmaTOFPr, ComputeAverageClusterSize, CorrectPidTrkHe, \
-  ComputeKstar, ComputeExpectedClusterSizeCosLambdaHe, ComputeExpectedClusterSizeCosLambdaPr, ComputeNsigmaDCAxyHe, ComputeNsigmaDCAxyPr, ComputeNsigmaDCAzHe, ComputeNsigmaDCAzPr 
 
 ROOT.EnableImplicitMT(30)
 ROOT.gROOT.SetBatch(True)
@@ -61,24 +59,29 @@ def prepare_input_tchain(config):
 
 def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
    
-    rdf = RDataFrame(chain_data) 
+    rdf = RDataFrame(chain_data)
+    print(tc.GREEN+'\nDataset columns'+tc.RESET)
+    print(tc.UNDERLINE+tc.CYAN+f'{rdf.GetColumnNames()}'+tc.RESET)
+    
+    # TPC
     if 'fNSigmaTPCHadPr' in rdf.GetColumnNames():
         rdf = rdf.Define('fNSigmaTPCHad', 'fNSigmaTPCHadPr')
+    
+    # TOF
     if 'fNSigmaTOFHadPr' not in rdf.GetColumnNames():
-        rdf = rdf.Define('fNSigmaTOFHad', 'ComputeNsigmaTOFPr(std;;abs(fPtHad), fMassTOFHad)')
+        rdf = rdf.Define('fNSigmaTOFHad', 'ComputeNsigmaTOFPr(std::abs(fPtHad), fMassTOFHad)')
     else:
        rdf = rdf.Define('fNSigmaTOFHad', 'fNSigmaTOFHadPr')
     
       # Recalibration
-      #.Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3)') \
       # Correct for PID in tracking
       
     rdf = rdf.Define('fSignedPtHad', 'fPtHad') \
       .Define('fSignHe3', 'fPtHe3/std::abs(fPtHe3)') \
       .Redefine('fPtHe3', 'std::abs(fPtHe3)') \
       .Redefine('fPtHad', 'std::abs(fPtHad)') \
-      .Define('fSignedPtHe3', 'fPtHe3 * fSignHe3') \
       .Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
+      .Define('fSignedPtHe3', 'fPtHe3 * fSignHe3') \
       .Define(f'fEHe3', f'std::sqrt((fPtHe3 * std::cosh(fEtaHe3))*(fPtHe3 * std::cosh(fEtaHe3)) + {ParticleMasses["He"]}*{ParticleMasses["He"]})') \
       .Define(f'fEHad', f'std::sqrt((fPtHad * std::cosh(fEtaHad))*(fPtHad * std::cosh(fEtaHad)) + {ParticleMasses["Pr"]}*{ParticleMasses["Pr"]})') \
       .Define('fDeltaEta', 'fEtaHe3 - fEtaHad') \
@@ -90,6 +93,7 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
       .Define('fExpectedClusterSizeHad', 'ComputeExpectedClusterSizeCosLambdaPr(fPtHad * std::cosh(fEtaHad))') \
       .Define('fNSigmaITSHe3', 'ComputeNsigmaITSHe(fPtHe3 * std::cosh(fEtaHe3), fClusterSizeCosLamHe3)') \
       .Define('fNSigmaITSHad', 'ComputeNsigmaITSPr(fPtHad * std::cosh(fEtaHad), fClusterSizeCosLamHad)') \
+      .Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3)') \
       .Define('fNSigmaDCAxyHe3', 'ComputeNsigmaDCAxyHe(fPtHe3, fDCAxyHe3)') \
       .Define('fNSigmaDCAzHe3', 'ComputeNsigmaDCAzHe(fPtHe3, fDCAzHe3)') \
       .Define('fNSigmaDCAxyHad', 'ComputeNsigmaDCAxyPr(fPtHad, fDCAxyHad)') \
@@ -118,7 +122,10 @@ def visualise(rdf, output_file: TFile):
     histogram_registry = HistogramRegistry()
 
     register_qa_histograms(histogram_registry)
-    print(f'\tQA Histograms created!')
+    print(f'\tQA histograms created!')
+
+    register_invmass_histograms(histogram_registry)
+    print(f'\tInvariant mass histograms created!')
 
     register_kstar_histograms(histogram_registry)
     print(f'\t(anti)matter histograms created!')
