@@ -1,15 +1,24 @@
-import argparse
+import sys
 import yaml
 import numpy as np
 import ROOT
-from ROOT import TFile, TChain, TList, TTree
+from ROOT import TFile, TChain, gInterpreter, RDataFrame
 from alive_progress import alive_bar
 
+import time
+
+from torchic.utils.terminal_colors import TerminalColors as tc
+from torchic.utils.timeit import timeit
+
+sys.path.append('..')
 from utils.particles import ParticleMasses
 
-ROOT.gROOT.LoadMacro('Common.h++')
-from ROOT import NsigmaTpcHe, NsigmaITSHe, NsigmaITSPr, NsigmaTOFPr, averageClusterSize, CorrectPidTrkHe, \
-  Kstar, ExpectedClusterSizeCosLambdaHe, ExpectedClusterSizeCosLambdaPr
+gInterpreter.ProcessLine(f'#include "../include/Common.h"')
+gInterpreter.ProcessLine(f'#include "../include/Variation.h"')
+gInterpreter.ProcessLine(f'#include "../include/Systematics.h"')
+from ROOT import ComputeAllSystematics
+#from ROOT import ComputeNsigmaTPCHe, ComputeNsigmaITSHe, ComputeNsigmaITSPr, ComputeNsigmaTOFPr, ComputeAverageClusterSize, CorrectPidTrkHe, \
+#  ComputeKstar, ComputeExpectedClusterSizeCosLambdaHe, ComputeExpectedClusterSizeCosLambdaPr, ComputeNsigmaDCAxyHe, ComputeNsigmaDCAxyPr, ComputeNsigmaDCAzHe, ComputeNsigmaDCAzPr 
 
 ROOT.EnableImplicitMT(30)
 ROOT.gROOT.SetBatch(True)
@@ -31,495 +40,645 @@ for sel in selections[1:]:
     base_selection += (' && ' + sel)
 print(f'Selection: {base_selection}')
 
+def prepare_input_tchain(config:dict):
+
+    input_data = config['input_data']
+    tree_name = config['tree_name']
+    mode = config['mode']
+
+    file_data_list = input_data if isinstance(input_data, list) else [input_data]
+    chain_data = TChain('tchain')
+
+    for file_name in file_data_list:
+      fileData = TFile(file_name)
+
+      if mode == 'DF':
+        for key in fileData.GetListOfKeys():
+          key_name = key.GetName()
+          if 'DF_' in key_name :
+              print(f'Adding {tc.CYAN+tc.UNDERLINE}{file_name}/{key_name}/{tree_name}{tc.RESET} to the chain')
+              chain_data.Add(f'{file_name}/{key_name}/{tree_name}')
+      elif mode == 'tree':
+        print(f'Adding {tc.CYAN+tc.UNDERLINE}{file_name}/{tree_name}{tc.RESET} to the chain')
+        chain_data.Add(f'{file_name}/{tree_name}')
+    
+    return chain_data
+
+def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
+   
+    rdf = RDataFrame(chain_data)
+    print(tc.GREEN+'\nDataset columns'+tc.RESET)
+    print(tc.UNDERLINE+tc.CYAN+f'{rdf.GetColumnNames()}'+tc.RESET)
+    
+    # TPC
+    if 'fNSigmaTPCHadPr' in rdf.GetColumnNames():
+        rdf = rdf.Define('fNSigmaTPCHad', 'fNSigmaTPCHadPr')
+    
+    # TOF
+    if 'fNSigmaTOFHadPr' not in rdf.GetColumnNames():
+        rdf = rdf.Define('fNSigmaTOFHad', 'ComputeNsigmaTOFPr(std::abs(fPtHad), fMassTOFHad)')
+    else:
+       rdf = rdf.Define('fNSigmaTOFHad', 'fNSigmaTOFHadPr')
+    
+      # Recalibration
+      #.Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3)') \
+      # Correct for PID in tracking
+      
+    rdf = rdf.Define('fSignedPtHad', 'fPtHad') \
+      .Define('fSignHe3', 'fPtHe3/std::abs(fPtHe3)') \
+      .Redefine('fPtHe3', 'std::abs(fPtHe3)') \
+      .Redefine('fPtHad', 'std::abs(fPtHad)') \
+      .Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
+      .Define('fSignedPtHe3', 'fPtHe3 * fSignHe3') \
+      .Define(f'fEHe3', f'std::sqrt((fPtHe3 * std::cosh(fEtaHe3))*(fPtHe3 * std::cosh(fEtaHe3)) + {ParticleMasses["He"]}*{ParticleMasses["He"]})') \
+      .Define(f'fEHad', f'std::sqrt((fPtHad * std::cosh(fEtaHad))*(fPtHad * std::cosh(fEtaHad)) + {ParticleMasses["Pr"]}*{ParticleMasses["Pr"]})') \
+      .Define('fDeltaEta', 'fEtaHe3 - fEtaHad') \
+      .Define('fDeltaPhi', 'fPhiHe3 - fPhiHad') \
+      .Redefine('fInnerParamTPCHe3', 'fInnerParamTPCHe3 * 2') \
+      .Define('fClusterSizeCosLamHe3', 'ComputeAverageClusterSize(fItsClusterSizeHe3) / cosh(fEtaHe3)') \
+      .Define('fClusterSizeCosLamHad', 'ComputeAverageClusterSize(fItsClusterSizeHad) / cosh(fEtaHad)') \
+      .Define('fNSigmaITSHe3', 'ComputeNsigmaITSHe(fPtHe3 * std::cosh(fEtaHe3), fClusterSizeCosLamHe3)') \
+      .Define('fNSigmaITSHad', 'ComputeNsigmaITSPr(fPtHad * std::cosh(fEtaHad), fClusterSizeCosLamHad)') \
+      .Define('fNSigmaDCAxyHe3', 'ComputeNsigmaDCAxyHe(fPtHe3, fDCAxyHe3)') \
+      .Define('fNSigmaDCAzHe3', 'ComputeNsigmaDCAzHe(fPtHe3, fDCAzHe3)') \
+      .Define('fNSigmaDCAxyHad', 'ComputeNsigmaDCAxyPr(fPtHad, fDCAxyHad)') \
+      .Define('fNSigmaDCAzHad', 'ComputeNsigmaDCAzPr(fPtHad, fDCAzHad)') \
+      .Filter(base_selection).Filter(selection) \
+      .Filter('(fCentralityFT0C < 50)') \
+      .Define('fKstar', f'ComputeKstar(fPtHe3, fEtaHe3, fPhiHe3, {ParticleMasses["He"]}, fPtHad, fEtaHad, fPhiHad, {ParticleMasses["Pr"]})')
+    
+    return rdf
 
 def load_same():
     
-    input_data = ['input/LHC23_PbPb_pass4_long_same_lsus_merged.root',
-                  'input/LHC24ar_pass1_same_merged.root',
-                  'input/LHC24as_pass1_same_merged.root']
-    file_data_list = input_data if isinstance(input_data, list) else [input_data]
-
-    chainData = TChain("O2he3hadtable")
-    tree_name = "O2he3hadtable"
-
-    for fileName in file_data_list:
-        fileData = TFile(fileName)
-
-        for key in fileData.GetListOfKeys():
-          keyName = key.GetName()
-          if 'DF_' in keyName :
-              print(f'Adding {fileName}/{keyName}/{tree_name} to the chain')
-              chainData.Add(f'{fileName}/{keyName}/{tree_name}')
-      
-    rdf = ROOT.ROOT.RDataFrame(chainData) \
-          .Define('fSignedPtHad', 'fPtHad') \
-          .Define('fSignHe3', 'fPtHe3/std::abs(fPtHe3)') \
-          .Redefine('fPtHe3', 'std::abs(fPtHe3)') \
-          .Redefine('fPtHad', 'std::abs(fPtHad)') \
-          .Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
-          .Define('fSignedPtHe3', 'fPtHe3 * fSignHe3') \
-          .Define(f'fEHe3', f'std::sqrt((fPtHe3 * std::cosh(fEtaHe3))*(fPtHe3 * std::cosh(fEtaHe3)) + {ParticleMasses["He"]}*{ParticleMasses["He"]})') \
-          .Define(f'fEHad', f'std::sqrt((fPtHad * std::cosh(fEtaHad))*(fPtHad * std::cosh(fEtaHad)) + {ParticleMasses["Pr"]}*{ParticleMasses["Pr"]})') \
-          .Define('fDeltaEta', 'fEtaHe3 - fEtaHad') \
-          .Define('fDeltaPhi', 'fPhiHe3 - fPhiHad') \
-          .Redefine('fInnerParamTPCHe3', 'fInnerParamTPCHe3 * 2') \
-          .Redefine('fNSigmaTPCHe3', 'NsigmaTpcHe(fInnerParamTPCHe3, fSignalTPCHe3)') \
-          .Define('fNSigmaTOFHad', 'NsigmaTOFPr(fPtHad * std::cosh(fEtaHad), fMassTOFHad)') \
-          .Define('fClusterSizeCosLamHe3', 'averageClusterSize(fItsClusterSizeHe3) / cosh(fEtaHe3)') \
-          .Define('fClusterSizeCosLamHad', 'averageClusterSize(fItsClusterSizeHad) / cosh(fEtaHad)') \
-          .Define('fExpectedClusterSizeHe3', 'ExpectedClusterSizeCosLambdaHe(fPtHe3)') \
-          .Define('fExpectedClusterSizeHad', 'ExpectedClusterSizeCosLambdaPr(fPtHad)') \
-          .Define('fNSigmaITSHe3', 'NsigmaITSHe(fPtHe3 * std::cosh(fEtaHe3), fClusterSizeCosLamHe3)') \
-          .Define('fNSigmaITSHad', 'NsigmaITSPr(fPtHad * std::cosh(fEtaHad), fClusterSizeCosLamHad)') \
-          .Filter(base_selection) \
-          .Define('fKstar', f'Kstar(fPtHe3, fEtaHe3, fPhiHe3, {ParticleMasses["He"]}, fPtHad, fEtaHad, fPhiHad, {ParticleMasses["Pr"]})') \
-          
-    return rdf, chainData
+    config_same = {
+        'input_data':   [ 
+                #'/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass5_same.root',
+                #'/data/galucia/lithium_local/same_merged/LHC24_PbPb_pass2_same.root',
+                '/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass4_all_same.root',
+                '/data/galucia/lithium_local/same_merged/LHC24ar_pass1_all_same.root',
+                '/data/galucia/lithium_local/same_merged/LHC24as_pass1_all_same.root',
+              ],
+        'tree_name':    'O2he3hadtable',
+        'mode':         'DF',
+    }
+    chain_data_same = prepare_input_tchain(config_same)
+    rdf_same = prepare_rdataframe(chain_data_same, base_selection, 'true')
+    
+    return rdf_same, chain_data_same
 
 def load_mixed():
+    
+    config_mixed = {
+        'input_data':   [ 
+                '/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_all_event_mixing_batch1995.root',
+                '/data/galucia/lithium_local/mixing/LHC24ar_pass1_all_event_mixing_batch1995.root',
+                '/data/galucia/lithium_local/mixing/LHC24as_pass1_all_event_mixing_batch1995.root',
+                '/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_all_event_mixing_batch105.root',
+                '/data/galucia/lithium_local/mixing/LHC24ar_pass1_all_event_mixing_batch105.root',
+                '/data/galucia/lithium_local/mixing/LHC24as_pass1_all_event_mixing_batch105.root',
+                '/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_all_event_mixing_batch42.root',
+                '/data/galucia/lithium_local/mixing/LHC24ar_pass1_all_event_mixing_batch42.root',
+                '/data/galucia/lithium_local/mixing/LHC24as_pass1_all_event_mixing_batch42.root',
+              ],
+        'tree_name':    'MixedTree',
+        'mode':         'tree',
+    }
+    chain_data_mixed = prepare_input_tchain(config_mixed)
+    rdf_mixed = prepare_rdataframe(chain_data_mixed, base_selection, 'true')
+    
+    return rdf_mixed, chain_data_mixed
 
-    input_data = ['/data/galucia/lithium_local/mixing/LHC23_PbPb_pass4_long_mixing_lsus.root',
-                  '/data/galucia/lithium_local/mixing/LHC24ar_pass1_mixing_lsus.root',
-                  '/data/galucia/lithium_local/mixing/LHC24as_pass1_mixing_lsus.root',]
-    file_data_list = input_data if isinstance(input_data, list) else [input_data]
+@timeit
+def prepare_systematics_histograms(rdf:RDataFrame, n_variations:int, hist_name_suffix:str):
 
-    chainData = TChain("O2he3hadtable")
-    tree_name = "MixedTree"
+    variational_rdf = rdf.Define('fNSigmaITSHe3Systematic', 'fNSigmaITSHe3') \
+                         .Define('fAbsNSigmaTPCHe3Systematic', 'std::abs(fNSigmaTPCHe3)') \
+                         .Define('fNSigmaITSHadSystematic', 'fNSigmaITSHad') \
+                         .Define('fAbsNSigmaTPCHadSystematic', 'std::abs(fNSigmaTPCHad)') \
+                         .Define('fAbsNSigmaTOFHadSystematic', 'std::abs(fNSigmaTOFHad)') \
+                         .Vary(['fNSigmaITSHe3Systematic', 'fAbsNSigmaTPCHe3Systematic',
+                                'fNSigmaITSHadSystematic', 'fAbsNSigmaTPCHadSystematic', 'fAbsNSigmaTOFHadSystematic',],
+                                f'systematicCuts({n_variations}, fNSigmaITSHe3Systematic, fAbsNSigmaTPCHe3Systematic, \
+                                fNSigmaITSHadSystematic, fAbsNSigmaTPCHadSystematic, fAbsNSigmaTOFHadSystematic)',
+                                n_variations, 'systematic') \
+                         .Filter('(fNSigmaITSHe3Systematic > 0) && \
+                                  (fAbsNSigmaTPCHe3Systematic < 0) && \
+                                  (fNSigmaITSHadSystematic > 0) && \
+                                  (fAbsNSigmaTPCHadSystematic < 0) && \
+                                  ((std::abs(fPtHad) < 0.8) || (fAbsNSigmaTOFHadSystematic < 0))')
 
-    for fileName in file_data_list:
-        print(f'Adding {fileName}/{tree_name} to the chain')
-        chainData.Add(f'{fileName}/{tree_name}')
+    nominal_hist_010 = variational_rdf.Filter('fCentralityFT0C < 10') \
+                                      .Histo1D((f'hKstar010{hist_name_suffix}', ';#it{k}* (GeV/#it{c});', 20, 0, 0.4), 'fKstar')
+    variational_hists_010 = ROOT.RDF.Experimental.VariationsFor(nominal_hist_010)
 
-    rdf = ROOT.ROOT.RDataFrame(chainData) \
-          .Define('fSignedPtHad', 'fPtHad') \
-          .Define('fSignHe3', 'fPtHe3/std::abs(fPtHe3)') \
-          .Redefine('fPtHe3', 'std::abs(fPtHe3)') \
-          .Redefine('fPtHad', 'std::abs(fPtHad)') \
-          .Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
-          .Define('fSignedPtHe3', 'fPtHe3 * fSignHe3') \
-          .Define(f'fEHe3', f'std::sqrt((fPtHe3 * std::cosh(fEtaHe3))*(fPtHe3 * std::cosh(fEtaHe3)) + {ParticleMasses["He"]}*{ParticleMasses["He"]})') \
-          .Define(f'fEHad', f'std::sqrt((fPtHad * std::cosh(fEtaHad))*(fPtHad * std::cosh(fEtaHad)) + {ParticleMasses["Pr"]}*{ParticleMasses["Pr"]})') \
-          .Define('fDeltaEta', 'fEtaHe3 - fEtaHad') \
-          .Define('fDeltaPhi', 'fPhiHe3 - fPhiHad') \
-          .Redefine('fInnerParamTPCHe3', 'fInnerParamTPCHe3 * 2') \
-          .Redefine('fNSigmaTPCHe3', 'NsigmaTpcHe(fInnerParamTPCHe3, fSignalTPCHe3)') \
-          .Define('fNSigmaTOFHad', 'NsigmaTOFPr(fPtHad * std::cosh(fEtaHad), fMassTOFHad)') \
-          .Define('fClusterSizeCosLamHe3', 'averageClusterSize(fItsClusterSizeHe3) / cosh(fEtaHe3)') \
-          .Define('fClusterSizeCosLamHad', 'averageClusterSize(fItsClusterSizeHad) / cosh(fEtaHad)') \
-          .Define('fExpectedClusterSizeHe3', 'ExpectedClusterSizeCosLambdaHe(fPtHe3)') \
-          .Define('fExpectedClusterSizeHad', 'ExpectedClusterSizeCosLambdaPr(fPtHad)') \
-          .Define('fNSigmaITSHe3', 'NsigmaITSHe(fPtHe3 * std::cosh(fEtaHe3), fClusterSizeCosLamHe3)') \
-          .Define('fNSigmaITSHad', 'NsigmaITSPr(fPtHad * std::cosh(fEtaHad), fClusterSizeCosLamHad)') \
-          .Filter(base_selection) \
-          .Filter('(fCentralityFT0C < 50)') \
-          .Define('fKstar', f'Kstar(fPtHe3, fEtaHe3, fPhiHe3, {ParticleMasses["He"]}, fPtHad, fEtaHad, fPhiHad, {ParticleMasses["Pr"]})') \
-          
-    return rdf, chainData
-          
+    nominal_hist_1030 = variational_rdf.Filter('fCentralityFT0C >= 10 && fCentralityFT0C < 30') \
+                                      .Histo1D((f'hKstar1030{hist_name_suffix}', ';#it{k}* (GeV/#it{c});', 20, 0, 0.4), 'fKstar')
+    variational_hists_1030 = ROOT.RDF.Experimental.VariationsFor(nominal_hist_1030)
+    
+    nominal_hist_3050 = variational_rdf.Filter('fCentralityFT0C >= 30 && fCentralityFT0C < 50') \
+                                      .Histo1D((f'hKstar3050{hist_name_suffix}', ';#it{k}* (GeV/#it{c});', 20, 0, 0.4), 'fKstar')
+    variational_hists_3050 = ROOT.RDF.Experimental.VariationsFor(nominal_hist_3050)
+
+    return variational_hists_010, variational_hists_1030, variational_hists_3050
+
+def normalise_histogram(h_same, h_mixed, NORM_LOW_KSTAR, NORM_HIGH_KSTAR):
+
+    low_bin = h_same.FindBin(NORM_LOW_KSTAR)
+    high_bin = h_same.FindBin(NORM_HIGH_KSTAR)
+    normalization_factor = h_same.Integral(low_bin, high_bin) / h_mixed.Integral(low_bin, high_bin)
+    h_mixed.Scale(normalization_factor)
+
+    return h_mixed
+
+def correlation_function_centrality_integrated(h_sames, h_mixeds, suffix:str):
+    """
+    Compute the correlation function for the centrality integrated histograms.
+    """
+
+    h_same = h_sames[0].Clone()
+    h_mixed = h_mixeds[0].Clone()
+
+    for h_same_centrality, h_mixed_centrality in zip(h_sames[1:], h_mixeds[1:]):
+        h_same.Add(h_same_centrality)
+        h_mixed.Add(h_mixed_centrality)
+
+    h_corr = h_same.Clone(f'hCorrelation{suffix}')
+    h_corr.Divide(h_mixed)
+
+    return h_corr
+
 def run_systematics():
 
     rdf_same, _chain_same = load_same()
     rdf_mixed, _chain_mixed = load_mixed()
 
-    outFile = TFile("output/systematics.root", "RECREATE")
-    h_corr_iters = []
-
     N_ITERATIONS = 200
-    with alive_bar(N_ITERATIONS, title='Running systematics...') as bar:
-        for iter in range(N_ITERATIONS):
-            
-            dcaxy_he3_max = np.random.uniform(0.05, 0.15)
-            dcaz_he3_max = np.random.uniform(0.75, 1.0)
-            n_sigma_tpc_he3_high = np.random.uniform(2., 3.)
-            n_sigma_tpc_he3_low = np.random.uniform(-2.0, -1.0)
-            n_sigma_tpc_had_max = np.random.uniform(1.5, 2.5)
-            n_sigma_tof_had_max = np.random.uniform(1.5, 2.5)
+    outFile = TFile("output/systematics_cpp.root", "RECREATE")
 
-            condition = f'((std::abs(fDCAxyHe3) < {dcaxy_he3_max}) && (std::abs(fDCAzHe3) < {dcaz_he3_max}) && ' \
-                        f'((fNSigmaTPCHe3 < {n_sigma_tpc_he3_high}) && (fNSigmaTPCHe3 > {n_sigma_tpc_he3_low})) && ' \
-                        f'((fNSigmaTPCHe3 < {n_sigma_tpc_had_max}) && (fNSigmaTPCHe3 > -{n_sigma_tpc_had_max})) && ' \
-                        f'((fNSigmaTOFHad < {n_sigma_tof_had_max}) && (fNSigmaTOFHad > -{n_sigma_tof_had_max})) '
+    for sign, condition in {'Matter': 'fSignedPtHe3 > 0', 'Antimatter': 'fSignedPtHe3 < 0'}.items():
 
-            h_same_iter = rdf_same.Filter(condition).Histo1D((f"hKstarSameIter{iter}", ";#it{k}^{*} (GeV/#it{c});", 100, 0, 1.), "fKstar").GetValue()
-            h_mixed_iter = rdf_mixed.Filter(condition).Histo1D((f"hKstarMixedIter{iter}", ";#it{k}^{*} (GeV/#it{c});", 100, 0, 1.), "fKstar").GetValue()
-            
-            low_bin = h_same_iter.FindBin(0.25)
-            high_bin = h_same_iter.FindBin(1)
-            normalization_factor = h_same_iter.Integral(low_bin, high_bin) / h_mixed_iter.Integral(low_bin, high_bin)
-            h_mixed_iter.Scale(normalization_factor)
+        outDir = outFile.mkdir(sign)
 
-            h_corr_iter = h_same_iter.Clone(f'hCorrelationIter{iter}')
-            h_corr_iter.Divide(h_mixed_iter)
+        tmp_rdf_same = rdf_same.Filter(condition)
+        tmp_rdf_mixed = rdf_mixed.Filter(condition)
 
-            h_corr_iters.append(h_corr_iter)
+        variational_hists_same = prepare_systematics_histograms(tmp_rdf_same, n_variations=N_ITERATIONS, hist_name_suffix='Same')
+        variational_hists_mixed = prepare_systematics_histograms(tmp_rdf_mixed, n_variations=N_ITERATIONS, hist_name_suffix='Mixed')
 
-            bar()
-    
-    point_positions = {}
-    outFile.cd()
-    for ibin in range(1, h_corr_iters[0].GetNbinsX()+1):
-        for hist in h_corr_iters:
-            if ibin == 1:
-                hist.Write()
-            point_positions[ibin] = point_positions.get(ibin, []) + [hist.GetBinContent(ibin)]
+        h_correlations = []
+        #NORM_LOW_KSTAR, NORM_HIGH_KSTAR = 0.2, 0.4
+        #
+        #vec_same = ROOT.std.vector[ROOT.RDF.Experimental.RResultMap["TH1D"]]()
+        #for elem in variational_hists_same:
+        #    vec_same.push_back(elem)
+        #   
+        #vec_mixed = ROOT.std.vector[ROOT.RDF.Experimental.RResultMap["TH1D"]]()
+        #for elem in variational_hists_mixed:
+        #    vec_mixed.push_back(elem)
+        #
+        #h_correlations = ComputeAllSystematics(vec_same, vec_mixed, N_ITERATIONS, NORM_LOW_KSTAR, NORM_HIGH_KSTAR)
 
-    hist_systematics = h_corr_iters[0].Clone('hSystematics')
-    hist_systematics.Reset()
-    for ibin in range(1, hist_systematics.GetNbinsX()+1):
-        point_systematics = np.std(point_positions[ibin])
-        hist_systematics.SetBinContent(ibin, point_systematics)
-    
-    outFile.cd()
-    hist_systematics.Write()
-    
-    outFile.Close()
-
-def run_indivisual_systematics():
-
-    rdf_same, _chain_same = load_same()
-    rdf_mixed, _chain_mixed = load_mixed()
-
-    outFile = TFile("output/systematics_individual.root", "RECREATE")
-    h_corr_iters = {}
-
-    # Nominal values for selections
-    dcaxy_he3_max = 0.1
-    dcaz_he3_max = 1.0
-    n_sigma_tpc_he3_high = 2.5
-    n_sigma_tpc_he3_low = -1.5
-    n_sigma_tpc_had_max = 2.
-    n_sigma_tof_had_max = 2.
-
-    systematic_variables = ['dcaxy_he3_max', 'dcaz_he3_max', 'n_sigma_tpc_he3',
-                          'n_sigma_tpc_had_max', 'n_sigma_tof_had_max']
-
-    N_ITERATIONS = 50
-    with alive_bar(N_ITERATIONS*len(systematic_variables), title='Running systematics...') as bar:
-        for systematic_variable in systematic_variables:
-            
-            h_corr_iters_variable = []
-            
-            # Nominal values for selections
-            dcaxy_he3_max = 0.1
-            dcaz_he3_max = 1.0
-            n_sigma_tpc_he3_high = 2.5
-            n_sigma_tpc_he3_low = -1.5
-            n_sigma_tpc_had_max = 2.
-            n_sigma_tof_had_max = 2.
-
+        with alive_bar(N_ITERATIONS, title='Running systematics...') as bar:
             for iter in range(N_ITERATIONS):
 
-                if systematic_variable == 'dcaxy_he3_max':
-                    dcaxy_he3_max = np.random.uniform(0.05, 0.15)
-                elif systematic_variable == 'dcaz_he3_max':
-                    dcaz_he3_max = np.random.uniform(0.75, 1.0)
-                elif systematic_variable == 'n_sigma_tpc_he3':
-                    n_sigma_tpc_he3_high = np.random.uniform(2., 3.)
-                    n_sigma_tpc_he3_low = np.random.uniform(-2.0, -1.0)
-                elif systematic_variable == 'n_sigma_tpc_had_max':
-                    n_sigma_tpc_had_max = np.random.uniform(1.5, 2.5)
-                elif systematic_variable == 'n_sigma_tof_had_max':
-                    n_sigma_tof_had_max = np.random.uniform(1.5, 2.5)
+                same_010, same_1030, same_3050 = variational_hists_same[0][f'systematic:{iter}'], \
+                                                variational_hists_same[1][f'systematic:{iter}'], variational_hists_same[2][f'systematic:{iter}']
+                mixed_010, mixed_1030, mixed_3050 = variational_hists_mixed[0][f'systematic:{iter}'], \
+                                                variational_hists_mixed[1][f'systematic:{iter}'], variational_hists_mixed[2][f'systematic:{iter}']
+                
+                mixed_normalised_010 = normalise_histogram(same_010, mixed_010, NORM_LOW_KSTAR, NORM_HIGH_KSTAR)
+                mixed_normalised_1030 = normalise_histogram(same_1030, mixed_1030, NORM_LOW_KSTAR, NORM_HIGH_KSTAR)
+                mixed_normalised_3050 = normalise_histogram(same_3050, mixed_3050, NORM_LOW_KSTAR, NORM_HIGH_KSTAR)
 
-                condition = f'((std::abs(fDCAxyHe3) < {dcaxy_he3_max}) && (std::abs(fDCAzHe3) < {dcaz_he3_max}) && ' \
-                            f'((fNSigmaTPCHe3 < {n_sigma_tpc_he3_high}) && (fNSigmaTPCHe3 > {n_sigma_tpc_he3_low})) && ' \
-                            f'((fNSigmaTPCHe3 < {n_sigma_tpc_had_max}) && (fNSigmaTPCHe3 > -{n_sigma_tpc_had_max})) && ' \
-                            f'((fNSigmaTOFHad < {n_sigma_tof_had_max}) && (fNSigmaTOFHad > -{n_sigma_tof_had_max})) && ' \
-                            f'(fCentralityFT0C < 50))'
-
-                h_same_iter = rdf_same.Filter(condition).Histo1D((f"hKstarSameIter{iter}", ";#it{k}* (GeV/#it{c});", 100, 0, 1.), "fKstar").GetValue()
-                h_mixed_iter = rdf_mixed.Filter(condition).Histo1D((f"hKstarMixedIter{iter}", ";#it{k}* (GeV/#it{c});", 100, 0, 1.), "fKstar").GetValue()
-
-                low_bin = h_same_iter.FindBin(0.25)
-                high_bin = h_same_iter.FindBin(1)
-                normalization_factor = h_same_iter.Integral(low_bin, high_bin) / h_mixed_iter.Integral(low_bin, high_bin)
-                h_mixed_iter.Scale(normalization_factor)
-
-                h_corr_iter = h_same_iter.Clone(f'hCorrelationIter{iter}')
-                h_corr_iter.Divide(h_mixed_iter)
-
-                h_corr_iters_variable.append(h_corr_iter)
-
+                h_correlation_iter = correlation_function_centrality_integrated([same_010, same_1030, same_3050],
+                                                                                [mixed_normalised_010, mixed_normalised_1030, mixed_normalised_3050],
+                                                                                iter)
+                
+                h_correlations.append(h_correlation_iter)
                 bar()
-            
-            h_corr_iters[systematic_variable] = h_corr_iters_variable
-    
-    outFile.cd()
-    hist_systematics_variables = []
-    for variable in systematic_variables:
-        outFile.mkdir(f'{variable}')
+
         point_positions = {}
+        subDir = outDir.mkdir('correlations')
+        subDir.cd()
+        with alive_bar(h_correlations[0].GetNbinsX(), title='Evaluating systematics from histograms...') as bar:
+            for ibin in range(1, h_correlations[0].GetNbinsX()+1):
+                for hist in h_correlations:
+                    if ibin == 1:
+                        hist.Write()
+                    point_positions[ibin] = point_positions.get(ibin, []) + [hist.GetBinContent(ibin)]
+                bar()
 
-        for ibin in range(1, h_corr_iters[variable][0].GetNbinsX()+1):
-            for hist in h_corr_iters[variable]:
-                if ibin == 1:
-                    outFile.cd(f'{variable}')
-                    hist.Write()
-                point_positions[ibin] = point_positions.get(ibin, []) + [hist.GetBinContent(ibin)]
-
-        hist_systematics = h_corr_iters[variable][0].Clone(f'hSystematics{variable}')
+        hist_systematics = h_correlations[0].Clone('hSystematics')
         hist_systematics.Reset()
         for ibin in range(1, hist_systematics.GetNbinsX()+1):
             point_systematics = np.std(point_positions[ibin])
             hist_systematics.SetBinContent(ibin, point_systematics)
-        hist_systematics_variables.append(hist_systematics)
-    
-    outFile.cd()
-    for hist_systematics in hist_systematics_variables:
+
+        outDir.cd()
         hist_systematics.Write()
     
     outFile.Close()
 
-def display_systematics():
+#    h_corr_iters = []
+#
+#    
+#
+#    with alive_bar(N_ITERATIONS, title='Running systematics...') as bar:
+#        for iter in range(N_ITERATIONS):
+#            
+#            dcaxy_he3_max = np.random.uniform(0.05, 0.15)
+#            dcaz_he3_max = np.random.uniform(0.75, 1.0)
+#            n_sigma_tpc_he3_high = np.random.uniform(2., 3.)
+#            n_sigma_tpc_he3_low = np.random.uniform(-2.0, -1.0)
+#            n_sigma_tpc_had_max = np.random.uniform(1.5, 2.5)
+#            n_sigma_tof_had_max = np.random.uniform(1.5, 2.5)
+#
+#            condition = f'((std::abs(fDCAxyHe3) < {dcaxy_he3_max}) && (std::abs(fDCAzHe3) < {dcaz_he3_max}) && ' \
+#                        f'((fNSigmaTPCHe3 < {n_sigma_tpc_he3_high}) && (fNSigmaTPCHe3 > {n_sigma_tpc_he3_low})) && ' \
+#                        f'((fNSigmaTPCHe3 < {n_sigma_tpc_had_max}) && (fNSigmaTPCHe3 > -{n_sigma_tpc_had_max})) && ' \
+#                        f'((fNSigmaTOFHad < {n_sigma_tof_had_max}) && (fNSigmaTOFHad > -{n_sigma_tof_had_max})) '
+#
+#            h_same_iter = rdf_same.Filter(condition).Histo1D((f"hKstarSameIter{iter}", ";#it{k}^{*} (GeV/#it{c});", 100, 0, 1.), "fKstar").GetValue()
+#            h_mixed_iter = rdf_mixed.Filter(condition).Histo1D((f"hKstarMixedIter{iter}", ";#it{k}^{*} (GeV/#it{c});", 100, 0, 1.), "fKstar").GetValue()
+#            
+#            low_bin = h_same_iter.FindBin(0.25)
+#            high_bin = h_same_iter.FindBin(1)
+#            normalization_factor = h_same_iter.Integral(low_bin, high_bin) / h_mixed_iter.Integral(low_bin, high_bin)
+#            h_mixed_iter.Scale(normalization_factor)
+#
+#            h_corr_iter = h_same_iter.Clone(f'hCorrelationIter{iter}')
+#            h_corr_iter.Divide(h_mixed_iter)
+#
+#            h_corr_iters.append(h_corr_iter)
+#
+#            bar()
+#    
+#    point_positions = {}
+#    outFile.cd()
+#    for ibin in range(1, h_corr_iters[0].GetNbinsX()+1):
+#        for hist in h_corr_iters:
+#            if ibin == 1:
+#                hist.Write()
+#            point_positions[ibin] = point_positions.get(ibin, []) + [hist.GetBinContent(ibin)]
+#
+#    hist_systematics = h_corr_iters[0].Clone('hSystematics')
+#    hist_systematics.Reset()
+#    for ibin in range(1, hist_systematics.GetNbinsX()+1):
+#        point_systematics = np.std(point_positions[ibin])
+#        hist_systematics.SetBinContent(ibin, point_systematics)
+#    
+#    outFile.cd()
+#    hist_systematics.Write()
+#    
+#    outFile.Close()
 
-    ROOT.gStyle.SetOptStat(0)
-
-    infile = TFile("output/systematics.root", "READ")
-    h_systematics = infile.Get("hSystematics")
-    h_systematics.SetDirectory(0)
-
-    #infile_correlation = TFile("output/correlation.root", "READ")
-    #h_correlation = infile_correlation.Get("Correlation/hCorrelation050")
-    #h_correlation.SetDirectory(0)
-
-    infile_correlation = TFile("/home/galucia/antiLithium4/analysis/output/PbPb/studies.root", "READ")
-    h_correlation = infile_correlation.Get("CorrelationAnti/hCorrelation_kstar")
-    h_correlation.SetDirectory(0)
-
-    h_relative_systematics = h_systematics.Clone("hRelativeSystematics")
-    h_relative_statistical = h_correlation.Clone("hRelativeStatistical")
-    ratio = h_relative_systematics.Clone("hRatio")
-
-    for ibin in range(1, h_relative_systematics.GetNbinsX() + 1):
-        correlation = h_correlation.GetBinContent(ibin)
-        systematic = h_systematics.GetBinContent(ibin)
-        statistical = h_correlation.GetBinError(ibin)
-        _ratio = systematic / statistical if statistical != 0 else 0
-
-        h_relative_systematics.SetBinContent(ibin, systematic / correlation if correlation != 0 else 0)
-        h_relative_statistical.SetBinContent(ibin, statistical / correlation if correlation != 0 else 0)
-        ratio.SetBinContent(ibin, _ratio)
-        #ratio.SetBinError(ibin, 1)
-
-        print(f"Bin {ibin}: Corr = {correlation}, Stat = {statistical:.4f}, Syst = {systematic:.4f}, Ratio = {_ratio:.4f}")
-
-    canvas = ROOT.TCanvas("canvas", "Systematics Analysis", 800, 600)
-
-    pad = ROOT.TPad("pad", "pad", 0, 0.03, 1, 1)
-    pad.SetBottomMargin(0.15)
-    pad.Draw()
-
-    pad_ratio = ROOT.TPad("pad_ratio", "pad_ratio", 0, 0, 1, 0.29)
-    pad_ratio.SetTopMargin(0.0)
-    pad_ratio.SetBottomMargin(0.3)
-    pad_ratio.Draw()
-
-    h_relative_statistical.SetLineColor(ROOT.kBlue+2)
-    h_relative_statistical.SetLineWidth(2)
-    h_relative_statistical.SetTitle(";#it{k}* (GeV/#it{c});#sigma/ C(#it{k}*)")
-
-    h_relative_systematics.SetLineColor(ROOT.kOrange-3)
-    h_relative_systematics.SetLineWidth(2)
-    h_relative_systematics.SetTitle(";#it{k}* (GeV/#it{c});#sigma/ C(#it{k}*)")
-
-    legend = ROOT.TLegend(0.25, 0.7, 0.55, 0.8)
-    legend.SetFillColor(0)
-    legend.SetBorderSize(0)
-    legend.AddEntry(h_relative_statistical, "#sigma_{stat}/ C(#it{k}*)", "l")
-    legend.AddEntry(h_relative_systematics, "#sigma_{syst}/ C(#it{k}*)", "l")
-
-    text = ROOT.TPaveText(0.55, 0.7, 0.85, 0.85, "NDC")
-    text.SetFillColor(0)
-    text.SetBorderSize(0)
-    text.AddText("This work")
-    text.AddText("#bf{ALICE, Run 3}")
-    text.AddText("#bf{Pb-Pb #sqrt{s_{NN}} = 5.36 TeV}")
-    
-    pad.cd()
-    hframe = pad.DrawFrame(0, 1e-4, 0.39, 1, ";#it{k}* (GeV/#it{c});#sigma/ C(#it{k}*)")
-    h_relative_statistical.Draw("HIST same")
-    h_relative_systematics.Draw("HIST SAME")
-    legend.Draw('same')
-    text.Draw('same')
-    pad.SetLogy()
-
-    ratio.SetTitle(";#it{k}* (GeV/#it{c});#sigma_{syst}/#sigma_{stat}")
-    ratio.SetMarkerStyle(20)
-    ratio.SetMarkerSize(1.5)
-    ratio.SetMarkerColor(ROOT.kOrange-3)
-    ratio.SetLineColor(ROOT.kGreen+2)
-    ratio.SetLineWidth(2)
-
-    #line = ROOT.TLine(0, 1, 0.39, 1)
-    #line.SetLineColor(ROOT.kGray+2)
-    #line.SetLineStyle(2)
-    #line.SetLineWidth(2)
-
-    fit = ROOT.TF1("fit", "pol0", 0, 0.39)
-    fit.SetLineColor(ROOT.kGray+2)
-    fit.SetLineStyle(2)
-    fit.SetLineWidth(2)
-    ratio.Fit(fit, "rms+", "")
-
-    pad_ratio.cd()
-    hframe_ratio = pad_ratio.DrawFrame(0, 1e-2, 0.39, 2, ";#it{k}* (GeV/#it{c});#sigma_{syst}/#sigma_{stat}")
-    hframe_ratio.GetYaxis().SetTitleOffset(0.5)
-    hframe_ratio.GetYaxis().SetTitleSize(0.1)
-    hframe_ratio.GetXaxis().SetTitleSize(0.1)
-    hframe_ratio.GetXaxis().SetTitleOffset(0.9)
-    hframe_ratio.GetXaxis().SetLabelSize(0.08)
-    hframe_ratio.GetYaxis().SetLabelSize(0.08)
-
-    #line.Draw("same")
-    fit.Draw("same")
-    ratio.Draw("hist e1 same")
-    pad_ratio.SetLogy()
-
-    canvas.SaveAs("output/systematics.pdf")
-
-    #########################################################
-
-    xs, ys, ex, eystat, eysyst = [], [], [], [], []
-    for ibin in range(1, h_correlation.GetNbinsX() + 1):
-        xs.append(h_correlation.GetBinCenter(ibin))
-        ys.append(h_correlation.GetBinContent(ibin))
-        ex.append(h_correlation.GetBinWidth(ibin) / 2)
-        eystat.append(h_correlation.GetBinError(ibin))
-        eysyst.append(h_systematics.GetBinContent(ibin))
-
-    correlation_systematics = ROOT.TGraphMultiErrors('gme', ';#it{k}* (GeV/#it{c});C(#it{k}*)',
-                                                    len(xs), np.array(xs), np.array(ys),
-                                                    np.array(ex), np.array(ex), np.array(eystat), np.array(eystat))
-    correlation_systematics.AddYError(len(xs), np.array(eysyst), np.array(eysyst))
-    
-    canvas_correlation = ROOT.TCanvas("canvas_correlation", "Correlation", 800, 600)
-    correlation_systematics.SetTitle(";#it{k}* (GeV/#it{c});C(#it{k}*)")
-    correlation_systematics.SetMarkerStyle(20)
-    correlation_systematics.SetMarkerColor(ROOT.kBlue+2)
-    correlation_systematics.SetLineColor(ROOT.kOrange-3)
-    correlation_systematics.GetAttLine(0).SetLineColor(ROOT.kOrange-3)
-    correlation_systematics.GetAttLine(1).SetLineColor(ROOT.kGreen+2)
-    correlation_systematics.GetAttFill(1).SetFillStyle(0)
-    correlation_systematics.Draw("APS;;5")
-
-    text = ROOT.TPaveText(0.55, 0.35, 0.85, 0.55, "NDC")
-    text.SetFillColor(0)
-    text.SetBorderSize(0)
-    text.AddText("This work")
-    text.AddText("#bf{ALICE, Run 3}")
-    text.AddText("#bf{Pb-Pb #sqrt{s_{NN}} = 5.36 TeV}")
-    text.AddText("#bf{p-^{3}He #oplus #bar{p}-^{3}#bar{He}}")
-    text.Draw('same')
-
-    canvas_correlation.SaveAs("output/correlation_systematics.pdf")
-
-def display_individual_systematics():
-
-    ROOT.gStyle.SetOptStat(0)
-
-    systematic_variables = {'DCAxy (^{3}He)':'dcaxy_he3_max', 
-                            'DCAz (^{3}He)': 'dcaz_he3_max', 
-                            'n#sigma_{TPC} (^{3}He)': 'n_sigma_tpc_he3',
-                            'n#sigma_{TPC} (p)': 'n_sigma_tpc_had_max', 
-                            'n#sigma_{TOF} (p)': 'n_sigma_tof_had_max'}
-    colors = [ROOT.kRed+1, ROOT.kBlue+2, ROOT.kGreen+2, ROOT.kMagenta+2, ROOT.kCyan+2]
-
-    infile = TFile("output/systematics_individual.root", "READ")
-
-    #infile_correlation = TFile("output/correlation.root", "READ")
-    #h_correlation = infile_correlation.Get("Correlation/hCorrelation050")
-    #h_correlation.SetDirectory(0)
-
-    infile_correlation = TFile("/home/galucia/antiLithium4/analysis/output/PbPb/studies.root", "READ")
-    h_correlation = infile_correlation.Get("CorrelationAnti/hCorrelation_kstar")
-    h_correlation.SetDirectory(0)
-
-    hs_relative_systematics = []
-
-    for variable in systematic_variables.values():
-
-        h_systematics = infile.Get(f"hSystematics{variable}")
-        h_systematics.SetDirectory(0)
-        h_relative_systematics = h_systematics.Clone(f"hRelativeSystematics{variable}")
-
-        for ibin in range(1, h_relative_systematics.GetNbinsX() + 1):
-            correlation = h_correlation.GetBinContent(ibin)
-            systematic = h_systematics.GetBinContent(ibin)
-
-            h_relative_systematics.SetBinContent(ibin, systematic / correlation if correlation != 0 else 0)
-
-        hs_relative_systematics.append(h_relative_systematics)
-
-    canvas = ROOT.TCanvas("canvas", "Systematics Analysis", 800, 600)
-    hframe = canvas.DrawFrame(0, 1e-5, 0.39, 1, ";#it{k}* (GeV/#it{c});#sigma_{syst}/ C(#it{k}*)")
-
-    legend = ROOT.TLegend(0.55, 0.5, 0.85, 0.69)
-    legend.SetFillColor(0)
-    legend.SetBorderSize(0)
-    legend.SetNColumns(2)
-
-    canvas.cd()
-    for h_relative_systematics, variable_title, color in zip(hs_relative_systematics, systematic_variables.keys(), colors):
-        h_relative_systematics.SetLineColor(color)
-        h_relative_systematics.SetLineWidth(2)
-        h_relative_systematics.Draw("HIST SAME")
-        legend.AddEntry(h_relative_systematics, variable_title, "l")
-    
-    text = ROOT.TPaveText(0.55, 0.7, 0.85, 0.85, "NDC")
-    text.SetFillColor(0)
-    text.SetBorderSize(0)
-    text.AddText("This work")
-    text.AddText("#bf{ALICE, Run 3}")
-    text.AddText("#bf{Pb-Pb #sqrt{s_{NN}} = 5.36 TeV}")
-    
-    canvas.cd()
-    legend.Draw('same')
-    text.Draw('same')
-    canvas.SetLogy()
-
-    canvas.SaveAs("output/systematics_individual.pdf")
-
-    #########################################################
-
-    xs, ys, ex, eystat, eysyst = [], [], [], [], []
-    for ibin in range(1, h_correlation.GetNbinsX() + 1):
-        xs.append(h_correlation.GetBinCenter(ibin))
-        ys.append(h_correlation.GetBinContent(ibin))
-        ex.append(h_correlation.GetBinWidth(ibin) / 2)
-        eystat.append(h_correlation.GetBinError(ibin))
-        eysyst.append(h_systematics.GetBinContent(ibin))
-
-    correlation_systematics = ROOT.TGraphMultiErrors('gme', ';#it{k}* (GeV/#it{c});C(#it{k}*)',
-                                                    len(xs), np.array(xs), np.array(ys),
-                                                    np.array(ex), np.array(ex), np.array(eystat), np.array(eystat))
-    correlation_systematics.AddYError(len(xs), np.array(eysyst), np.array(eysyst))
-    
-    canvas_correlation = ROOT.TCanvas("canvas_correlation", "Correlation", 800, 600)
-    correlation_systematics.SetTitle(";#it{k}* (GeV/#it{c});C(#it{k}*)")
-    correlation_systematics.SetMarkerStyle(20)
-    correlation_systematics.SetMarkerColor(ROOT.kBlue+2)
-    correlation_systematics.SetLineColor(ROOT.kOrange-3)
-    correlation_systematics.GetAttLine(0).SetLineColor(ROOT.kOrange-3)
-    correlation_systematics.GetAttLine(1).SetLineColor(ROOT.kGreen+2)
-    correlation_systematics.GetAttFill(1).SetFillStyle(0)
-    correlation_systematics.Draw("APS;;5")
-
-    text = ROOT.TPaveText(0.55, 0.35, 0.85, 0.55, "NDC")
-    text.SetFillColor(0)
-    text.SetBorderSize(0)
-    text.AddText("This work")
-    text.AddText("#bf{ALICE, Run 3}")
-    text.AddText("#bf{Pb-Pb #sqrt{s_{NN}} = 5.36 TeV}")
-    text.AddText("#bf{p-^{3}He #oplus #bar{p}-^{3}#bar{He}}")
-    text.Draw('same')
-
-    canvas_correlation.SaveAs("output/correlation_systematics.pdf")
+#def run_indivisual_systematics():
+#
+#    rdf_same, _chain_same = load_same()
+#    rdf_mixed, _chain_mixed = load_mixed()
+#
+#    outFile = TFile("output/systematics_individual.root", "RECREATE")
+#    h_corr_iters = {}
+#
+#    # Nominal values for selections
+#    dcaxy_he3_max = 0.1
+#    dcaz_he3_max = 1.0
+#    n_sigma_tpc_he3_high = 2.5
+#    n_sigma_tpc_he3_low = -1.5
+#    n_sigma_tpc_had_max = 2.
+#    n_sigma_tof_had_max = 2.
+#
+#    systematic_variables = ['dcaxy_he3_max', 'dcaz_he3_max', 'n_sigma_tpc_he3',
+#                          'n_sigma_tpc_had_max', 'n_sigma_tof_had_max']
+#
+#    N_ITERATIONS = 50
+#    with alive_bar(N_ITERATIONS*len(systematic_variables), title='Running systematics...') as bar:
+#        for systematic_variable in systematic_variables:
+#            
+#            h_corr_iters_variable = []
+#            
+#            # Nominal values for selections
+#            dcaxy_he3_max = 0.1
+#            dcaz_he3_max = 1.0
+#            n_sigma_tpc_he3_high = 2.5
+#            n_sigma_tpc_he3_low = -1.5
+#            n_sigma_tpc_had_max = 2.
+#            n_sigma_tof_had_max = 2.
+#
+#            for iter in range(N_ITERATIONS):
+#
+#                if systematic_variable == 'dcaxy_he3_max':
+#                    dcaxy_he3_max = np.random.uniform(0.05, 0.15)
+#                elif systematic_variable == 'dcaz_he3_max':
+#                    dcaz_he3_max = np.random.uniform(0.75, 1.0)
+#                elif systematic_variable == 'n_sigma_tpc_he3':
+#                    n_sigma_tpc_he3_high = np.random.uniform(2., 3.)
+#                    n_sigma_tpc_he3_low = np.random.uniform(-2.0, -1.0)
+#                elif systematic_variable == 'n_sigma_tpc_had_max':
+#                    n_sigma_tpc_had_max = np.random.uniform(1.5, 2.5)
+#                elif systematic_variable == 'n_sigma_tof_had_max':
+#                    n_sigma_tof_had_max = np.random.uniform(1.5, 2.5)
+#
+#                condition = f'((std::abs(fDCAxyHe3) < {dcaxy_he3_max}) && (std::abs(fDCAzHe3) < {dcaz_he3_max}) && ' \
+#                            f'((fNSigmaTPCHe3 < {n_sigma_tpc_he3_high}) && (fNSigmaTPCHe3 > {n_sigma_tpc_he3_low})) && ' \
+#                            f'((fNSigmaTPCHe3 < {n_sigma_tpc_had_max}) && (fNSigmaTPCHe3 > -{n_sigma_tpc_had_max})) && ' \
+#                            f'((fNSigmaTOFHad < {n_sigma_tof_had_max}) && (fNSigmaTOFHad > -{n_sigma_tof_had_max})) && ' \
+#                            f'(fCentralityFT0C < 50))'
+#
+#                h_same_iter = rdf_same.Filter(condition).Histo1D((f"hKstarSameIter{iter}", ";#it{k}* (GeV/#it{c});", 100, 0, 1.), "fKstar").GetValue()
+#                h_mixed_iter = rdf_mixed.Filter(condition).Histo1D((f"hKstarMixedIter{iter}", ";#it{k}* (GeV/#it{c});", 100, 0, 1.), "fKstar").GetValue()
+#
+#                low_bin = h_same_iter.FindBin(0.25)
+#                high_bin = h_same_iter.FindBin(1)
+#                normalization_factor = h_same_iter.Integral(low_bin, high_bin) / h_mixed_iter.Integral(low_bin, high_bin)
+#                h_mixed_iter.Scale(normalization_factor)
+#
+#                h_corr_iter = h_same_iter.Clone(f'hCorrelationIter{iter}')
+#                h_corr_iter.Divide(h_mixed_iter)
+#
+#                h_corr_iters_variable.append(h_corr_iter)
+#
+#                bar()
+#            
+#            h_corr_iters[systematic_variable] = h_corr_iters_variable
+#    
+#    outFile.cd()
+#    hist_systematics_variables = []
+#    for variable in systematic_variables:
+#        outFile.mkdir(f'{variable}')
+#        point_positions = {}
+#
+#        for ibin in range(1, h_corr_iters[variable][0].GetNbinsX()+1):
+#            for hist in h_corr_iters[variable]:
+#                if ibin == 1:
+#                    outFile.cd(f'{variable}')
+#                    hist.Write()
+#                point_positions[ibin] = point_positions.get(ibin, []) + [hist.GetBinContent(ibin)]
+#
+#        hist_systematics = h_corr_iters[variable][0].Clone(f'hSystematics{variable}')
+#        hist_systematics.Reset()
+#        for ibin in range(1, hist_systematics.GetNbinsX()+1):
+#            point_systematics = np.std(point_positions[ibin])
+#            hist_systematics.SetBinContent(ibin, point_systematics)
+#        hist_systematics_variables.append(hist_systematics)
+#    
+#    outFile.cd()
+#    for hist_systematics in hist_systematics_variables:
+#        hist_systematics.Write()
+#    
+#    outFile.Close()
+#
+#def display_systematics():
+#
+#    ROOT.gStyle.SetOptStat(0)
+#
+#    infile = TFile("output/systematics.root", "READ")
+#    h_systematics = infile.Get("hSystematics")
+#    h_systematics.SetDirectory(0)
+#
+#    #infile_correlation = TFile("output/correlation.root", "READ")
+#    #h_correlation = infile_correlation.Get("Correlation/hCorrelation050")
+#    #h_correlation.SetDirectory(0)
+#
+#    infile_correlation = TFile("/home/galucia/antiLithium4/analysis/output/PbPb/studies.root", "READ")
+#    h_correlation = infile_correlation.Get("CorrelationAnti/hCorrelation_kstar")
+#    h_correlation.SetDirectory(0)
+#
+#    h_relative_systematics = h_systematics.Clone("hRelativeSystematics")
+#    h_relative_statistical = h_correlation.Clone("hRelativeStatistical")
+#    ratio = h_relative_systematics.Clone("hRatio")
+#
+#    for ibin in range(1, h_relative_systematics.GetNbinsX() + 1):
+#        correlation = h_correlation.GetBinContent(ibin)
+#        systematic = h_systematics.GetBinContent(ibin)
+#        statistical = h_correlation.GetBinError(ibin)
+#        _ratio = systematic / statistical if statistical != 0 else 0
+#
+#        h_relative_systematics.SetBinContent(ibin, systematic / correlation if correlation != 0 else 0)
+#        h_relative_statistical.SetBinContent(ibin, statistical / correlation if correlation != 0 else 0)
+#        ratio.SetBinContent(ibin, _ratio)
+#        #ratio.SetBinError(ibin, 1)
+#
+#        print(f"Bin {ibin}: Corr = {correlation}, Stat = {statistical:.4f}, Syst = {systematic:.4f}, Ratio = {_ratio:.4f}")
+#
+#    canvas = ROOT.TCanvas("canvas", "Systematics Analysis", 800, 600)
+#
+#    pad = ROOT.TPad("pad", "pad", 0, 0.03, 1, 1)
+#    pad.SetBottomMargin(0.15)
+#    pad.Draw()
+#
+#    pad_ratio = ROOT.TPad("pad_ratio", "pad_ratio", 0, 0, 1, 0.29)
+#    pad_ratio.SetTopMargin(0.0)
+#    pad_ratio.SetBottomMargin(0.3)
+#    pad_ratio.Draw()
+#
+#    h_relative_statistical.SetLineColor(ROOT.kBlue+2)
+#    h_relative_statistical.SetLineWidth(2)
+#    h_relative_statistical.SetTitle(";#it{k}* (GeV/#it{c});#sigma/ C(#it{k}*)")
+#
+#    h_relative_systematics.SetLineColor(ROOT.kOrange-3)
+#    h_relative_systematics.SetLineWidth(2)
+#    h_relative_systematics.SetTitle(";#it{k}* (GeV/#it{c});#sigma/ C(#it{k}*)")
+#
+#    legend = ROOT.TLegend(0.25, 0.7, 0.55, 0.8)
+#    legend.SetFillColor(0)
+#    legend.SetBorderSize(0)
+#    legend.AddEntry(h_relative_statistical, "#sigma_{stat}/ C(#it{k}*)", "l")
+#    legend.AddEntry(h_relative_systematics, "#sigma_{syst}/ C(#it{k}*)", "l")
+#
+#    text = ROOT.TPaveText(0.55, 0.7, 0.85, 0.85, "NDC")
+#    text.SetFillColor(0)
+#    text.SetBorderSize(0)
+#    text.AddText("This work")
+#    text.AddText("#bf{ALICE, Run 3}")
+#    text.AddText("#bf{Pb-Pb #sqrt{s_{NN}} = 5.36 TeV}")
+#    
+#    pad.cd()
+#    hframe = pad.DrawFrame(0, 1e-4, 0.39, 1, ";#it{k}* (GeV/#it{c});#sigma/ C(#it{k}*)")
+#    h_relative_statistical.Draw("HIST same")
+#    h_relative_systematics.Draw("HIST SAME")
+#    legend.Draw('same')
+#    text.Draw('same')
+#    pad.SetLogy()
+#
+#    ratio.SetTitle(";#it{k}* (GeV/#it{c});#sigma_{syst}/#sigma_{stat}")
+#    ratio.SetMarkerStyle(20)
+#    ratio.SetMarkerSize(1.5)
+#    ratio.SetMarkerColor(ROOT.kOrange-3)
+#    ratio.SetLineColor(ROOT.kGreen+2)
+#    ratio.SetLineWidth(2)
+#
+#    #line = ROOT.TLine(0, 1, 0.39, 1)
+#    #line.SetLineColor(ROOT.kGray+2)
+#    #line.SetLineStyle(2)
+#    #line.SetLineWidth(2)
+#
+#    fit = ROOT.TF1("fit", "pol0", 0, 0.39)
+#    fit.SetLineColor(ROOT.kGray+2)
+#    fit.SetLineStyle(2)
+#    fit.SetLineWidth(2)
+#    ratio.Fit(fit, "rms+", "")
+#
+#    pad_ratio.cd()
+#    hframe_ratio = pad_ratio.DrawFrame(0, 1e-2, 0.39, 2, ";#it{k}* (GeV/#it{c});#sigma_{syst}/#sigma_{stat}")
+#    hframe_ratio.GetYaxis().SetTitleOffset(0.5)
+#    hframe_ratio.GetYaxis().SetTitleSize(0.1)
+#    hframe_ratio.GetXaxis().SetTitleSize(0.1)
+#    hframe_ratio.GetXaxis().SetTitleOffset(0.9)
+#    hframe_ratio.GetXaxis().SetLabelSize(0.08)
+#    hframe_ratio.GetYaxis().SetLabelSize(0.08)
+#
+#    #line.Draw("same")
+#    fit.Draw("same")
+#    ratio.Draw("hist e1 same")
+#    pad_ratio.SetLogy()
+#
+#    canvas.SaveAs("output/systematics.pdf")
+#
+#    #########################################################
+#
+#    xs, ys, ex, eystat, eysyst = [], [], [], [], []
+#    for ibin in range(1, h_correlation.GetNbinsX() + 1):
+#        xs.append(h_correlation.GetBinCenter(ibin))
+#        ys.append(h_correlation.GetBinContent(ibin))
+#        ex.append(h_correlation.GetBinWidth(ibin) / 2)
+#        eystat.append(h_correlation.GetBinError(ibin))
+#        eysyst.append(h_systematics.GetBinContent(ibin))
+#
+#    correlation_systematics = ROOT.TGraphMultiErrors('gme', ';#it{k}* (GeV/#it{c});C(#it{k}*)',
+#                                                    len(xs), np.array(xs), np.array(ys),
+#                                                    np.array(ex), np.array(ex), np.array(eystat), np.array(eystat))
+#    correlation_systematics.AddYError(len(xs), np.array(eysyst), np.array(eysyst))
+#    
+#    canvas_correlation = ROOT.TCanvas("canvas_correlation", "Correlation", 800, 600)
+#    correlation_systematics.SetTitle(";#it{k}* (GeV/#it{c});C(#it{k}*)")
+#    correlation_systematics.SetMarkerStyle(20)
+#    correlation_systematics.SetMarkerColor(ROOT.kBlue+2)
+#    correlation_systematics.SetLineColor(ROOT.kOrange-3)
+#    correlation_systematics.GetAttLine(0).SetLineColor(ROOT.kOrange-3)
+#    correlation_systematics.GetAttLine(1).SetLineColor(ROOT.kGreen+2)
+#    correlation_systematics.GetAttFill(1).SetFillStyle(0)
+#    correlation_systematics.Draw("APS;;5")
+#
+#    text = ROOT.TPaveText(0.55, 0.35, 0.85, 0.55, "NDC")
+#    text.SetFillColor(0)
+#    text.SetBorderSize(0)
+#    text.AddText("This work")
+#    text.AddText("#bf{ALICE, Run 3}")
+#    text.AddText("#bf{Pb-Pb #sqrt{s_{NN}} = 5.36 TeV}")
+#    text.AddText("#bf{p-^{3}He #oplus #bar{p}-^{3}#bar{He}}")
+#    text.Draw('same')
+#
+#    canvas_correlation.SaveAs("output/correlation_systematics.pdf")
+#
+#def display_individual_systematics():
+#
+#    ROOT.gStyle.SetOptStat(0)
+#
+#    systematic_variables = {'DCAxy (^{3}He)':'dcaxy_he3_max', 
+#                            'DCAz (^{3}He)': 'dcaz_he3_max', 
+#                            'n#sigma_{TPC} (^{3}He)': 'n_sigma_tpc_he3',
+#                            'n#sigma_{TPC} (p)': 'n_sigma_tpc_had_max', 
+#                            'n#sigma_{TOF} (p)': 'n_sigma_tof_had_max'}
+#    colors = [ROOT.kRed+1, ROOT.kBlue+2, ROOT.kGreen+2, ROOT.kMagenta+2, ROOT.kCyan+2]
+#
+#    infile = TFile("output/systematics_individual.root", "READ")
+#
+#    #infile_correlation = TFile("output/correlation.root", "READ")
+#    #h_correlation = infile_correlation.Get("Correlation/hCorrelation050")
+#    #h_correlation.SetDirectory(0)
+#
+#    infile_correlation = TFile("/home/galucia/antiLithium4/analysis/output/PbPb/studies.root", "READ")
+#    h_correlation = infile_correlation.Get("CorrelationAnti/hCorrelation_kstar")
+#    h_correlation.SetDirectory(0)
+#
+#    hs_relative_systematics = []
+#
+#    for variable in systematic_variables.values():
+#
+#        h_systematics = infile.Get(f"hSystematics{variable}")
+#        h_systematics.SetDirectory(0)
+#        h_relative_systematics = h_systematics.Clone(f"hRelativeSystematics{variable}")
+#
+#        for ibin in range(1, h_relative_systematics.GetNbinsX() + 1):
+#            correlation = h_correlation.GetBinContent(ibin)
+#            systematic = h_systematics.GetBinContent(ibin)
+#
+#            h_relative_systematics.SetBinContent(ibin, systematic / correlation if correlation != 0 else 0)
+#
+#        hs_relative_systematics.append(h_relative_systematics)
+#
+#    canvas = ROOT.TCanvas("canvas", "Systematics Analysis", 800, 600)
+#    hframe = canvas.DrawFrame(0, 1e-5, 0.39, 1, ";#it{k}* (GeV/#it{c});#sigma_{syst}/ C(#it{k}*)")
+#
+#    legend = ROOT.TLegend(0.55, 0.5, 0.85, 0.69)
+#    legend.SetFillColor(0)
+#    legend.SetBorderSize(0)
+#    legend.SetNColumns(2)
+#
+#    canvas.cd()
+#    for h_relative_systematics, variable_title, color in zip(hs_relative_systematics, systematic_variables.keys(), colors):
+#        h_relative_systematics.SetLineColor(color)
+#        h_relative_systematics.SetLineWidth(2)
+#        h_relative_systematics.Draw("HIST SAME")
+#        legend.AddEntry(h_relative_systematics, variable_title, "l")
+#    
+#    text = ROOT.TPaveText(0.55, 0.7, 0.85, 0.85, "NDC")
+#    text.SetFillColor(0)
+#    text.SetBorderSize(0)
+#    text.AddText("This work")
+#    text.AddText("#bf{ALICE, Run 3}")
+#    text.AddText("#bf{Pb-Pb #sqrt{s_{NN}} = 5.36 TeV}")
+#    
+#    canvas.cd()
+#    legend.Draw('same')
+#    text.Draw('same')
+#    canvas.SetLogy()
+#
+#    canvas.SaveAs("output/systematics_individual.pdf")
+#
+#    #########################################################
+#
+#    xs, ys, ex, eystat, eysyst = [], [], [], [], []
+#    for ibin in range(1, h_correlation.GetNbinsX() + 1):
+#        xs.append(h_correlation.GetBinCenter(ibin))
+#        ys.append(h_correlation.GetBinContent(ibin))
+#        ex.append(h_correlation.GetBinWidth(ibin) / 2)
+#        eystat.append(h_correlation.GetBinError(ibin))
+#        eysyst.append(h_systematics.GetBinContent(ibin))
+#
+#    correlation_systematics = ROOT.TGraphMultiErrors('gme', ';#it{k}* (GeV/#it{c});C(#it{k}*)',
+#                                                    len(xs), np.array(xs), np.array(ys),
+#                                                    np.array(ex), np.array(ex), np.array(eystat), np.array(eystat))
+#    correlation_systematics.AddYError(len(xs), np.array(eysyst), np.array(eysyst))
+#    
+#    canvas_correlation = ROOT.TCanvas("canvas_correlation", "Correlation", 800, 600)
+#    correlation_systematics.SetTitle(";#it{k}* (GeV/#it{c});C(#it{k}*)")
+#    correlation_systematics.SetMarkerStyle(20)
+#    correlation_systematics.SetMarkerColor(ROOT.kBlue+2)
+#    correlation_systematics.SetLineColor(ROOT.kOrange-3)
+#    correlation_systematics.GetAttLine(0).SetLineColor(ROOT.kOrange-3)
+#    correlation_systematics.GetAttLine(1).SetLineColor(ROOT.kGreen+2)
+#    correlation_systematics.GetAttFill(1).SetFillStyle(0)
+#    correlation_systematics.Draw("APS;;5")
+#
+#    text = ROOT.TPaveText(0.55, 0.35, 0.85, 0.55, "NDC")
+#    text.SetFillColor(0)
+#    text.SetBorderSize(0)
+#    text.AddText("This work")
+#    text.AddText("#bf{ALICE, Run 3}")
+#    text.AddText("#bf{Pb-Pb #sqrt{s_{NN}} = 5.36 TeV}")
+#    text.AddText("#bf{p-^{3}He #oplus #bar{p}-^{3}#bar{He}}")
+#    text.Draw('same')
+#
+#    canvas_correlation.SaveAs("output/correlation_systematics.pdf")
 
 
 if __name__ == "__main__":
 
-    #run_systematics()
+    run_systematics()
     #run_indivisual_systematics()
-    display_systematics()
-    display_individual_systematics()
+    #display_systematics()
+    #display_individual_systematics()
     print("Systematics analysis completed successfully.")
