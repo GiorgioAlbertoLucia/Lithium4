@@ -4,7 +4,7 @@
 
 import numpy as np
 import pandas as pd
-from ROOT import TFile, TCanvas, TF1, TMath
+from ROOT import TFile, TCanvas, TF1, TMath, TH2F
 from ROOT import RooRealVar, RooCrystalBall, RooAddPdf, RooGaussian
 
 from particle import Particle
@@ -15,11 +15,13 @@ from torchic.physics import BetheBloch, py_BetheBloch
 
 from torchic.physics.ITS import expected_cluster_size, sigma_its, average_cluster_size
 from torchic.core.graph import create_graph
+from torchic.core.histogram import load_hist
 
 import sys
 sys.path.append('..')
 from utils.pid_routine import standard_selections, define_variables
 from utils.utils import initialize_means_and_covariances, calibration_fit_slice
+from utils.particles import ParticleMasses
 
 DATASET_COLUMN_NAMES = {
     'P': 'fInnerParamTPCHe3',
@@ -32,18 +34,48 @@ DATASET_COLUMN_NAMES = {
 }
 
 BETAGAMMA_MIN = 0.35
-BETAGAMMA_MAX = 4.0
-BETAGAMMA_BKG_FIT = {'matter':  0.7,
-                     'antimatter': 0.5} # 0.8
+BETAGAMMA_MAX = 9.0
+#BETAGAMMA_MIN_BKG_FIT = {'matter':  0.62, # 0.7
+#                     'antimatter': 0.5} # 0.8
+#BETAGAMMA_MAX_BKG_FIT = {'matter':  1.25, # 0.7
+#                        'antimatter': 0.5} # 0.8
+BETAGAMMA_MAX_BKG_FIT = {'matter':  0.6, # 0.7
+                        'antimatter': 0.5} # 0.8
+BETAGAMMA_MIN_BKG_FIT = {'matter':  0.0, # 0.7
+                         'antimatter': 0.0} # 0.8
 BETAGAMMA_REBIN = {'matter':  0.,
                      'antimatter': 0.55} # 0.8
+
+def convert_p_to_betagamma(h2_p: TH2F, mass: float) -> TH2F:
+    from ROOT import TH2F
+
+    nx = h2_p.GetNbinsX()
+    ny = h2_p.GetNbinsY()
+
+    # Convert p axis edges to betagamma
+    p_edges = [h2_p.GetXaxis().GetBinLowEdge(i) for i in range(1, nx + 2)]
+    bg_edges = [p / mass for p in p_edges]
+
+    bg_array = np.array(bg_edges, dtype=np.float64)
+    y_edges = np.array([h2_p.GetYaxis().GetBinLowEdge(i) for i in range(1, ny + 2)], dtype=np.float64)
+
+    h2_bg = TH2F(h2_p.GetName() + '_bg', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)',
+                 nx, bg_array, ny, y_edges)
+
+    for ix in range(1, nx + 1):
+        for iy in range(1, ny + 1):
+            h2_bg.SetBinContent(ix, iy, h2_p.GetBinContent(ix, iy))
+            h2_bg.SetBinError(ix, iy, h2_p.GetBinError(ix, iy))
+
+    h2_bg.SetDirectory(0)
+    return h2_bg
 
 def init_signal_roofit(nsigma_tpc: RooRealVar, function: str = 'crystalball'):
 
     if function == 'crystalball':
         signal_pars = {
             'mean': RooRealVar('mean', 'mean', 800., 0., 2000., ''),
-            'sigma': RooRealVar('sigma', 'sigma', 10, 1000, ''),
+            'sigma': RooRealVar('sigma', 'sigma', 1, 1, 100, ''),
             'aL': RooRealVar('aL', 'aL', 0.7, 30.),
             'nL': RooRealVar('nL', 'nL', 0.3, 30.),
             'aR': RooRealVar('aR', 'aR', 0.7, 30.),
@@ -58,7 +90,7 @@ def init_signal_roofit(nsigma_tpc: RooRealVar, function: str = 'crystalball'):
     elif function == 'gausexp':
         signal_pars = {
             'mean': RooRealVar('mean', 'mean', 800., 0., 2000., ''),
-            'sigma': RooRealVar('sigma', 'sigma', 10, 1000, ''),
+            'sigma': RooRealVar('sigma', 'sigma', 8, 5, 100, ''),
             'rlife': RooRealVar('rlife', 'rlife', 0., 10.),
         }
         signal = RooGausExp('signal', 'signal', nsigma_tpc, *signal_pars.values())
@@ -67,7 +99,7 @@ def init_signal_roofit(nsigma_tpc: RooRealVar, function: str = 'crystalball'):
     elif function == 'gaus':
         signal_pars = {
             'mean': RooRealVar('mean', 'mean', 800., 0., 2000., ''),
-            'sigma': RooRealVar('sigma', 'sigma', 10, 1000, ''),
+            'sigma': RooRealVar('sigma', 'sigma', 2, 1, 1000, ''),
         }
         signal = RooGaussian('signal', 'signal', nsigma_tpc, *signal_pars.values())
         return signal, signal_pars
@@ -79,17 +111,17 @@ def init_background_roofit(nsigma_tpc: RooRealVar, function: str = 'gaus'):
 
     if function == 'gausexp':
         bkg_pars = {
-            'mean': RooRealVar('bkg_mean', 'bkg_mean', 0., 0., 2000., ''),
-            'sigma': RooRealVar('bkg_sigma', 'bkg_sigma', 60, 20., 100, ''),
-            'rlife': RooRealVar('bkg_rlife', 'bkg_rlife', 0., 10.),
+            'mean': RooRealVar('bkg_mean', 'bkg_mean', 100., 0., 2000., ''),
+            'sigma': RooRealVar('bkg_sigma', 'bkg_sigma', 10, 5., 100, ''),
+            'rlife': RooRealVar('bkg_rlife', 'bkg_rlife', 0.8, 0., 10.),
         }
         bkg_pdf = RooGausExp('bkg', 'bkg', nsigma_tpc, *bkg_pars.values())
         return bkg_pdf, bkg_pars
 
     elif function == 'gaus':
         bkg_pars = {
-            'mean': RooRealVar('bkg_mean', 'bkg_mean', 0., 0., 2000., ''),
-            'sigma': RooRealVar('bkg_sigma', 'bkg_sigma', 60, 20., 100, ''),
+            'mean': RooRealVar('bkg_mean', 'bkg_mean', 10., 0., 2000., ''),
+            'sigma': RooRealVar('bkg_sigma', 'bkg_sigma', 1, 1., 100, ''),
         }
         bkg_pdf = RooGaussian('bkg', 'bkg', nsigma_tpc, *bkg_pars.values())
         return bkg_pdf, bkg_pars
@@ -103,6 +135,7 @@ def fit_parametrisation(fit_results: pd.DataFrame, sign: str, outfile: TFile):
                             f'g_mean_{sign}', ';#beta#gamma;#LT #rm{d}E/#rm{d}x #GT (GeV/#it{c}^{2})')
     
     betagamma_min, betagamma_max = 0.35, 3.8
+    #betagamma_min, betagamma_max = 0.35, 5
     f_mean = TF1('f_mean', BetheBloch, betagamma_min, betagamma_max, 5)
     f_mean.SetParameters(-241.4902, 0.374245, 1.397847, 1.0782504, 2.048336)
     g_mean.Fit(f_mean, 'RMS+')
@@ -112,9 +145,11 @@ def fit_parametrisation(fit_results: pd.DataFrame, sign: str, outfile: TFile):
                                 f'g_resolution_{sign}', ';#beta#gamma;#sigma_{TPC} / #LT #rm{d}E/#rm{d}x #GT')
 
     BETAGAMMA_MIN_RES, BETAGAMMA_MAX_RES = 0.8, 3
+    #BETAGAMMA_MIN_RES, BETAGAMMA_MAX_RES = 0.4, 5
     f_resolution = TF1('f_resolution', '[0]', BETAGAMMA_MIN_RES, BETAGAMMA_MAX_RES)
     #f_resolution = TF1('f_resolution', '[0] / (1 + std::exp(-(x-[1])/[2]))', BETAGAMMA_MIN_RES, BETAGAMMA_MAX_RES)
-    f_resolution.SetParameters(0.07, 1, 0.5)
+    #f_resolution.SetParameters(0.07, 1, 0.5)
+    f_resolution.SetParameters(0.09)
     g_resolution.Fit(f_resolution, 'RMS+')
     resolution_params = [f_resolution.GetParameter(iparam) for iparam in range(3)]
         
@@ -124,13 +159,15 @@ def fit_parametrisation(fit_results: pd.DataFrame, sign: str, outfile: TFile):
 
     return fit_params, resolution_params
 
-def TPC_calibration(dataset: Dataset, outfile:TFile, column_names:dict=DATASET_COLUMN_NAMES):
+def TPC_calibration(dataset: Dataset, outfile: TFile, column_names: dict = DATASET_COLUMN_NAMES, h2_tpc=None):
 
-    axis_spec_betagamma = AxisSpec(320, -8, 8, 'beta_gamma', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)')
-    axis_spec_tpcsignal = AxisSpec(200, 0, 2000, 'tpc_signal', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)')
-    h2_tpc = dataset.build_th2('fBetaGamma', column_names['TpcSignal'], axis_spec_betagamma, axis_spec_tpcsignal)
-    
+    if h2_tpc is None:
+        axis_spec_betagamma = AxisSpec(320, -8, 8, 'beta_gamma', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)')
+        axis_spec_tpcsignal = AxisSpec(200, 0, 2000, 'tpc_signal', ';#beta#gamma;d#it{E}/d#it{x} (a.u.)')
+        h2_tpc = dataset.build_th2('fBetaGamma', column_names['TpcSignal'], axis_spec_betagamma, axis_spec_tpcsignal)
+
     tpc_signal = RooRealVar('fSignalTPC', 'd#it{E}/d#it{x} (a.u.)', 0., 2000.)
+    #tpc_signal = RooRealVar('fSignalTPC', 'd#it{E}/d#it{x} (a.u.)', 0., 600.)
     signal_pdf, signal_pars = init_signal_roofit(tpc_signal, function='gausexp')
     bkg_pdf, bkg_pars = init_background_roofit(tpc_signal, function='gausexp')
 
@@ -163,7 +200,8 @@ def TPC_calibration(dataset: Dataset, outfile:TFile, column_names:dict=DATASET_C
 
             if np.abs(bg) < BETAGAMMA_REBIN[sign]:
                 h_tpc.Rebin()
-            if np.abs(bg) < BETAGAMMA_BKG_FIT[sign]:
+
+            if np.abs(bg) < BETAGAMMA_MAX_BKG_FIT[sign] and np.abs(bg) > BETAGAMMA_MIN_BKG_FIT[sign]:
                 sig_frac = RooRealVar('sig_frac', 'sig_frac', 0.5, 0., 1.)
                 model = RooAddPdf('model', 'model', [signal_pdf, bkg_pdf], [sig_frac])
                 
@@ -172,7 +210,6 @@ def TPC_calibration(dataset: Dataset, outfile:TFile, column_names:dict=DATASET_C
                 signal_pars['sigma'].setVal(np.sqrt(covariances[1]))
                 bkg_pars['mean'].setVal(means[0])
                 bkg_pars['sigma'].setVal(np.sqrt(covariances[0]))
-
             else:
                 means, covariances = initialize_means_and_covariances(h_tpc, 1, method='kmeans')
                 signal_pars['mean'].setVal(means[0])
@@ -236,36 +273,58 @@ def visualize_distributions_and_fit(dataset: Dataset, outfile: TFile, fit_params
     f_fit_matter.Draw('same')
     f_fit_antimatter.Draw('same')
     canvas.Write()
-
-
+    
 if __name__ == '__main__':
 
-    #infile_path = '/data/galucia/lithium_local/MC/LHC25a4_with_primaries_and_mixed.root',
-    infile_path = [ #'/data/galucia/lithium_local/same/LHC23_PbPb_pass4_hadronpid_same.root',
-                    '/data/galucia/lithium_local/same/LHC24ar_pass1_hadronpid_same.root',
-                    '/data/galucia/lithium_local/same/LHC24as_pass1_hadronpid_same.root',
-                   ]
-    folder_name = 'DF*'
-    tree_name = 'O2he3hadtable'
-    column_names = {key: value for key, value in DATASET_COLUMN_NAMES.items()}
-    dataset = Dataset.from_root(infile_path, tree_name, folder_name, columns=[col for col in column_names.values()])
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--use-th2', dest='use_th2', action='store_true', help='Use TH2 histogram from file instead of dataset')
+    args = parser.parse_args()
 
-    ITSclusterSize, __ = average_cluster_size(dataset['fItsClusterSizeHe3'])
-    dataset['fClusterSizeCosLamHe3'] = ITSclusterSize / np.cosh(dataset['fEtaHe3'].values)
-    dataset.query('fClusterSizeCosLamHe3 > 4.5', inplace=True)
-    #dataset.query(f'{column_names["PIDinTrk"]} == 7', inplace=True)     # He3
-    dataset.query(f'0.5 < {column_names["Chi2TPC"]} < 4', inplace=True)
-    dataset[column_names['P']] = dataset[column_names['P']] * 2         # rigidity * charge
-    dataset.eval(f'fBetaGamma = {column_names["Pt"]}/abs({column_names["Pt"]}) * \
-                 {column_names["P"]} / {Particle.from_name("He3").mass / 1_000}', 
-                 inplace=True)
+    #outfile = TFile('output/TPC_he_LHC25_pass1.root', 'recreate') 
+    outfile = TFile('output/TPC/TPC_he_LHC24_pass3.root', 'recreate') 
+    #outfile = TFile('output/TPC_pr_pass4.root', 'recreate')
+    #outfile = TFile('output/TPC_he_24_pass3.root', 'recreate')
+    #outfile = TFile('output/TPC_he_mc.root', 'recreate')
+
+    if args.use_th2:
+
+        th2_file_name = '/home/galucia/Lithium4/calibration/input/ProtonsFromLambda_23zzh.root'
+        th2_name = 'ebye-maker/QA/tpcSignalPr'
+        h2_tpc = load_hist(th2_file_name, th2_name)
+
+        h2_tpc_bg = convert_p_to_betagamma(h2_tpc, ParticleMasses['Pr'])
+        outfile.cd()
+        h2_tpc_bg.Write('h2_tpc_bg')
+        h2_tpc.Write('h2_tpc')
+
+        dataset = None
+        fit_params, resolution = TPC_calibration(dataset, outfile, DATASET_COLUMN_NAMES, h2_tpc=h2_tpc)
     
-    define_variables(dataset, DATASET_COLUMN_NAMES=DATASET_COLUMN_NAMES)
-    #standard_selections(dataset, particle='He', DATASET_COLUMN_NAMES=DATASET_COLUMN_NAMES)
-    outfile = TFile('output/TPC_he_24.root', 'recreate')
+    else:
+        infile_path = [ #'/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root',
+                    #'/data/galucia/lithium_local/same/LHC24ar_pass1_hadronpid_same.root',
+                    #'/data/galucia/lithium_local/same/LHC24as_pass1_hadronpid_same.root',
+                    '/data/galucia/lithium_local/same/LHC24ar_pass3_same.root',
+                    #'/data/galucia/lithium_local/same/LHC25an_pass1_same.root'
+                   ]
+        folder_name = 'DF*'
+        tree_name = 'O2he3hadtable'
+        column_names = {key: value for key, value in DATASET_COLUMN_NAMES.items()}
+        dataset = Dataset.from_root(infile_path, tree_name, folder_name, columns=[col for col in column_names.values()])
 
-    fit_params, resolution = TPC_calibration(dataset, outfile, column_names)
-    visualize_distributions_and_fit(dataset, outfile, fit_params, resolution, column_names)
+        ITSclusterSize, __ = average_cluster_size(dataset['fItsClusterSizeHe3'])
+        dataset['fClusterSizeCosLamHe3'] = ITSclusterSize / np.cosh(dataset['fEtaHe3'].values)
+        dataset.query('fClusterSizeCosLamHe3 > 4.5', inplace=True)
+        dataset.query(f'0.5 < {column_names["Chi2TPC"]} < 4', inplace=True)
+        dataset[column_names['P']] = dataset[column_names['P']] * 2     # rigidity * charge
+        dataset.eval(f'fBetaGamma = {column_names["Pt"]}/abs({column_names["Pt"]}) * \
+                     {column_names["P"]} / {ParticleMasses["He"]}', inplace=True)
+        
+        define_variables(dataset, DATASET_COLUMN_NAMES=DATASET_COLUMN_NAMES)
+        #standard_selections(dataset, particle='He', DATASET_COLUMN_NAMES=DATASET_COLUMN_NAMES)
+
+        fit_params, resolution = TPC_calibration(dataset, outfile, column_names)
+        visualize_distributions_and_fit(dataset, outfile, fit_params, resolution, column_names)
 
     outfile.Close()
-    

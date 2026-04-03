@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 from ROOT import RooRealVar, RooAddPdf, RooDataHist, TPaveText
 
-from core.models import SignalModel, BackgroundModel
-from core.sideband_fit import SidebandFitter
+from core.purity_models import SignalModel, BackgroundModel
+from core.purity_sideband_fit import SidebandFitter
 
 
 class PurityFitter:
@@ -19,23 +19,27 @@ class PurityFitter:
             'signal_window': (-2, 4),
             'fit_range': (-6, 4),
             'nsigma_integral': (-2, 2),
+            'info_box_position': (0.35, 0.2, 0.65, 0.48),
         },
         'Had': {
-            'signal_model': 'gausdexp',
+            'signal_model': 'gausdexp', #'gausdexp',
             'bkg_models': ['pol1', 
                            #'pol2', 
                            'exp', 
                            #'pol2+gausexp', 
-                           'pol1+exp',
-                           'pol0+exp',
-                           'pol1+gausexp'],
-            'signal_window': (-3, 3),
-            'fit_range': (-5, 5),
+                           #'pol1+exp',
+                           #'pol0+exp',
+                           #'pol1+gausexp'
+                           'exp+exp'
+                           ],
+            'signal_window': (-4, 5.5),
+            'fit_range': (-6, 5),
             'nsigma_integral': (-2, 2),
+            'info_box_position': (0.35, 0.2, 0.65, 0.48),
         }
     }
     
-    def __init__(self, particle: str, detector: str = 'TPC'):
+    def __init__(self, particle: str, detector: str = 'TPC', config:dict=None):
         """
         Initialize fitter.
         
@@ -48,7 +52,7 @@ class PurityFitter:
         """
         self.particle = particle
         self.detector = detector
-        self.config = self.PARTICLE_CONFIG.get(particle)
+        self.config = config if config is not None else self.PARTICLE_CONFIG.get(particle)
         
         if self.config is None:
             raise ValueError(f'Unknown particle type: {particle}')
@@ -95,6 +99,8 @@ class PurityFitter:
             return None, None
         
         bkg_pdf, bkg_pars, bkg_norm = best_bkg
+        #for param in bkg_pars.values():
+        #    param.setConstant(True)
         
         signal_norm = RooRealVar('signal_normalisation', 'N_sig', 
                                 hist.GetEntries() * 0.5, 0., hist.GetEntries() * 2)
@@ -112,7 +118,7 @@ class PurityFitter:
         fit_result = model.fitTo(dh, PrintLevel=-1, Save=True)
         
         frame = self._create_fit_frame(x_variable, dh, model, signal_pdf, 
-                                      bkg_pdf, pt_range, signal_pars)
+                                      bkg_pdf, pt_range, signal_pars, bkg_pars)
         fit_results = self._calculate_purity(x_variable, signal_pdf, bkg_pdf,
                                             signal_norm, bkg_norm, signal_pars, pt)
         
@@ -131,8 +137,13 @@ class PurityFitter:
         """
         results = []
         
-        for bkg_name in self.config['bkg_models']:
+        for bkg_pt_min, bkg_pt_max, bkg_name in zip(self.config['bkg_pt_min'], self.config['bkg_pt_max'], self.config['bkg_models']):
             try:
+                if np.abs(pt) < bkg_pt_min:
+                    continue
+                if np.abs(pt) > bkg_pt_max:
+                    continue
+
                 print(f'  Trying {bkg_name}...', end=' ')
                 
                 tf1_func, chi2_ndf, integral = SidebandFitter.fit_sidebands(
@@ -142,12 +153,12 @@ class PurityFitter:
                     outdir_bkg, pt
                 )
                 
-                if chi2_ndf > 1e4 or chi2_ndf < 0 or np.isnan(chi2_ndf):
+                if chi2_ndf > 1e8 or chi2_ndf < 0 or np.isnan(chi2_ndf):
                     print(f'chi2/ndf = {chi2_ndf:.2f} - REJECTED')
                     continue
                 
                 bkg_pdf, bkg_pars = BackgroundModel.create(
-                    x_variable, bkg_name, suffix=f'_{bkg_name}'
+                    x_variable, bkg_name, particle=self.particle, suffix=f'_{bkg_name}'
                 )
                 
                 bkg_norm = SidebandFitter.transfer_parameters(
@@ -183,7 +194,7 @@ class PurityFitter:
         return best[1], best[2], best[3]
     
     def _create_fit_frame(self, x_variable, data_hist, model, signal_pdf, 
-                         bkg_pdf, pt_range, signal_pars):
+                         bkg_pdf, pt_range, signal_pars, bkg_pars):
         """Create RooFit frame with all components."""
         frame = x_variable.frame(
             Title=f'{pt_range[0]:.2f} < #it{{p}}_{{T}} < {pt_range[1]:.2f} GeV/#it{{c}}'
@@ -203,9 +214,9 @@ class PurityFitter:
             model.plotOn(frame, Components={bkg_pdf}, 
                        LineColor=4, LineStyle=2, LineWidth=2, Name='background')
         
-        text = TPaveText(0.15, 0.6, 0.45, 0.88, 'ndc')
+        text = TPaveText(*self.config['info_box_position'], 'ndc')
         text.SetFillColor(0)
-        text.SetBorderSize(1)
+        text.SetBorderSize(0)
         text.SetTextAlign(12)
         text.SetTextSize(0.03)
         
@@ -213,12 +224,15 @@ class PurityFitter:
         text.AddText(f'#sigma = {signal_pars["sigma"].getVal():.3f} #pm {signal_pars["sigma"].getError():.3f}')
         
         if 'rlife0' in signal_pars:
-            text.AddText(f'rlife0 = {signal_pars["rlife0"].getVal():.3f}')
-            text.AddText(f'rlife1 = {signal_pars["rlife1"].getVal():.3f}')
+            text.AddText(f'rlife0 = {signal_pars["rlife0"].getVal():.3f} #pm {signal_pars["rlife0"].getError():.3f}')
+            text.AddText(f'rlife1 = {signal_pars["rlife1"].getVal():.3f} #pm {signal_pars["rlife1"].getError():.3f}')
         elif 'rlife' in signal_pars:
             text.AddText(f'rlife = {signal_pars["rlife"].getVal():.3f}')
         
         text.AddText(f'#chi^{{2}}/ndf = {frame.chiSquare():.2f}')
+
+        for param_name, param in bkg_pars.items():
+            text.AddText(f'{param_name} = {param.getVal():.3f} #pm {param.getError():.3f}')
         
         frame.addObject(text)
         

@@ -5,7 +5,7 @@
 import numpy as np
 import pandas as pd
 from ROOT import TFile, TCanvas, TF1, TH2F, TDirectory
-from ROOT import RooRealVar, RooCrystalBall, RooAddPdf, RooGaussian, RooAbsPdf, RooExponential
+from ROOT import RooRealVar, RooCrystalBall, RooAddPdf, RooGaussian, RooAbsPdf, RooExponential, RooGenericPdf
 
 from particle import Particle
 
@@ -20,8 +20,9 @@ from utils.utils import initialize_means_and_covariances, calibration_fit_slice
 
 PT_MIN = 0.
 PT_MAX = 4.0
-PT_BKG_FIT = {'matter':  2.29,
-              'antimatter': 2.29} # 0.8
+PT_BKG_FIT = {'matter':  0., #2.29,
+              'antimatter': 0., #2.29 # 0.8
+              } 
 
 def init_signal_roofit(nsigma_tof: RooRealVar, function: str = 'crystalball'):
 
@@ -51,8 +52,8 @@ def init_signal_roofit(nsigma_tof: RooRealVar, function: str = 'crystalball'):
     
     elif function == 'gausdexp':
         signal_pars = {
-            'mean': RooRealVar('mean', '#mu_{sig}', 1., 0.7, 1.2, ''),
-            'sigma': RooRealVar('sigma', '#sigma_{sig}', 0.1, 0.0001, 0.3, ''),
+            'mean': RooRealVar('mean', '#mu_{sig}', 0., -1., 1., ''),
+            'sigma': RooRealVar('sigma', '#sigma_{sig}', 1, 0.3, 2., ''),
             'rlife0': RooRealVar('rlife0', '#tau_{0, sig}', -10., 0.),
             'rlife1': RooRealVar('rlife1', '#tau_{1, sig}', 0., 10.),
         }
@@ -96,20 +97,59 @@ def init_background_roofit(nsigma_tof: RooRealVar, function: str = 'gaus'):
         bkg_pdf = RooExponential('bkg', 'bkg', nsigma_tof, *bkg_pars.values())
         return bkg_pdf, bkg_pars
     
+    elif function == 'exp':
+        pars = {
+            'alpha': RooRealVar('alpha', 'alpha', 1., 0.01, 100.),
+            'offset': RooRealVar('offset', 'offset', -5., -20., 0.)
+        }
+        pdf = RooGenericPdf(f'bkg', 'bkg', 
+                           f'exp(-alpha * ({nsigma_tof.GetName()} - offset))', 
+                           [nsigma_tof, *pars.values()])
+        return pdf, pars
+    
+    elif function == 'dexp':
+        pars = {
+            'alpha_0': RooRealVar('alpha_0', 'alpha_0', 0.05, 0., 0.15),
+            'offset_0': RooRealVar('offset_0', 'offset_0', -5., -20., 0.),
+            'alpha_1': RooRealVar('alpha_1', 'alpha_1', 1., 0.9, 2.),
+            'offset_1': RooRealVar('offset_1', 'offset_1', -5., -20., 0.),
+        }
+        exp2 = RooGenericPdf(f'bkg_exp_0', 'bkg', 
+                           f'exp(-alpha_0 * ({nsigma_tof.GetName()} - offset_0))', 
+                           [nsigma_tof, pars['alpha_0'], pars['offset_0']])
+        exp1 = RooGenericPdf(f'bkg_exp_1', 'bkg', 
+                           f'exp(-alpha_1 * ({nsigma_tof.GetName()} - offset_1))', 
+                           [nsigma_tof, pars['alpha_1'], pars['offset_1']])
+        
+        return [exp1, exp2], pars
+    
+    elif function == 'pol0':
+        pars = {
+        }
+        pol0 = RooGenericPdf('bkg_pol0', 'bkg', '1', [nsigma_tof])
+        
+        return pol0, pars
+    
     else: 
         raise ValueError(f'Unknown function: {function}. Supported functions are "gausexp" and "gaus".')
 
 def fit_parametrisation(fit_results: pd.DataFrame, sign: str, outfile: TFile):
 
     g_mean = create_graph(fit_results, 'pt', 'mean', 'pt_err', 'mean_err', 
-                            f'g_mean_{sign}', ';#it{p}_{T} (GeV/#it{c}); #it{m}_{TOF} (GeV/#it{c})')
+                            f'g_mean_{sign}', ';#it{p}_{T} (GeV/#it{c}); #mu_{TOF}')
     
-    PT_MIN, PT_MAX = 0.7, 4
+    PT_MIN, PT_MAX = 0.4, 4
     f_mean = TF1('f_mean', '[0] + [1]*x + [2]*x^2', PT_MIN, PT_MAX, 5)
     f_mean.SetParameters(0.94, 0.005, 0.01)
     g_mean.Fit(f_mean, 'RMS+')
     fit_params = [f_mean.GetParameter(iparam) for iparam in range(3)]
     
+    g_sigma = create_graph(fit_results, 'pt', 'sigma', 'pt_err', 'sigma_err',
+                            f'g_sigma_{sign}', ';#it{p}_{T} (GeV/#it{c}); #sigma_{TOF}')
+    f_sigma = TF1('f_sigma', '[0]', PT_MIN, PT_MAX)
+    f_sigma.SetParameters(1)
+    g_sigma.Fit(f_sigma, 'RMS+')
+
     g_resolution = create_graph(fit_results, 'pt', 'resolution', 'pt_err', 'resolution_err', 
                                 f'g_resolution_{sign}', ';#it{p}_{T} (GeV/#it{c});#sigma_{TOF} / #it{m}_{TOF}')
 
@@ -122,6 +162,7 @@ def fit_parametrisation(fit_results: pd.DataFrame, sign: str, outfile: TFile):
     outfile.cd()
     g_mean.Write()
     g_resolution.Write()
+    g_sigma.Write()
 
     return fit_params, resolution_params
 
@@ -138,8 +179,15 @@ def _bin_calibration(h2_tof: TH2F, pt_bin: float, pt_step: float,
         return
 
     if np.abs(pt) > PT_BKG_FIT[sign]:
-        sig_frac = RooRealVar('sig_frac', 'sig_frac', 0.5, 0., 1.)
-        model = RooAddPdf('model', 'model', [signal_pdf, bkg_pdf], [sig_frac])
+        sig_frac = RooRealVar('sig_frac', 'sig_frac', 0.7, 0., 1.)
+        bkg_fracs = []
+        if isinstance(bkg_pdf, list):
+            for idx in range(len(bkg_pdf)-1):
+                bkg_frac = RooRealVar(f'bkg_frac_{idx}', f'bkg_frac_{idx}', 0.5, 0., 1.)
+                bkg_fracs.append(bkg_frac)
+            model = RooAddPdf('model', 'model', [signal_pdf, *bkg_pdf], [sig_frac, *bkg_fracs])
+        else:
+            model = RooAddPdf('model', 'model', [signal_pdf, bkg_pdf], [sig_frac])
         
         #estimation = initialize_means_and_covariances(h_tof, 2, method='kmeans')
         estimation = initialize_means_and_covariances(h_tof, 1, method='kmeans')
@@ -174,13 +222,15 @@ def _bin_calibration(h2_tof: TH2F, pt_bin: float, pt_step: float,
 
 def TOF_calibration(dataset: Dataset, outfile:TFile):
 
-    axis_spec_tofmass = AxisSpec(100, 0.7, 1.2, 'tof_mass', ';#it{p}_{T} (GeV/#it{c});#it{m}_{TOF} (GeV/#it{c}^{2})')
+    #axis_spec_tofmass = AxisSpec(100, 0.7, 1.2, 'tof_mass', ';#it{p}_{T} (GeV/#it{c});#it{m}_{TOF} (GeV/#it{c}^{2})')
+    axis_spec_nsigma = AxisSpec(100, -3, 3, 'tof_mass', ';#it{p}_{T} (GeV/#it{c});#it{m}_{TOF} (GeV/#it{c}^{2})')
     axis_spec_pt = AxisSpec(160, -8, 8, 'pt', ';#it{p}_{T} (GeV/#it{c});#it{m}_{TOF} (GeV/#it{c}^{2})')
-    h2_tof = dataset.build_th2('fPtHad', 'fMassTOFHad', axis_spec_pt, axis_spec_tofmass)
+    #h2_tof = dataset.build_th2('fPtHad', 'fMassTOFHad', axis_spec_pt, axis_spec_tofmass)
+    h2_tof = dataset.build_th2('fPtHad', 'fNSigmaTOFHadPr', axis_spec_pt, axis_spec_nsigma)
     
-    tof_mass = RooRealVar('fMassTOF', '#it{m}_{TOF} (GeV/#it{c}^{2})', 0.5, 1.5,)
-    signal_pdf, signal_pars = init_signal_roofit(tof_mass, function='gausdexp')
-    bkg_pdf, bkg_pars = init_background_roofit(tof_mass, function='exp')
+    #tof_mass = RooRealVar('fMassTOF', '#it{m}_{TOF} (GeV/#it{c}^{2})', 0.5, 1.5,)
+    nsigma_tof = RooRealVar('fNSigmaTOF', 'n#sigma_{TOF}', -3, 3)
+    signal_pdf, signal_pars = init_signal_roofit(nsigma_tof, function='gausdexp')
 
     fit_params, resolution_params, model = {}, {}, None
 
@@ -201,9 +251,12 @@ def TOF_calibration(dataset: Dataset, outfile:TFile):
 
         for pt_bin in range(pt_bin_min, pt_bin_max):
             
+            bkg_pdf_func = 'pol0' if np.abs(h2_tof.GetXaxis().GetBinCenter(pt_bin)) < 2.8 else 'exp'
+            bkg_pdf, bkg_pars = init_background_roofit(nsigma_tof, function=bkg_pdf_func)
+            
             _bin_calibration(h2_tof, pt_bin, pt_step,
                              signal_pdf, signal_pars, bkg_pdf, bkg_pars,
-                             tof_mass, fit_results, tof_dir, sign)
+                             nsigma_tof, fit_results, tof_dir, sign)
             
         fit_results_df = pd.DataFrame(fit_results)
         
@@ -251,19 +304,31 @@ def visualize_distributions_and_fit(dataset: Dataset, outfile: TFile, fit_params
 if __name__ == '__main__':
 
     #infile_path = '/data/galucia/lithium_local/MC/LHC25a4_with_primaries_and_mixed.root',
-    infile_path = ['/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root',
-                   #'/data/galucia/lithium_local/same/LHC24_PbPb_pass2_same.root',
-                   ]
+    infile_path = [#'/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root',
+                   '/data/galucia/lithium_local/same/LHC24ar_pass3_same.root',]
     folder_name = 'DF*'
     tree_name = 'O2he3hadtable'
-    dataset = Dataset.from_root(infile_path, tree_name, folder_name, columns=['fMassTOFHad', 'fPtHad', 'fChi2TPCHad'])
+    dataset = Dataset.from_root(infile_path, tree_name, folder_name, columns=['fNSigmaTOFHadPr', 'fPtHad'])
+    print(dataset.columns)
 
-    dataset.query(f'0.5 < fChi2TPCHad < 4', inplace=True)
+    #['fPtHe3', 'fEtaHe3', 'fPhiHe3', 'fPtHad', 'fEtaHad', 'fPhiHad',
+    #   'fDCAxyHe3', 'fDCAzHe3', 'fDCAxyHad', 'fDCAzHad', 'fDCApair',
+    #   'fSignalTPCHe3', 'fInnerParamTPCHe3', 'fSignalTPCHad',
+    #   'fInnerParamTPCHad', 'fNClsTPCHe3', 'fNSigmaTPCHe3', 'fNSigmaTPCHadPi',
+    #   'fNSigmaTPCHadKa', 'fNSigmaTPCHadPr', 'fNSigmaTOFHadPi',
+    #   'fNSigmaTOFHadKa', 'fNSigmaTOFHadPr', 'fChi2TPCHe3', 'fChi2TPCHad',
+    #   'fMassTOFHe3', 'fMassTOFHad', 'fPIDtrkHe3', 'fPIDtrkHad',
+    #   'fItsClusterSizeHe3', 'fItsClusterSizeHad', 'fSharedClustersHe3',
+    #   'fSharedClustersHad'],
+
+    #exit(0)
+
+    #dataset.query(f'0.5 < fChi2TPCHad < 4', inplace=True)
     
-    outfile = TFile('output/TOF_pr.root', 'recreate')
+    outfile = TFile('output/TOF_pr_from_central.root', 'recreate')
 
     fit_params, resolution_params = TOF_calibration(dataset, outfile)
-    visualize_distributions_and_fit(dataset, outfile, fit_params, resolution_params)
+    #visualize_distributions_and_fit(dataset, outfile, fit_params, resolution_params)
 
     outfile.Close()
     

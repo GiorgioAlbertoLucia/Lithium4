@@ -36,9 +36,9 @@ CONF = {
         },
         'Pr': {
             'x_min_fit': 0.5,
-            'x_max_fit': 4.5,
-            'x_max_bkg': 1.1,
-            'x_nbins': 50,
+            'x_max_fit': 4.,
+            'x_max_bkg': 0.75,
+            'x_nbins': 200,
         },
         'De': {
             'x_min_fit': 0.4,
@@ -47,9 +47,9 @@ CONF = {
         },
         'He': {
             'x_min_fit': 0.7,
-            'x_max_fit': 3,
-            'x_max_bkg': 2.6,
-            'x_nbins': 50,
+            'x_max_fit': 3.,
+            'x_max_bkg': 3.,
+            'x_nbins': 100,
         }
     },
     'p': {
@@ -120,7 +120,7 @@ def init_signal_roofit(clsize: RooRealVar, function: str = 'crystalball'):
     if function == 'crystalball':
         signal_pars = {
             'mean': RooRealVar('mean', 'mean', 1., 15, ''),
-            'sigma': RooRealVar('sigma', 'sigma', 0.01, 10, ''),
+            'sigma': RooRealVar('sigma', 'sigma', 0.1, 10, ''),
             'aL': RooRealVar('aL', 'aL', 0.7, 30.),
             'nL': RooRealVar('nL', 'nL', 0.3, 30.),
             'aR': RooRealVar('aR', 'aR', 0.7, 30.),
@@ -198,8 +198,8 @@ def visualize_fit_results(dataset, fit_results_df, particle, bg_min, bg_max, par
     g_mean = create_graph(fit_results_df, 'x', 'mean', 'x_error', 'mean_err', 
                                 f'g_mean', f';{x_dict["axis_title"]};#LT ITS Cluster Size #GT #times cos #LT #lambda #GT')
     f_mean = TF1('simil_bethe_bloch_func', '[0]/x^[1] + [2]', bg_min, bg_max)
-    f_mean.SetParameters(2.6, 3.6, 2)
-    f_mean.SetParLimits(0, 0, 3)
+    f_mean.SetParameters(2.6, 2., 2)
+    f_mean.SetParLimits(0, 0, 4)
     if particle == 'He':
         f_mean.SetParameters(2.3, 1.7, 4.5)
     g_mean.Fit(f_mean, 'RMS+')
@@ -207,14 +207,29 @@ def visualize_fit_results(dataset, fit_results_df, particle, bg_min, bg_max, par
     g_mean.Draw('ap')
     f_mean.Draw('same')
 
+    fit_results_df['log_mean'] = np.log(fit_results_df['mean'])
+    fit_results_df['log_mean_err'] = fit_results_df['mean_err'] / fit_results_df['mean']
+    g_log_mean = create_graph(fit_results_df, 'x', 'log_mean', 'x_error', 'log_mean_err',
+                                f'g_log_mean', f';{x_dict["axis_title"]};ln(#LT ITS Cluster Size #GT #times cos #LT #lambda #GT)')
+    f_mean_log = TF1('log_bethe_bloch_func', 'log([0]/x^[1] + [2])', bg_min, bg_max)
+    f_mean_log.SetParameters(2.6, 2., 2)
+    f_mean_log.SetParLimits(0, 0, 4)
+    if particle == 'He':
+        f_mean_log.SetParameters(2.3, 1.7, 4.5)
+    g_log_mean.Fit(f_mean_log, 'RMS+')
+    c_log_mean = TCanvas('c_log_mean', 'c_log_mean', 800, 600)
+    g_log_mean.Draw('ap')
+    f_mean_log.Draw('same')
+
     g_sigma = create_graph(fit_results_df, 'x', 'sigma', 'x_error', 'sigma_err', 
-                                f'g_sigma', f';{x_dict["axis_title"]};#sigma / #mu')
+                                f'g_sigma', f';{x_dict["axis_title"]};#sigma')
 
     g_resolution = create_graph(fit_results_df, 'x', 'resolution', 'x_error', 'resolution_err', 
                                 f'g_resolution', f';{x_dict["axis_title"]};#sigma / #mu')
     
     #f_resolution = TF1('resolution_fit', '[0]*ROOT::Math::erf((x - [1])/[2])', bg_min, bg_max)
     #f_resolution.SetParameters(0.24, -0.32, 1.53)
+    #f_resolution.SetParLimits(2, 0.1, 5)
     f_resolution = TF1('resolution_fit', '[0]', bg_min, bg_max)
     f_resolution.SetParameters(0.155)
     
@@ -244,6 +259,7 @@ def visualize_fit_results(dataset, fit_results_df, particle, bg_min, bg_max, par
 
     particle_dir.cd()
     c_mean.Write()
+    c_log_mean.Write()
     g_sigma.Write()
     c_resolution.Write()
     h2_nsigma.Write()
@@ -305,6 +321,7 @@ def calibration_routine(dataset: Dataset, outfile: TFile, particle: str, x: str 
                 means, sigmas = initialize_means_and_covariances(h_clsize, 1, method='kmeans')
                 signal_pars['mean'].setVal(means[0])
                 signal_pars['sigma'].setVal(np.sqrt(sigmas[0]))
+                signal_pars['rlife'].setVal(4.)
 
         frame, fit_results = calibration_fit_slice(model, h_clsize, clsize, signal_pars, x_low_edge, x_high_edge)
         fit_results['x'] = np.abs(ix)
@@ -329,9 +346,8 @@ def calibration_routine(dataset: Dataset, outfile: TFile, particle: str, x: str 
 
     del h2_clsize, clsize, signal, signal_pars, bkg, bkg_pars
 
-def main_routine(dataset: Dataset, mode: str, x: str):
+def main_routine(dataset: Dataset, outfile_path:str, mode: str, x: str):
 
-    outfile_path = f'output/ITS.root'
     outfile = TFile(outfile_path, 'RECREATE')
     
     particles = ['Pr', 'He']
@@ -347,11 +363,17 @@ def main_routine(dataset: Dataset, mode: str, x: str):
 
     outfile.Close()
 
-
 if __name__ == '__main__':
 
-    infile_path = ['/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root',
-                   '/data/galucia/lithium_local/same/LHC24_PbPb_pass2_same.root']
+    #infile_path = ['/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root',
+    #               '/data/galucia/lithium_local/same/LHC24_PbPb_pass2_same.root']
+    #outfile_path = f'output/ITS.root'
+
+    infile_path = ['/data/galucia/lithium_local/same/LHC25an_pass1_same.root']
+    outfile_path = f'output/ITS_LHC25_PbPb.root'
+
+    #infile_path = ['/data/galucia/lithium_local/MC/LHC25a4.root']
+    #outfile_path = f'output/ITS_MC.root'
 
     folder_name = 'DF*'
     tree_name = 'O2he3hadtable'
@@ -361,4 +383,4 @@ if __name__ == '__main__':
 
     print(f'{dataset.shape=}\n{dataset.columns=}')
 
-    main_routine(dataset, mode='mean', x='beta_gamma')
+    main_routine(dataset,outfile_path, mode='mean', x='beta_gamma')

@@ -4,7 +4,7 @@
 
 import numpy as np
 import pandas as pd
-from ROOT import TFile, TDirectory, RooRealVar, RooGaussian, RooCrystalBall, TCanvas, TF1, RooAddPdf, RooChebychev
+from ROOT import TFile, TDirectory, RooRealVar, RooGaussian, RooCrystalBall, TCanvas, TF1, RooAddPdf, RooChebychev, RooPolynomial, gStyle
 from torchic import Dataset, AxisSpec
 from torchic.roopdf import RooGausExp   
 from torchic.core.fit import calibration_fit_slice, initialize_means_and_covariances
@@ -16,41 +16,41 @@ CONFIG = {
     'He3': {
         'xy': {
             'axis_title': 'DCA_{#it{xy}} (cm)',
-            'x_min_fit': -4.5,
+            'x_min_fit': -4.,
             'x_max_fit': -1.5,
             'x_max_bkg': 1.5,
-            'y_nbins': 150,
-            'y_min': -0.15,
-            'y_max': 0.15,
+            'y_nbins': 50,
+            'y_min': -0.05,
+            'y_max': 0.05,
         },
         'z': {
             'axis_title': 'DCA_{#it{z}} (cm)',
-            'x_min_fit': -4.5,
+            'x_min_fit': -4.,
             'x_max_fit': -1.5,
             'x_max_bkg': 1.5,
-            'y_min': -0.3,
-            'y_max': 0.3,
-            'y_nbins': 150
+            'y_min': -0.15,
+            'y_max': 0.15,
+            'y_nbins': 50
         }
     },
     'Had': {
         'xy': {
             'axis_title': 'DCA_{#it{xy}} (cm)',
-            'x_min_fit': -4.5,
-            'x_max_fit': -1.5,
+            'x_min_fit': -4.,
+            'x_max_fit': -0.4,
             'x_max_bkg': 1.5,
-            'y_nbins': 150,
-            'y_min': -0.15,
-            'y_max': 0.15,
+            'y_nbins': 50,
+            'y_min': -0.05,
+            'y_max': 0.05,
         },
         'z': {
             'axis_title': 'DCA_{#it{z}} (cm)',
-            'x_min_fit': -5.0,
-            'x_max_fit': -1.5,
+            'x_min_fit': -4.0,
+            'x_max_fit': -0.4,
             'x_max_bkg': 1.5,
-            'y_min': -0.3,
-            'y_max': 0.3,
-            'y_nbins': 150
+            'y_min': -0.15,
+            'y_max': 0.15,
+            'y_nbins': 50
         }
     }
 }
@@ -164,26 +164,43 @@ def init_background_roofit(x: RooRealVar, particle: str, function: str = 'gaus')
         bkg = RooChebychev('bkg', 'bkg', x, list(bkg_pars.values()))
 
         return bkg, bkg_pars
+    
+    elif function == 'pol0':
+        pars = {
+            'c0': RooRealVar('c0{bkg}', 'c_{0}^{bkg}', 1.0, 0.0, 10.0)
+        }
+
+        pdf = RooPolynomial('pdf_{bkg}', 'pdf_{bkg}', x, [pars['c0']])
+        return pdf, pars
 
     else:
         raise ValueError(f'Unknown function: {function}. Supported functions are "gausexp" and "gaus".')
 
 def visualize_fit_results(fit_results_df, particle, particle_dir, x:str):
 
-    g_mean = create_graph(fit_results_df, 'x', 'mean', 'x_error', 'mean_err', 
-                                f'g_mean', f'{particle};#it{{p}}_{{T}} (GeV/#it{{c}});{CONFIG[particle][x]["axis_title"]}')
-    c_mean = TCanvas('c_mean', 'c_mean', 800, 600)
-    g_mean.Draw('ap')
-
     x_antimatter = [x for x in fit_results_df['x'] if x < 0]
     x_min = min(x_antimatter) if len(x_antimatter) > 0 else -1
     x_max = max(x_antimatter) if len(x_antimatter) > 0 else -0.1
+    
+    g_mean = create_graph(fit_results_df, 'x', 'mean', 'x_error', 'mean_err', 
+                                f'g_mean', f'{particle};#it{{p}}_{{T}} (GeV/#it{{c}});{CONFIG[particle][x]["axis_title"]}')
+    f_mean = TF1('f_mean', '[0]', x_min, x_max)
+    f_mean.SetParameter(0, 0.)
+    g_mean.Fit(f_mean, 'RMS+')
+    c_mean = TCanvas('c_mean', 'c_mean', 800, 600)
+    g_mean.Draw('ap')
+    f_mean.Draw('same')
 
     g_sigma = create_graph(fit_results_df, 'x', 'sigma', 'x_error', 'sigma_err', 
                                 f'g_sigma', f'{particle};#it{{p}}_{{T}} (GeV/#it{{c}});#sigma {CONFIG[particle][x]["axis_title"]}')
-    f_sigma = TF1('f_sigma', '[0]*exp(-abs(x)*[1]) + [2]', x_min, x_max)
-    f_sigma.SetParameters(0.005, 0.5, 0.0025)
-    f_sigma.SetParLimits(2, 0., 8e-3)
+    #f_sigma = TF1('f_sigma', '[0]*exp(-abs(x)*[1]) + [2]', x_min, x_max)
+    f_sigma = TF1('f_sigma', 'sqrt([0]*[0] + ([1]/x)*([1]/x) + ([2]/(x*x))*([2]/(x*x)))', x_min, x_max)
+    #f_sigma = TF1('f_sigma', '[0] + [1]/x^[2]', x_min, x_max)
+
+    #f_sigma.SetParameters(0.005, 0.5, 0.0025)
+    f_sigma.SetParameters(1.8e-3, 2.2e-3, 8e-4)
+    #f_sigma.SetParameters(1.8e-3, 2.2e-3, 1.5)
+    #f_sigma.SetParLimits(2, 0., 8e-3)
     g_sigma.Fit(f_sigma, 'RMS+')
     c_sigma = TCanvas('c_sigma', 'c_sigma', 800, 600)
     g_sigma.Draw('ap')
@@ -238,7 +255,7 @@ def calibration_routine(h2, outfile: TFile, particle: str, x: str = 'xy'):
 
     dca = RooRealVar('fDCA', cfg["axis_title"], cfg['y_min'], cfg['y_max'])
     signal, signal_pars = init_signal_roofit(dca, function='crystalball')
-    bkg, bkg_pars = init_background_roofit(dca, particle, function='cheb1')
+    bkg, bkg_pars = init_background_roofit(dca, particle, function='pol0')
 
     x_min = cfg['x_min_fit']
     x_max = cfg['x_max_fit']
@@ -249,14 +266,16 @@ def calibration_routine(h2, outfile: TFile, particle: str, x: str = 'xy'):
     x_bin_max = h2.GetXaxis().FindBin(x_max)
     for x_bin in range(x_bin_min, x_bin_max+1):
         
+        signal_fraction = RooRealVar('signal_fraction', 'signal_fraction', 0.5, 0., 1.)
+        model = RooAddPdf('model', 'signal + bkg', [signal, bkg], [signal_fraction])
+        
         # antimatter
         ix = h2.GetXaxis().GetBinCenter(x_bin)
-        fit_results_df = _bin_calibration(h2, outfile, particle, x_bin, signal, signal_pars, dca, fit_results_df, x)
+        #fit_results_df = _bin_calibration(h2, outfile, particle, x_bin, signal, signal_pars, dca, fit_results_df, x)
+        fit_results_df = _bin_calibration(h2, outfile, particle, x_bin, model, signal_pars, dca, fit_results_df, x)
 
         # matter
         positive_x_bin = h2.GetXaxis().FindBin(-ix)
-        signal_fraction = RooRealVar('signal_fraction', 'signal_fraction', 0.5, 0., 1.)
-        model = RooAddPdf('model', 'signal + bkg', [signal, bkg], [signal_fraction])
         for par in ['mean', 'aL', 'nL']:
             signal_pars[par].setConstant(True)
             #bkg_pars[par].setVal(signal_pars[par].getVal())
@@ -277,6 +296,96 @@ def calibration_routine(h2, outfile: TFile, particle: str, x: str = 'xy'):
     h2.Write()
 
     del h2, dca, signal, signal_pars, bkg, bkg_pars
+
+
+def _bin_calibration_simple_gaus(h2, outfile: TFile, particle: str, x_bin: int,
+                                  fit_results_df: pd.DataFrame = None, x: str = 'xy'):
+    """
+    Helper function for simple Gaussian calibration of a single bin using TF1.
+    """
+    ix = h2.GetXaxis().GetBinCenter(x_bin)
+    x_error = h2.GetXaxis().GetBinWidth(x_bin) / 2.
+    
+    h_dca = h2.ProjectionY(f'pt_{ix:.2f}', x_bin, x_bin, 'e')
+    if h_dca.GetEntries() <= 0:
+        print(f'No entries for particle {particle}, pt = {ix:.2f}, skipping...')
+        return fit_results_df
+    
+    # Create Gaussian TF1
+    xmin, xmax = (-0.01, 0.01) if x == 'xy' else (-0.02, 0.02)
+    gaus_fit = TF1(f'gaus_fit_pt_{ix:.2f}', 'gaus', xmin, xmax)
+    gaus_fit.SetParameters(h_dca.GetMaximum(), 0., 0.005)  # Initial parameters: amplitude, mean, sigma
+    
+    # Perform fit
+    fit_result = h_dca.Fit(gaus_fit, 'RMS+', '', xmin, xmax)
+    
+    # Extract fit parameters
+    mean = gaus_fit.GetParameter(1)
+    mean_err = gaus_fit.GetParError(1)
+    sigma = gaus_fit.GetParameter(2)
+    sigma_err = gaus_fit.GetParError(2)
+    
+    fit_results = {
+        'x': ix,
+        'x_error': x_error,
+        'mean': mean,
+        'mean_err': mean_err,
+        'sigma': sigma,
+        'sigma_err': sigma_err
+    }
+    
+    if fit_results_df is None:
+        fit_results_df = pd.DataFrame.from_dict([fit_results])
+    else:
+        fit_results_df = pd.concat([fit_results_df, pd.DataFrame.from_dict([fit_results])], ignore_index=True)
+    
+    # Create and save canvas
+    canvas = TCanvas(f'cDCA{x}_pt_{ix:.2f}', f'cDCA{x}_pt_{ix:.2f}', 800, 600)
+    canvas.SetLogy()
+    h_dca.SetMinimum(1)
+    h_dca.Draw()
+    gaus_fit.Draw('same')
+    outfile.cd()
+    canvas.Write()
+    
+    del h_dca, gaus_fit, canvas
+    
+    return fit_results_df
+
+def simple_gaussian_calibration(h2, outfile: TFile, particle: str, x: str = 'xy'):
+    """
+    Perform simple Gaussian fits in the range [-0.015, 0.015] for calibration using TF1.
+    """
+    cfg = CONFIG[particle][x]
+    
+    x_min = cfg['x_min_fit']
+    x_max = cfg['x_max_fit']
+    
+    fit_results_df = None
+    
+    x_bin_min = h2.GetXaxis().FindBin(x_min)
+    x_bin_max = h2.GetXaxis().FindBin(x_max)
+    
+    for x_bin in range(x_bin_min, x_bin_max+1):
+        # antimatter
+        ix = h2.GetXaxis().GetBinCenter(x_bin)
+        fit_results_df = _bin_calibration_simple_gaus(h2, outfile, particle, x_bin, fit_results_df, x)
+        
+        # matter
+        positive_x_bin = h2.GetXaxis().FindBin(-ix)
+        fit_results_df = _bin_calibration_simple_gaus(h2, outfile, particle, positive_x_bin, fit_results_df, x)
+    
+    if fit_results_df is None:
+        print(f'No fit results for particle {particle}, skipping...')
+        return
+    
+    visualize_fit_results(fit_results_df, particle, outfile, x)
+    
+    outfile.cd()
+    h2.Write()
+    
+    del h2
+
 
 def main_mc():
     input_files = ['/data/galucia/lithium_local/MC/LHC25a4_with_primaries_and_mixed.root',]
@@ -312,13 +421,13 @@ def main_mc():
     outfile.Close()
 
 def main_data():
-    #input_files = ['/data/galucia/lithium_local/same/LHC23_PbPb_pass4_long_same_lsus.root',
-    #               '/data/galucia/lithium_local/same/LHC24ar_pass1_same.root',
-    #               '/data/galucia/lithium_local/same/LHC24as_pass1_same.root',]
-    input_files = ['/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root',
-                   '/data/galucia/lithium_local/same/LHC24_PbPb_pass2_same.root',
-                   #'/data/galucia/lithium_local/same/LHC24as_pass1_same.root',
-                   ]
+    input_files = ['/data/galucia/lithium_local/same/LHC23_PbPb_pass4_hadronpid_same.root',
+                   '/data/galucia/lithium_local/same/LHC24ar_pass1_hadronpid_same.root',
+                   '/data/galucia/lithium_local/same/LHC24as_pass1_hadronpid_same.root',]
+    #input_files = ['/data/galucia/lithium_local/same/LHC23_PbPb_pass5_same.root',
+    #               '/data/galucia/lithium_local/same/LHC24_PbPb_pass2_same.root',
+    #               #'/data/galucia/lithium_local/same/LHC24as_pass1_same.root',
+    #               ]
     tree_names = ['O2he3hadtable'
                   ]
     folder_name = 'DF*'
@@ -343,7 +452,41 @@ def main_data():
 
     outfile.Close()
 
+def main_data_simple_gaus():
+    """
+    Alternative data processing routine using simple Gaussian fits.
+    """
+    input_files = ['/data/galucia/lithium_local/same/LHC23_PbPb_pass4_hadronpid_same.root',
+                   '/data/galucia/lithium_local/same/LHC24ar_pass1_hadronpid_same.root',
+                   '/data/galucia/lithium_local/same/LHC24as_pass1_hadronpid_same.root',]
+    tree_names = ['O2he3hadtable']
+    folder_name = 'DF*'
+    columns = ['fPtHe3', 'fPtHad', 'fDCAxyHe3', 'fDCAzHe3', 'fDCAxyHad', 'fDCAzHad']
+    datasets = []
+    
+    for tree_name in tree_names:
+        datasets.append(Dataset.from_root(input_files, tree_name=tree_name, folder_name=folder_name, columns=columns))
+    dataset = datasets[0].concat(datasets[1:], axis=1)
+
+    gStyle.SetOptFit(1)
+    
+    outfile = TFile.Open('output/dca_studies_simple_gaus.root', 'RECREATE')
+    
+    for particle in ['He3', 'Had']:
+        outdir = outfile.mkdir(f'{particle}')
+        h2_dcaxy, h2_dcaz = visualise(dataset, outdir, particle, is_mc=False)
+        fitdir = outdir.mkdir('fit_results')
+        DCAxy_dir = fitdir.mkdir('DCAxy')
+        simple_gaussian_calibration(h2_dcaxy, DCAxy_dir, particle, x='xy')
+        
+        DCAz_dir = fitdir.mkdir('DCAz')
+        simple_gaussian_calibration(h2_dcaz, DCAz_dir, particle, x='z')
+    
+    outfile.Close()
+
 
 if __name__ == '__main__':
 
-    main_data()
+    #main_data()
+    #main_mc()
+    main_data_simple_gaus()

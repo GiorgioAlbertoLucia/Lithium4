@@ -4,6 +4,7 @@
 
 import sys
 from enum import Enum
+import numpy as np
 
 from ROOT import TFile, TChain, RDataFrame, TDirectory, \
     gInterpreter, gROOT, EnableImplicitMT
@@ -11,9 +12,8 @@ from ROOT import TFile, TChain, RDataFrame, TDirectory, \
 from torchic.utils.terminal_colors import TerminalColors as tc
 
 gInterpreter.ProcessLine(f'#include "../include/Common.h"')
-from ROOT import ComputeNsigmaTPCHe, ComputeNsigmaITSHe, ComputeNsigmaITSPr, ComputeNsigmaTOFPr, ComputeAverageClusterSize, CorrectPidTrkHe
 
-EnableImplicitMT(5)
+EnableImplicitMT(1)
 gROOT.SetBatch(True)
 
 sys.path.append('..')
@@ -33,17 +33,65 @@ class Flags(Enum):
     kIsSecondaryFromMaterial = 10
     kIsSecondaryFromWeakDecay = 11
 
+# Custom binning for pT and DCA histograms
+NBINS_PT = 200
+PT_MIN = -10
+PT_MAX = 10
+PT_BINNING = np.linspace(PT_MIN, PT_MAX, NBINS_PT + 1)
+
+NBINS_DCA = 22
+DCA_BINNING = np.array([-0.05, -0.04, -0.03, -0.025, -0.02, -0.015, -0.0125, -0.01, -0.0075, -0.005, -0.0025, 0,
+                        0.0025, 0.005, 0.0075, 0.01, 0.0125, 0.015, 0.02, 0.025, 0.03, 0.04, 0.05])
+
+    
+
+def filter_duplicates(rdf: RDataFrame, variable: str, tolerance: float):
+    """
+    Filter out candidates that have duplicate values within tolerance.
+    This works by taking a snapshot, then filtering duplicates in a second pass.
+    """
+    
+    # Define C++ code to filter duplicates
+    filter_code = f"""
+    std::unordered_set<size_t> seen_duplicates_{variable.replace("f", "")};
+    std::vector<float> all_values_{variable.replace("f", "")};
+    
+    bool FilterDuplicates_{variable.replace("f", "")}(float current_val, ULong64_t entry) {{
+        // Check against all previously seen values
+        for (size_t i = 0; i < all_values_{variable.replace("f", "")}.size(); ++i) {{
+            if (std::abs(all_values_{variable.replace("f", "")}.at(i) - current_val) < {tolerance}) {{
+                seen_duplicates_{variable.replace("f", "")}.insert(entry);
+                return false;  // Found duplicate, exclude this candidate
+            }}
+        }}
+        all_values_{variable.replace("f", "")}.push_back(current_val);
+        return true;  // No duplicate found, keep this candidate
+    }}
+    """
+    
+    gInterpreter.Declare(filter_code)
+    
+    # Apply the filter
+    rdf = rdf.Filter(f"FilterDuplicates_{variable.replace('f', '')}({variable}, rdfentry_)")
+    
+    return rdf
+
 def visualise(rdf: RDataFrame, outfile:TDirectory, particle:str = 'He'):
 
     particle_suffix = 'He3' if particle == 'He' else 'Had'
-    h2_dcaxy_pt = rdf.Histo2D((f'h2DCAxyPt{particle}', ';#it{p}_{T} (GeV/#it{c});DCA_{#it{xy}} (cm)', 
-                               100, -5, 5, 150, -0.15, 0.15), f'fSignedPt{particle_suffix}', f'fDCAxy{particle_suffix}')
+
+    h_pt = rdf.Histo1D((f'hPt{particle}', ';#it{p}_{T} (GeV/#it{c})', 200, -10, 10), f'fSignedPt{particle_suffix}')
+
+    h2_dcaxy_pt = rdf.Histo2D((f'h2DCAxyPt{particle}', ';#it{p}_{T} (GeV/#it{c});DCA_{#it{xy}} (cm)',
+                               100, -5, 5, 120, -0.15, 0.15), f'fSignedPt{particle_suffix}', f'fDCAxy{particle_suffix}')
+                               #NBINS_PT, PT_BINNING, NBINS_DCA, DCA_BINNING), f'fSignedPt{particle_suffix}', f'fDCAxy{particle_suffix}')
     h2_dcaz_pt = rdf.Histo2D((f'h2DCAzPt{particle}', ';#it{p}_{T} (GeV/#it{c});DCA_{#it{z}} (cm)', 
-                               100, -5, 5, 150, -0.3, 0.3), f'fSignedPt{particle_suffix}', f'fDCAz{particle_suffix}')
+                               100, -5, 5, 120, -0.3, 0.3), f'fSignedPt{particle_suffix}', f'fDCAz{particle_suffix}')
     
     histos = []
     histos.append(h2_dcaxy_pt)
     histos.append(h2_dcaz_pt)
+    histos.append(h_pt)
 
     outfile.cd()
     for hist in histos:
@@ -164,11 +212,68 @@ def main():
     base_selections, selections = prepare_selections(selections_dict)
     rdf = prepare_rdataframe(chain_data, base_selections, selections)
 
-    outfile = TFile.Open('output/dca_data_template.root', 'RECREATE')
+    outfile = TFile.Open('output/dca_data_template_smaller_tolerance.root', 'RECREATE')
     
-    for particle in ['Pr', 'He']:
+    for particle_name, particle in zip(['Had', 'He3'], ['Pr', 'He']):
+
+        #filter_code = f"""
+        #std::vector<std::tuple<float, float, float>> seen_candidates_{particle_name};
+        #
+        #bool FilterDuplicates_{particle_name}(float pt, float eta, float phi) {{
+        #    for (const auto& cand : seen_candidates_{particle_name}) {{
+        #        if (std::abs(std::get<0>(cand) - pt) < 1e-6 &&
+        #            std::abs(std::get<1>(cand) - eta) < 1e-7 &&
+        #            std::abs(std::get<2>(cand) - phi) < 1e-7) {{
+        #            return false;  // All three match, exclude duplicate
+        #        }}
+        #    }}
+        #    seen_candidates_{particle_name}.push_back(std::make_tuple(pt, eta, phi));
+        #    return true;
+        #}}
+        #"""
+
+        filter_code = f"""
+        std::unordered_set<std::string> seen_candidates_{particle_name};
+        std::atomic<int> discarded_count_{particle_name}{{0}};
+        std::atomic<int> total_count_{particle_name}{{0}};
+
+        bool FilterDuplicates_{particle_name}(float pt, float eta, float phi) {{
+            total_count_{particle_name}++;
+
+            // Round values to tolerance precision and create hash key
+            int pt_key = static_cast<int>(pt / 1e-6);
+            int eta_key = static_cast<int>(eta / 1e-6);
+            int phi_key = static_cast<int>(phi / 1e-6);
+
+            std::string key = std::to_string(pt_key) + "_" + 
+                             std::to_string(eta_key) + "_" + 
+                             std::to_string(phi_key);
+
+            if (seen_candidates_{particle_name}.count(key) > 0) {{
+                discarded_count_{particle_name}++;
+                return false;  // Duplicate found
+            }}
+
+            seen_candidates_{particle_name}.insert(key);
+            return true;
+        }}
+        """
+        
+        gInterpreter.Declare(filter_code)
+        
+        rdf_particle = rdf.Filter(f"FilterDuplicates_{particle_name}(fPt{particle_name}, fEta{particle_name}, fPhi{particle_name})")
+
+
+        #rdf_particle = filter_duplicates(rdf, f'fPt{particle_name}', 1e-6)
+        #rdf_particle = filter_duplicates(rdf_particle, f'fEta{particle_name}', 1e-7)
+        #rdf_particle = filter_duplicates(rdf_particle, f'fPhi{particle_name}', 1e-7)
+
         outdir = outfile.mkdir(f'{particle}')
-        visualise(rdf, outdir, particle)
+        visualise(rdf_particle, outdir, particle)
+
+        total = int(gROOT.ProcessLine(f"total_count_{particle_name}.load();"))
+        discarded = int(gROOT.ProcessLine(f"discarded_count_{particle_name}.load();"))
+        print(f"{tc.CYAN}{particle_name}{tc.RESET}: Total candidates: {total}, Discarded: {discarded}, Kept: {total - discarded}")
         
     outfile.Close()
 
