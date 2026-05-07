@@ -1,0 +1,396 @@
+outPath: /home/galucia/Lithium4/figures/check_mixed/check_mixed.root
+
+plots:
+  [ 
+    # 0-10%
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.40,
+            name: 'kstar_matter',
+            title: 'Same event; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 1.,
+            xmax: 10000,
+            name: 'kstar_matter',
+            title: 'Same event; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: True,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root,
+            histName: CorrelationMatter/Default/hSameEvent010,
+            histLabel: 'Matter 0-10%',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root,
+            histName: CorrelationAntimatter/Default/hSameEvent010,
+            histLabel: 'Antimatter 0-10%',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/check_mixed/kstar_same_event_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.pdf
+    },
+
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.40,
+            name: 'kstar_matter',
+            title: 'Mixed event; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 100.,
+            xmax: 400000,
+            name: 'kstar_matter',
+            title: 'Mixed event; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: True,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root,
+            histName: CorrelationMatter/Default/hMixedEvent010,
+            histLabel: 'Matter 0-10%',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root,
+            histName: CorrelationAntimatter/Default/hMixedEvent010,
+            histLabel: 'Antimatter 0-10%',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/check_mixed/kstar_mixed_event_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.pdf
+    },
+
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.40,
+            name: 'mixed_event_normalised',
+            title: 'Mixed event normalised; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 1.,
+            xmax: 10000,
+            name: 'mixed_event_normalised',
+            title: 'Mixed event normalised; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: True,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root,
+            histName: CorrelationMatter/Default/hNormalisedMixedEvent010,
+            histLabel: 'Matter 0-10%',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root,
+            histName: CorrelationAntimatter/Default/hNormalisedMixedEvent010,
+            histLabel: 'Antimatter 0-10%',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/check_mixed/kstar_mixed_event_normalised_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.pdf
+    },
+
+    # 10-50%
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.40,
+            name: 'kstar_matter',
+            title: 'Same event; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 1.,
+            xmax: 10000,
+            name: 'kstar_matter',
+            title: 'Same event; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: True,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root,
+            histName: CorrelationMatter/Default/hSameEventDirectComputation1050,
+            histLabel: 'Matter 10-50%',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root,
+            histName: CorrelationAntimatter/Default/hSameEventDirectComputation1050,
+            histLabel: 'Antimatter 10-50%',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/check_mixed/kstar_same_event_hadronpid_pass1_pass4_nohe3pcut_offlinetpc_1050.pdf
+    },
+
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.40,
+            name: 'kstar_matter',
+            title: 'Mixed event; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 100.,
+            xmax: 400000,
+            name: 'kstar_matter',
+            title: 'Mixed event; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: True,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root,
+            histName: CorrelationMatter/Default/hMixedEventDirectComputation1050,
+            histLabel: 'Matter 10-50%',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root,
+            histName: CorrelationAntimatter/Default/hMixedEventDirectComputation1050,
+            histLabel: 'Antimatter 10-50%',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/check_mixed/kstar_mixed_event_hadronpid_pass1_pass4_nohe3pcut_offlinetpc_1050.pdf
+    },
+
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.40,
+            name: 'mixed_event_normalised',
+            title: 'Mixed event normalised; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 1.,
+            xmax: 10000,
+            name: 'mixed_event_normalised',
+            title: 'Mixed event normalised; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: True,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root,
+            histName: CorrelationMatter/Default/hNormalisedMixedEventDirectComputation1050,
+            histLabel: 'Matter 10-50%',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root,
+            histName: CorrelationAntimatter/Default/hNormalisedMixedEventDirectComputation1050,
+            histLabel: 'Antimatter 10-50%',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/check_mixed/kstar_mixed_event_normalised_hadronpid_pass1_pass4_nohe3pcut_offlinetpc_1050.pdf
+    },
+  ]

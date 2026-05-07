@@ -1,0 +1,2866 @@
+#
+# Configuration file for plots
+#
+
+outPath: /home/galucia/Lithium4/figures/checks_for_forum/checks_before_forum.root
+
+plots:
+  [
+
+    # correlation function - matter - cent 0-10% - 23 different passes - extended k* range
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 1.995,
+            name: 'matter_23_different_passes_extended_kstar',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'matter_23_different_passes_extended_kstar',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_23_pass4_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2023 pass4',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_23_pass5_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_matter_23_different_passes_extended_kstar.pdf
+    },
+    
+    # correlation function - matter - cent 0-10% - 23 different passes
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'matter_23_different_passes',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'matter_23_different_passes',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_23_pass4_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2023 pass4',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_23_pass5_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_matter_23_different_passes.pdf
+    },
+
+    # correlation function - antimatter - cent 0-10% - 23 different passes
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'antimatter_23_different_passes',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'antimatter_23_different_passes',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_23_pass4_reject_multiples.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2023 pass4',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_23_pass5_reject_multiples.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_antimatter_23_different_passes.pdf
+    },
+
+    # correlation function - matter - cent 0-10% - 24 different passes
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'antimatter_24_different_passes',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'antimatter_24_different_passes',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_24_pass1_refined_dca.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2024 pass1',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_matter_24_different_passes.pdf
+    },
+
+    # correlation function - antimatter - cent 0-10% - 24 different passes
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'antimatter_24_different_passes',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'antimatter_24_different_passes',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_24_pass1_refined_dca.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2024 pass1',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_antimatter_24_different_passes.pdf
+    },
+
+    # correlation function - matter - cent 0-10% - 24 different passes pidintrk
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'antimatter_24_different_passes_pisintrk',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'antimatter_24_different_passes_pisintrk',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24_pass1_reject_multiples_pidintrk.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2024 pass1',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_matter_24_different_passes_pidintrk.pdf
+    },
+
+    # correlation function - antimatter - cent 0-10% - 24 different passes pidintrk
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'antimatter_24_different_passes',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'antimatter_24_different_passes',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24_pass1_reject_multiples_pidintrk.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2024 pass1',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_antimatter_24_different_passes_pidintrk.pdf
+    },
+
+    # he3 pt shape pidintrk corrected old passes
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: -10.,
+            xmax: 10.,
+            name: 'he3_pt_shape_pidintrk_correction_old_passes',
+            title: '; #it{p}_{T} (GeV/#it{c}); Counts',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 1.,
+            xmax: 80000,
+            name: 'he3_pt_shape_pidintrk_correction_old_passes',
+            title: '; #it{p}_{T} (GeV/#it{c}); Counts',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/same_event_hadronpid_23_pass4_refined_dca.root,
+            histName: QA/hPtHe,
+            histLabel: '2023 pass4',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/same_event_hadronpid_24_pass1_refined_dca.root,
+            histName: QA/hPtHe,
+            histLabel: '2024 pass1',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.24, xmax: 0.48,
+          ymin: 0.67, ymax: 0.82,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/he3_pt_shape_pidintrk_correction_old_passes.pdf
+    },
+
+    # he3 pt shape pidintrk corrected
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: -10.,
+            xmax: 10.,
+            name: 'he3_pt_shape_pidintrk_correction_old_passes',
+            title: '; #it{p}_{T} (GeV/#it{c}); Counts',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 1.,
+            xmax: 140000,
+            name: 'he3_pt_shape_pidintrk_correction_old_passes',
+            title: '; #it{p}_{T} (GeV/#it{c}); Counts',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/same_event_23_pass5_reject_multiples.root,
+            histName: QA/hPtHe,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/same_event_hadronpid_24ar_pass3_refined_dca.root,
+            histName: QA/hPtHe,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/same_event_25_pass1_reject_multiples.root,
+            histName: QA/hPtHe,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.24, xmax: 0.48,
+          ymin: 0.67, ymax: 0.85,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/he3_pt_shape_pidintrk_correction.pdf
+    },
+
+    # he3 pt shape no pidintrk corrected
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: -10.,
+            xmax: 10.,
+            name: 'he3_pt_shape_no_pidintrk_correction',
+            title: '; #it{p}_{T} (GeV/#it{c}); Counts',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 1.,
+            xmax: 140000,
+            name: 'he3_pt_shape_no_pidintrk_correction',
+            title: '; #it{p}_{T} (GeV/#it{c}); Counts',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/same_event_hadronpid_23_pass5_refined_dca_pidintrk.root,
+            histName: QA/hPtHe,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/same_event_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: QA/hPtHe,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/same_event_25_pass1_reject_multiples_pidintrk.root,
+            histName: QA/hPtHe,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.24, xmax: 0.48,
+          ymin: 0.67, ymax: 0.85,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/he3_pt_shape_no_pidintrk_correction.pdf
+    },
+
+
+
+
+    # hadronpid - correlation function - matter - cent 0-10% - 23 + 24 + 25
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'matter_010_23_24_25',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'matter_010_23_24_25',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_23_24_25_pass1_pass4_pass1_reject_multiples_pidintrk.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: 'Default',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_matter_010_23_24_25.pdf
+    },
+
+    # hadronpid - correlation function - antimatter - cent 0-10% - 23 + 24 + 25
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'antimatter_010_23_24_25',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'antimatter_010_23_24_25',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_23_24_25_pass1_pass4_pass1_reject_multiples_pidintrk.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: 'Default',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_antimatter_010_23_24_25.pdf
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    # hadronpid - correlation function - matter - cent 0-10% - 23 vs 24 vs 25
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'matter_hadronpid_refined_dca_23_vs_24_vs_25_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'matter_hadronpid_refined_dca_23_vs_24_vs_25_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_23_pass4_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2023 pass4',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24_pass1_reject_multiples_pidintrk.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2024 pass1',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_25_pass1_reject_multiples_pidintrk.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_matter_pass1_pass4_refined_dca_23_vs_24_vs_25.pdf
+    },
+
+    # hadronpid - correlation function - antimatter - cent 0-10% - 23 vs 24 vs 25
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'antimatter_refined_dca_23_vs_24_vs_25_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'antimatter_refined_dca_23_vs_24_vs_25_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_23_pass4_reject_multiples.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2023 pas4',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24_pass1_reject_multiples_pidintrk.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2024 pass1',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_25_pass1_reject_multiples_pidintrk.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_antimatter_pass1_pass4_refined_dca_23_vs_24_vs_25.pdf
+    },
+
+    # hadronpid - correlation function - matter - cent 0-50% - 23 vs 24 vs 25
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'matter_hadronpid_refined_dca_23_vs_24_vs_25_050',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'matter_hadronpid_refined_dca_23_vs_24_vs_25_050',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_23_pass4_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelation050,
+            histLabel: '2023 pass4',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24_pass1_reject_multiples_pidintrk.root,
+            histName: CorrelationMatter/Default/hCorrelation050,
+            histLabel: '2024 pass1',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_25_pass1_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelation050,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_matter_pass1_pass4_refined_dca_23_vs_24_vs_25_050.pdf
+    },
+
+    # hadronpid - correlation function - antimatter - cent 0-50% - 23 vs 24 vs 25
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'antimatter_refined_dca_23_vs_24_vs_25_050',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'antimatter_refined_dca_23_vs_24_vs_25_050',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_23_pass4_reject_multiples.root,
+            histName: CorrelationAntimatter/Default/hCorrelation050,
+            histLabel: '2023 pass4',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24_pass1_reject_multiples_pidintrk.root,
+            histName: CorrelationAntimatter/Default/hCorrelation050,
+            histLabel: '2024 pass1',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_25_pass1_reject_multiples.root,
+            histName: CorrelationAntimatter/Default/hCorrelation050,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_antimatter_pass1_pass4_refined_dca_23_vs_24_vs_25_050.pdf
+    },
+
+    # hadronpid - correlation function - matter - cent 0-10% - 23 vs 24 vs 25 new passes
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'matter_hadronpid_refined_dca_23_vs_24_vs_25_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'matter_hadronpid_refined_dca_23_vs_24_vs_25_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_23_pass5_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_25_pass1_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_matter_pass1_pass4_refined_dca_23_vs_24_vs_25_new_passes.pdf
+    },
+
+    # hadronpid - correlation function - antimatter - cent 0-10% - 23 vs 24 vs 25 new passes
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'antimatter_refined_dca_23_vs_24_vs_25_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'antimatter_refined_dca_23_vs_24_vs_25_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_23_pass5_reject_multiples.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_25_pass1_reject_multiples.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_antimatter_pass1_pass4_refined_dca_23_vs_24_vs_25_new_passes.pdf
+    },
+
+    # hadronpid - correlation function - matter - cent 0-50% - 23 vs 24 vs 25 new passes
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'matter_hadronpid_refined_dca_23_vs_24_vs_25_050',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'matter_hadronpid_refined_dca_23_vs_24_vs_25_050',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_23_pass5_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelation050,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationMatter/Default/hCorrelation050,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_25_pass1_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelation050,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_matter_pass1_pass4_refined_dca_23_vs_24_vs_25_050_new_passes.pdf
+    },
+
+    # hadronpid - correlation function - antimatter - cent 0-50% - 23 vs 24 vs 25 new passes
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'antimatter_refined_dca_23_vs_24_vs_25_050',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'antimatter_refined_dca_23_vs_24_vs_25_050',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_23_pass5_reject_multiples.root,
+            histName: CorrelationAntimatter/Default/hCorrelation050,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationAntimatter/Default/hCorrelation050,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_25_pass1_reject_multiples.root,
+            histName: CorrelationAntimatter/Default/hCorrelation050,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_antimatter_pass1_pass4_refined_dca_23_vs_24_vs_25_050_new_passes.pdf
+    },
+
+    # hadronpid - correlation function - matter - cent 10-50% - 23 vs 24 vs 25 new passes
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'matter_hadronpid_refined_dca_23_vs_24_vs_25_050',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'matter_hadronpid_refined_dca_23_vs_24_vs_25_050',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_23_pass5_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelationDirectComputation1050,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationMatter/Default/hCorrelationDirectComputation1050,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_25_pass1_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelationDirectComputation1050,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_matter_pass1_pass4_refined_dca_23_vs_24_vs_25_1050_new_passes.pdf
+    },
+
+    # hadronpid - correlation function - antimatter - cent 10-50% - 23 vs 24 vs 25 new passes
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'antimatter_refined_dca_23_vs_24_vs_25_1050',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'antimatter_refined_dca_23_vs_24_vs_25_1050',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_23_pass5_reject_multiples.root,
+            histName: CorrelationAntimatter/Default/hCorrelationDirectComputation1050,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationAntimatter/Default/hCorrelationDirectComputation1050,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_25_pass1_reject_multiples.root,
+            histName: CorrelationAntimatter/Default/hCorrelationDirectComputation1050,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_antimatter_pass1_pass4_refined_dca_23_vs_24_vs_25_1050_new_passes.pdf
+    },
+
+
+    # hadronpid - correlation function - matter - cent 0-10% - different passes
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'matter_different_passes_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'matter_different_passes_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: 'Default',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_23_pass5_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2023 pass 5',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2024 pass 3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_matter_different_passes.pdf
+    },
+
+    # hadronpid - correlation function - antimatter - cent 0-10% - different passes
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'antimatter_different_passes_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'antimatter_different_passes_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: 'Default',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_23_pass5_reject_multiples.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2023 pass 5',
+            kwargs: {
+                      line_color: 419, line_width: 1, line_style: 1,
+                      marker_color: 419, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: '2024 pass 3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_antimatter_different_passes.pdf
+    },
+
+    # hadronpid - correlation function - matter - cent 0-10% - 23 pass 5 full kstar
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 2.005,
+            name: 'antimatter_hadronpid_refined_dca_23_pass5_full_kstar_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 3.,
+            name: 'antimatter_hadronpid_refined_dca_23_pass5_full_kstar_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: 'Default',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_23_pass5_refined_dca.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2023 pass 5',
+            kwargs: {
+                      line_color: 401, line_width: 1, line_style: 1,
+                      marker_color: 401, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2024 pass 3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.12, ymax: 0.32,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_hadronpid_pass1_pass4_refined_dca_23_pass5_full_kstar.pdf
+    },
+
+    # hadronpid - correlation function - matter - cent 0-10% - 23 pass 5 full kstar pidintrk
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 2.005,
+            name: 'antimatter_hadronpid_refined_dca_23_pass5_full_kstar_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 3.,
+            name: 'antimatter_hadronpid_refined_dca_23_pass5_full_kstar_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_23_pass5_refined_dca.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2023 pass 5',
+            kwargs: {
+                      line_color: 401, line_width: 1, line_style: 1,
+                      marker_color: 401, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_23_pass5_refined_dca_pidintrk.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: '2023 pass 5 - only ^{3}He tracked as ^{3}He',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 2.005,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.24, xmax: 0.78,
+          ymin: 0.62, ymax: 0.85,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_hadronpid_pass1_pass4_refined_dca_23_pass5_full_kstar_pidintrk.pdf
+    },
+
+    # hadronpid - kstar mixed event - matter - cent 0-10% - 23 pass 5 full kstar
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 1.995,
+            name: 'antimatter_hadronpid_refined_dca_23_pass5_full_kstar_010',
+            title: '; #it{k}* (GeV/#it{c}); Counts',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 100.,
+            xmax: 500000.,
+            name: 'antimatter_hadronpid_refined_dca_23_pass5_full_kstar_010',
+            title: '; #it{k}* (GeV/#it{c}); Counts',
+          },
+        ],
+      canvas:
+        {
+          logy: True,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root,
+            histName: CorrelationMatter/Default/hMixedEvent010,
+            histLabel: 'Default',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_23_pass5_refined_dca.root,
+            histName: CorrelationMatter/Default/hMixedEvent010,
+            histLabel: '2023 pass 5',
+            kwargs: {
+                      line_color: 401, line_width: 2, line_style: 1,
+                      marker_color: 401, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_24ar_pass3_reject_multiples_pidintrk.root,
+            histName: CorrelationMatter/Default/hMixedEvent010,
+            histLabel: '2024 pass 3',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.12, ymax: 0.32,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/kstar_mixed_event_hadronpid_pass1_pass4_refined_dca_23_pass5.pdf
+    },
+
+    # hadronpid - correlation function - matter - cent 0-10% - reject multiple pairs vs default
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'matter_hadronpid_refined_dca_different_reject_multiples_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'matter_hadronpid_refined_dca_different_reject_multiples_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: 'Default',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_reject_multiples.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: 'No repeated pairs',
+            kwargs: {
+                      line_color: 401, line_width: 1, line_style: 1,
+                      marker_color: 401, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_matter_010_hadronpid_pass1_pass4_refined_dca_vs_reject_multiples.pdf
+    },
+
+    # hadronpid - correlation function - antimatter - cent 0-10% - reject multiple pairs vs default
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.405,
+            name: 'antimatter_hadronpid_refined_dca_different_reject_multiples_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.4,
+            name: 'antimatter_hadronpid_refined_dca_different_reject_multiples_010',
+            title: '; #it{k}* (GeV/#it{c}); C(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: 'Default',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_reject_multiples.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: 'No repeated pairs',
+            kwargs: {
+                      line_color: 401, line_width: 1, line_style: 1,
+                      marker_color: 401, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      lines:
+        [
+          {
+            lineSpecs: {
+                        x1: 0.081,
+                        x2: 0.081,
+                        y1: 0.,
+                        y2: 1.4,
+                        name: '^{4}Li, #it{k}* = 0.081 GeV/#it{c}'
+                      },
+            kwargs: {
+                      line_color: 632, # kRed+2
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: 'No interaction'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.54, xmax: 0.88,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/checks_for_forum/correlation_antimatter_010_hadronpid_pass1_pass4_refined_dca_vs_reject_multiples.pdf
+    },
+
+  ]

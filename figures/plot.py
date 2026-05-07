@@ -4,11 +4,20 @@ import sys
 sys.path.append('..')
 from torchic import Plotter
 
+import argparse
+
 if __name__ == '__main__':
 
-    input_file = 'config/checks_all_vs_cbt.yml'
+    #input_file = 'config/checks_all_vs_cbt.yml'
+    #input_file = 'config/check_mixed.yml'
+    input_file = 'config/checks_before_forum.yml'
 
-    with open(input_file, 'r') as f:
+    parser = argparse.ArgumentParser(description='Plotting script for ROOT files using YAML configuration.')
+    parser.add_argument('--config', type=str, default=input_file, help='Path to the YAML configuration file.')
+
+    args = parser.parse_args()
+
+    with open(args.config, 'r') as f:
         config = yaml.safe_load(f)
 
     plotter = Plotter(config['outPath'])
