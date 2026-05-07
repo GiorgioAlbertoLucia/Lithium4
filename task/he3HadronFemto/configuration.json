@@ -448,7 +448,48 @@
         "mc_findableMode":"0"
         },
     "he3-hadron-femto": {
-        "settingHadPDGCode": "211",
+        "settingEventSelections": {
+            "labels_rows": [
+                "TVX",
+                "Z vtx",
+                "TF border",
+                "ITS ROF border",
+                "No same-bunch pile-up",
+                "kIsGoodZvtxFT0vsPV",
+                "isGoodITSLayersAll",
+                "isEPtriggered"
+            ],
+            "labels_cols": [
+                "Event selections"
+            ],
+            "values": [
+                [
+                    "1"
+                ],
+                [
+                    "1"
+                ],
+                [
+                    "1"
+                ],
+                [
+                    "1"
+                ],
+                [
+                    "0"
+                ],
+                [
+                    "0"
+                ],
+                [
+                    "0"
+                ],
+                [
+                    "0"
+                ]
+            ]
+        },
+        "settingHadPDGCode": "2212",
         "settingCutVertex": "10",
         "settingCutRigidityMinHe3": "0.800000012",
         "settingCutEta": "0.899999976",
@@ -495,12 +536,8 @@
             ],
             "values": [
                 [
-                    -251.9,
-                    0.3223,
-                    1.355,
-                    0.6456,
-                    2.675,
-                    0.07
+                    -162.83, -0.4007, 1.1513, 0.9589, 2.7651,
+                    0.061
                 ]
             ]
         },
@@ -520,12 +557,12 @@
                 "100"
             ]
         },
-        "processSameEvent": "false",
+        "processSameEvent": "true",
         "processMixedEvent": "false",
         "processMC": "false",
         "processSameEventPools": "false",
         "processMcPools": "false",
-        "processPurity": "true"
+        "processPurity": "false"
     },
     "internal-dpl-aod-writer": "",
     "internal-dpl-aod-global-analysis-file-sink": "",
