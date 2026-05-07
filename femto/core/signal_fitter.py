@@ -1,5 +1,6 @@
-from ROOT import TFile, TCanvas, TH1F, \
-                 RooRealVar, RooCrystalBall, RooFit, RooHistPdf, RooDataHist, RooWorkspace
+import numpy as np
+from ROOT import TFile, TCanvas, TH1F, TTree, \
+                 RooRealVar, RooCrystalBall, RooFit, RooHistPdf, RooDataHist, RooWorkspace, RooDataSet, RooKeysPdf
 from torchic import AxisSpec
 
 import sys
@@ -9,12 +10,13 @@ from core.utils import write_params_to_text
 
 class SignalFitter(Fitter):
 
-    def __init__(self, name, xvar_spec: AxisSpec, outfile:TFile, workspace:RooWorkspace = None):
+    def __init__(self, name, xvar_spec: AxisSpec, outfile:TFile = None, workspace:RooWorkspace = None):
         super().__init__(name, xvar_spec, outfile, workspace)
         self._signal_pars = {}
         self._signal_pdf = None
+        self._title = ''
 
-        self._outdir = self._outfile.mkdir('signal')
+        self._outdir = self._outfile.mkdir('signal') if self._outfile else None
 
     @property
     def signal_pars(self):
@@ -23,6 +25,17 @@ class SignalFitter(Fitter):
     @property
     def signal_pdf(self):
         return self._signal_pdf
+    
+    @property
+    def title(self):
+        return self._title
+    
+    @title.setter
+    def title(self, title:str):
+        self._title = title
+        if self._signal_pdf is not None:
+            self._signal_pdf.SetTitle(self._title)
+
     
     def _init_signal_from_mc(self, h_signal:TH1F, name:str='signal_pdf'):
         
@@ -36,10 +49,61 @@ class SignalFitter(Fitter):
         self._signal_datahist.plotOn(frame)
         self._signal_pdf.plotOn(frame)
 
-        self._outdir.cd()
-        canvas = TCanvas('signal_pdf')
+        if self._outdir:
+            self._outdir.cd()
+            canvas = TCanvas('signal_pdf')
+            frame.Draw()
+            canvas.Write()
+
+    def _init_signal_from_kde(self, h_signal:TH1F, name:str='signal_pdf', xmin:float=0., xmax:float=0.42, rho:float=2.):
+    
+        xvar = self._roo_workspace.obj(self._xvar_name)
+        old_range = (xvar.getMin(), xvar.getMax())
+        xvar.setRange(xmin, xmax)
+
+        x_data, weights = [], []
+        for ibin in range(1, h_signal.GetNbinsX()+1):
+            x_val = h_signal.GetBinCenter(ibin)
+            if not (xmin <= x_val <= xmax):
+                continue
+            y_val = h_signal.GetBinContent(ibin)
+            if y_val <= 0:
+                continue
+            
+            x_data.append(x_val)
+            weights.append(y_val)
+        
+        tree = TTree('tree', 'tree')
+        x = np.zeros(1, dtype=np.float64)
+        w = np.zeros(1, dtype=np.float64)
+        tree.Branch('kstar', x, 'kstar/D')
+        tree.Branch('weight', w, 'weight/D')
+        
+        for x_val, w_val in zip(x_data, weights):
+            x[0] = x_val
+            w[0] = w_val
+            tree.Fill()
+        
+        weight_var = RooRealVar('weight', 'weight', 0, 1e6)
+        self._signal_dataset = RooDataSet(h_signal.GetName()+'_roodata', h_signal.GetName()+'_roodata', 
+                            tree, [xvar, weight_var], '', 'weight')
+        getattr(self._roo_workspace, 'import')(self._signal_dataset)
+        
+        self._signal_pdf = RooKeysPdf(name, name, xvar, self._signal_dataset, RooKeysPdf.NoMirror, rho)
+        
+        frame = xvar.frame(len(x_data))
+        self._signal_dataset.plotOn(frame, MarkerStyle=20, MarkerSize=0.8, LineColor=1)
+        self._signal_pdf.plotOn(frame, LineColor=2, LineWidth=2)
+        canvas = TCanvas(f'cKeysPdf_{h_signal.GetName()}', f'cKeysPdf_{h_signal.GetName()}', 800, 600)
         frame.Draw()
-        canvas.Write()
+
+        if self._outdir:
+            self._outdir.cd()
+            h_signal.Write(f'{h_signal.GetName()}_original')
+            self._signal_pdf.Write(f'{h_signal.GetName()}_keyspdf')
+            canvas.Write()
+
+        xvar.setRange(*old_range)
 
     def _init_signal_crystal_ball(self, name:str='signal_pdf'):
         
@@ -54,10 +118,11 @@ class SignalFitter(Fitter):
         }
         self._signal_pdf = RooCrystalBall(name, name, xvar, *self._signal_pars.values())
 
-    def init_signal(self, mode:str, *args, name:str='signal_pdf'):
+    def init_signal(self, mode:str, *args, **kwargs):
 
-        if mode == 'from_mc':           self._init_signal_from_mc(*args, name=name)
-        elif mode == 'crystal_ball':    self._init_signal_crystal_ball(name=name)
+        if mode == 'from_mc':           self._init_signal_from_mc(*args, **kwargs)
+        elif mode == 'from_kde':        self._init_signal_from_kde(*args, **kwargs)
+        elif mode == 'crystal_ball':    self._init_signal_crystal_ball(**kwargs)
         else:                           raise ValueError('Only supported modes are "from_mc" and "crystal_ball"')
         
 
@@ -67,7 +132,8 @@ class SignalFitter(Fitter):
         datahist = RooDataHist('signal_dh', 'signal_dh', [xvar], Import=h_signal)
 
         self._signal_pdf.fitTo(datahist, RooFit.Save(), 
-                              RooFit.Range(range_limits[0], range_limits[1]), SumW2Error=True, Extended=True)
+                              RooFit.Range(range_limits[0], range_limits[1]), SumW2Error=True, Extended=True,
+                              PrintLevel=-1, Verbose=False)
         frame = xvar.frame()
         datahist.plotOn(frame)
         self._signal_pdf.plotOn(frame)
@@ -76,10 +142,11 @@ class SignalFitter(Fitter):
         text.AddText(f'#chi^{{2}} / ndf = {frame.chiSquare():.2f}')
         frame.addObject(text)
 
-        self._outdir.cd()
-        canvas = TCanvas('fit_signal')
-        frame.Draw()
-        canvas.Write()
+        if self._outdir:
+            self._outdir.cd()
+            canvas = TCanvas('fit_signal')
+            frame.Draw()
+            canvas.Write()
 
     def save_to_workspace(self):
 

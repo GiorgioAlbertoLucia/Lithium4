@@ -7,7 +7,7 @@ from torchic import AxisSpec
 class Fitter(ABC):
 
 
-    def __init__(self, name, xvar_spec: AxisSpec, outfile: TFile, workspace: RooWorkspace = None): 
+    def __init__(self, name, xvar_spec: AxisSpec, outfile: TFile = None, workspace: RooWorkspace = None): 
     
         self._hist_data = None
         self._outfile = outfile
