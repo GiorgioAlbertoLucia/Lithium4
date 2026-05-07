@@ -49,11 +49,19 @@ class HistogramRegistry:
     def draw_histogram(self, rdf: RDataFrame):
         
         column_names = rdf.GetColumnNames()
+        # adjst column names of from friends
+        updated_column_names = []
+        for column in column_names:
+            if '.' in column:
+                base_name = column.split('.')[-1]
+                updated_column_names.append(base_name)
+            else:
+                updated_column_names.append(column)
 
         for entry in self._registry_entries.values():
 
             if entry.nbinsy > 0:
-                if entry.xvar not in column_names or entry.yvar not in column_names:
+                if entry.xvar not in updated_column_names or entry.yvar not in updated_column_names:
                     continue
 
                 hist = rdf.Filter(entry.condition).Histo2D((entry.name, entry.title, 
@@ -62,7 +70,7 @@ class HistogramRegistry:
                                                             entry.xvar, entry.yvar)
                 self.set_histogram_labels(hist, entry.labels_x, entry.labels_y)
             else:
-                if entry.xvar not in column_names:
+                if entry.xvar not in updated_column_names:
                     continue
                 
                 hist = rdf.Filter(entry.condition).Histo1D((entry.name, entry.title, 
