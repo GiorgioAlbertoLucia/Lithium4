@@ -6,9 +6,10 @@ import sys
 from enum import Enum
 
 from ROOT import TFile, TChain, RDataFrame, TDirectory, \
-    gInterpreter, gROOT, EnableImplicitMT, \
-    kPPrimary
+    gInterpreter, gROOT, EnableImplicitMT
+    #kPPrimary
 
+from torchic.core.histogram import build_efficiency
 from torchic.utils.terminal_colors import TerminalColors as tc
 
 gInterpreter.ProcessLine(f'#include "../include/Common.h"')
@@ -35,35 +36,60 @@ class Flags(Enum):
 
 def visualise(rdf: RDataFrame, outfile:TDirectory, particle:str = 'He3'):
 
+    h_pt_rec = rdf.Histo1D((f'hPtRec{particle}', 'Total;#it{p}_{T}^{rec} (GeV/#it{c});',
+                                 100, -10, 10), 'fPt').GetValue()
     
-    h2_dcaxy_pt = rdf.Histo2D((f'h2DCAxyPt{particle}', ';#it{p}_{T} (GeV/#it{c});DCA_{#it{xy}} (cm)', 
-                               100, -5, 5, 150, -0.15, 0.15), 'fPt', 'fDCAxy')
-    h2_dcaz_pt = rdf.Histo2D((f'h2DCAzPt{particle}', ';#it{p}_{T} (GeV/#it{c});DCA_{#it{z}} (cm)', 
-                               100, -5, 5, 150, -0.3, 0.3), 'fPt', 'fDCAz')
-    
-    histos = []
-    histos.append(h2_dcaxy_pt)
-    histos.append(h2_dcaz_pt)
+    h_pt_gen = rdf.Histo1D((f'hPtGen{particle}', 'Total;#it{p}_{T}^{gen} (GeV/#it{c});',
+                                 100, -10, 10), 'fgPt').GetValue()
 
-    for flag in ['IsPhysicalPrimary', 'IsSecondaryFromMaterial', 'IsSecondaryFromWeakDecay', 'IsFromLi4', 'IsFromSigmaPlus', 'IsFromLambda0']:
-        h2_dcaxy_pt = rdf.Filter(f'f{flag} == true') \
-                         .Histo2D((f'h2DCAxyPt{particle}_{flag}', ';#it{p}_{T} (GeV/#it{c});DCA_{#it{xy}} (cm)', 
-                                   100, -5, 5, 150, -0.15, 0.15), 'fPt', 'fDCAxy')
-        h2_dcaz_pt = rdf.Filter(f'f{flag} == true') \
-                         .Histo2D((f'h2DCAzPt{particle}_{flag}', ';#it{p}_{T} (GeV/#it{c});DCA_{#it{z}} (cm)', 
-                                   100, -5, 5, 150, -0.3, 0.3), 'fPt', 'fDCAz')
-        histos.append(h2_dcaxy_pt)
-        histos.append(h2_dcaz_pt)
+    h_pt_rec_prim = rdf.Filter('fIsPrimary == true') \
+                       .Histo1D((f'hPtRecPrimary{particle}', 'Primary;#it{p}_{T}^{rec} (GeV/#it{c});',
+                                 100, -10, 10), 'fPt').GetValue()
+    
+    h_pt_gen_prim = rdf.Filter('fIsPrimary == true') \
+                       .Histo1D((f'hPtGenPrimary{particle}', 'Primary;#it{p}_{T}^{gen} (GeV/#it{c});',
+                                 100, -10, 10), 'fgPt').GetValue()
+    
+    h_pt_rec_hypertriton = rdf.Filter('fIsFromHypertriton == true') \
+                              .Histo1D((f'hPtRecFromHypertriton{particle}', 'Secondary from ^{3}_{#Lambda}H;#it{p}_{T}^{rec} (GeV/#it{c});',
+                                        100, -10, 10), 'fPt').GetValue()
+    
+    h_pt_gen_hypertriton = rdf.Filter('fIsFromHypertriton == true') \
+                              .Histo1D((f'hPtGenFromHypertriton{particle}', 'Secondary from ^{3}_{#Lambda}H;#it{p}_{T}^{gen} (GeV/#it{c});',
+                                        100, -10, 10), 'fgPt').GetValue()
+
+    h_pt_rec_material = rdf.Filter('fIsFromMaterial == true') \
+                              .Histo1D((f'hPtRecFromMaterial{particle}', 'Secondary from material;#it{p}_{T}^{rec} (GeV/#it{c});',
+                                        100, -10, 10), 'fPt').GetValue()
+    
+    h_pt_gen_material = rdf.Filter('fIsFromMaterial == true') \
+                              .Histo1D((f'hPtGenFromMaterial{particle}', 'Secondary from material;#it{p}_{T}^{gen} (GeV/#it{c});',
+                                        100, -10, 10), 'fgPt').GetValue()
+    
+    h_efficiency = build_efficiency(h_pt_gen, h_pt_rec, name='h_efficiency_he3', ytitle='Efficiency')
+    
+    h_efficiency_prim = build_efficiency(h_pt_gen_prim, h_pt_rec_prim,
+                                         name='h_efficiency_he3_prim', ytitle='Efficiency')
+
+    h_efficiency_he3_from_h3l = build_efficiency(h_pt_gen_hypertriton, h_pt_rec_hypertriton,
+                                                 name='h_efficiency_he3_from_h3l', ytitle='Efficiency')
+
+    h_efficiency_material = build_efficiency(h_pt_gen_material, h_pt_rec_material,
+                                         name='h_efficiency_he3_material', ytitle='Efficiency')
     
     outfile.cd()
-    for hist in histos:
+    for hist in [h_pt_rec, h_pt_gen, h_efficiency,
+                 h_pt_rec_prim, h_pt_gen_prim, h_efficiency_prim, 
+                 h_pt_rec_hypertriton, h_pt_gen_hypertriton, h_efficiency_he3_from_h3l, 
+                 h_pt_rec_material, h_pt_gen_material, h_efficiency_material]:
         hist.Write()
 
 
 def main():
     
-    input_files = {'Pr': ['/data/galucia/lithium_local/MC/nucleiqc/LHC25a4_protons.root'],
-                   'He': ['/data/galucia/lithium_local/MC/nucleiqc/LHC25a4_he3.root',
+    input_files = { 'Pr': [#'/data/galucia/lithium_local/MC/nucleiqc/LHC25a4_protons.root',
+                           '/data/galucia/lithium_local/MC/nucleiqc/LHC24e2d_protons.root'],
+                   'He': [#'/data/galucia/lithium_local/MC/nucleiqc/LHC25a4_he3.root',
                           '/data/galucia/lithium_local/MC/nucleiqc/LHC24i5_he3.root',]}
     #input_files = {'Pr': '/home/galucia/Lithium4/task/nucleiQC/local_test.root',
     #               'He': '/home/galucia/Lithium4/task/nucleiQC/local_test.root',}
@@ -96,13 +122,24 @@ def main():
 
     rdfs = {}
     PDGcode = {'Pr': 2212, 'He': 1000020030}
-    for particle in ['He']:
+
+    kPPrimary = 0
+
+    for particle in ['He', 'Pr']:
+
+        print(f'Processing {tc.CYAN+tc.UNDERLINE}{particle}{tc.RESET}...')
+
+        isHe3 = 'true ' if (particle == 'He') else 'false'
         rdfs[particle] = RDataFrame(chain_data[particle]) \
                            .Filter(f'std::abs(fPDGcode) == {PDGcode[particle]}') \
                            .Define('fPidForTracking', 'ReadPidTrkFromFlags(fFlags)') \
-                           .Redefine('fPt',  '(fPidForTracking == 7) || (fPidForTracking == 8) || (fPt > 2.5) ? fPt : CorrectPidTrkHe(fPt)') \
-                           .Define('IsPrimary', f'fMcProcess == {kPPrimary}') \
-                           .Define('fIsFromHypertriton', f'std::abs(fMotherPDGcode) == {ParticlePDG["Hypertriton"]}')
+                           .Redefine('fPt', f'{isHe3} ? 2 * fPt : fPt') \
+                           .Redefine('fPt', f'{isHe3} ? ((fPidForTracking == 7) || (fPidForTracking == 8) || (fPt > 2.5) ? fPt : CorrectPidTrkHe(fPt)) : fPt') \
+                           .Define('fIsPrimary', f'fMcProcess == {kPPrimary}') \
+                           .Define('fIsFromHypertriton', f'std::abs(fMotherPDGcode) == {ParticlePDG["Hypertriton"]}') \
+                           .Define('fIsFromMaterial', f'ReadBitFromFlags(fFlags, {Flags.kIsSecondaryFromMaterial.value}) && std::abs(fMotherPDGcode) != {ParticlePDG["Li4"]}') # && {required_mother_from_material}') \
+
+        print(f'{rdfs[particle].GetColumnNames()=}')
 
         if False:   # check the content - mother pdg code and mc process
             for boolean_variable in ['fIsSecondaryFromMaterial']:#, 'fIsPhysicalPrimary', 'fIsSecondaryFromWeakDecay']:
@@ -128,7 +165,7 @@ def main():
     
     outfile = TFile.Open('output/single_track_efficiency.root', 'RECREATE')
     
-    for particle in ['He']:
+    for particle in ['He', 'Pr']:
         outdir = outfile.mkdir(f'{particle}')
         visualise(rdfs[particle], outdir, particle)
         
