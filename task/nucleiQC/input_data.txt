@@ -1,1 +1,0 @@
-/data/galucia/lithium_local/raw/LHC25g12_001_raw.root

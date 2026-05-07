@@ -53,3 +53,11 @@ o2physics-workflow/**
 framework/**
 
 .DS_Store
+
+*.xml
+
+*.txt
+*.png
+
+# Simulation
+simulation/PbPb/**
