@@ -1,5 +1,6 @@
-from ROOT import TFile, TCanvas, TH1F, \
-                 RooRealVar, RooCrystalBall, RooFit, RooHistPdf, RooDataHist, RooWorkspace, RooExtendPdf
+import numpy as np
+from ROOT import TFile, TCanvas, TH1F, TTree, \
+                 RooRealVar, RooFit, RooHistPdf, RooDataHist, RooWorkspace, RooDataSet, RooKeysPdf, RooExtendPdf
 from torchic import AxisSpec
 
 
@@ -10,15 +11,16 @@ from core.utils import write_params_to_text
 
 class BkgFitter(Fitter):
 
-    def __init__(self, name, xvar_spec: AxisSpec, outfile:TFile, workspace:RooWorkspace = None):
+    def __init__(self, name, xvar_spec: AxisSpec, outfile:TFile = None, workspace:RooWorkspace = None):
         super().__init__(name, xvar_spec, outfile, workspace)
         self._bkg_pars = {}
         self._bkg_pdf = None
+        self._title = ''
 
         self._bkg_datahist = None
         self._bkg_normalisation = None
 
-        self._outdir = self._outfile.mkdir('bkg')
+        self._outdir = self._outfile.mkdir('bkg') if self._outfile is not None else None
 
     @property
     def bkg_pars(self):
@@ -31,10 +33,25 @@ class BkgFitter(Fitter):
     @property
     def bkg_pdf(self):
         return self._bkg_pdf
+    
+    @property
+    def title(self):
+        return self._title
+    
+    @title.setter
+    def title(self, title:str):
+        self._title = title
+        if self._bkg_pdf is not None:
+            self._bkg_pdf.SetTitle(self._title)
 
-    def _init_bkg_from_mc(self, h_bkg, name:str='bkg_pdf', extended:bool=False):
+    def _init_bkg_from_mc(self, h_bkg, name:str='bkg_pdf', extended:bool=False, **kwargs):
         
         xvar = self._roo_workspace.obj(self._xvar_name)
+        
+        for ibin in range(1, h_bkg.GetNbinsX()+1):
+            bin_center = h_bkg.GetBinCenter(ibin)
+            if not (xvar.getMin() <= bin_center <= xvar.getMax()):
+                h_bkg.SetBinContent(ibin, 0)
         self._bkg_datahist = RooDataHist('bkg_dh', 'bkg_dh', [xvar], Import=h_bkg)
         
         if extended:
@@ -48,16 +65,68 @@ class BkgFitter(Fitter):
         self._bkg_datahist.plotOn(frame)
         self._bkg_pdf.plotOn(frame)
 
-        self._outdir.cd()
-        canvas = TCanvas('bkg_pdf')
-        frame.Draw()
-        canvas.Write()
+        if self._outdir:
+            self._outdir.cd()
+            canvas = TCanvas('bkg_pdf')
+            frame.Draw()
+            canvas.Write()
 
-        del canvas
+            del canvas
+    
+    def _init_bkg_from_kde(self, h_bkg:TH1F, name:str='bkg_pdf', xmin:float=0.01, xmax:float=0.42, rho:float=0.05, **kwargs):
+    
+        xvar = self._roo_workspace.obj(self._xvar_name)
+        old_range = (xvar.getMin(), xvar.getMax())
+        xvar.setRange(xmin, xmax)
+
+        x_data, weights = [], []
+        for ibin in range(1, h_bkg.GetNbinsX()+1):
+            x_val = h_bkg.GetBinCenter(ibin)
+            if not (xmin <= x_val <= xmax):
+                continue
+            y_val = h_bkg.GetBinContent(ibin)
+            if y_val <= 0:
+                continue
+            
+            x_data.append(x_val)
+            weights.append(y_val)
+        
+        tree = TTree('tree', 'tree')
+        x = np.zeros(1, dtype=np.float64)
+        w = np.zeros(1, dtype=np.float64)
+        tree.Branch('kstar', x, 'kstar/D')
+        tree.Branch('weight', w, 'weight/D')
+        
+        for x_val, w_val in zip(x_data, weights):
+            x[0] = x_val
+            w[0] = w_val
+            tree.Fill()
+        
+        weight_var = RooRealVar('weight', 'weight', 0, 1e6)
+        self._bkg_dataset = RooDataSet(h_bkg.GetName()+'_roodata', h_bkg.GetName()+'_roodata', 
+                            tree, [xvar, weight_var], '', 'weight')
+        getattr(self._roo_workspace, 'import')(self._bkg_dataset)
+        
+        self._bkg_pdf = RooKeysPdf(name, name, xvar, self._bkg_dataset, RooKeysPdf.NoMirror, rho)
+        
+        frame = xvar.frame(len(x_data))
+        self._bkg_dataset.plotOn(frame, MarkerStyle=20, MarkerSize=0.8, LineColor=1)
+        self._bkg_pdf.plotOn(frame, LineColor=2, LineWidth=2)
+        canvas = TCanvas(f'cKeysPdf_{h_bkg.GetName()}', f'cKeysPdf_{h_bkg.GetName()}', 800, 600)
+        frame.Draw()
+
+        if self._outdir:
+            self._outdir.cd()
+            h_bkg.Write(f'{h_bkg.GetName()}_original')
+            self._bkg_pdf.Write(f'{h_bkg.GetName()}_keyspdf')
+            canvas.Write()
+
+        xvar.setRange(*old_range)
         
     def init_bkg(self, mode:str, *args, **kwargs):
 
         if mode == 'from_mc':   self._init_bkg_from_mc(*args, **kwargs)
+        elif mode == 'from_kde':  self._init_bkg_from_kde(*args, **kwargs)
         else:                   raise ValueError('Only supported modes are "from_mc"')
         
         
@@ -81,9 +150,9 @@ class BkgFitter(Fitter):
 
         datahist = RooDataHist(hist.GetName()+'_datahist', hist.GetName()+'_datahist', [xvar], Import=hist)
         if use_chi2_method:
-            self._bkg_pdf.chi2FitTo(datahist, *fit_options)
+            self._bkg_pdf.chi2FitTo(datahist, *fit_options, PrintLevel=-1, Verbose=False)
         else:
-            self._bkg_pdf.fitTo(datahist, *fit_options)
+            self._bkg_pdf.fitTo(datahist, *fit_options, PrintLevel=-1, Verbose=False)
 
         xvar.setRange("full", range_limits[0], range_limits[1])
         integral_full = self._bkg_pdf.createIntegral([xvar], Range="full").getVal()
@@ -99,14 +168,17 @@ class BkgFitter(Fitter):
         text.AddText(f'#chi^{{2}} / ndf = {frame.chiSquare():.2f}')
         frame.addObject(text)
 
-        self._outdir.cd()
-        canvas = TCanvas('fit_bkg')
-        frame.Draw()
-        canvas.Write()
+        if self._outdir:
+            self._outdir.cd()
+            canvas = TCanvas('fit_bkg')
+            frame.Draw()
+            canvas.Write()
+
+            del canvas
 
         xvar.setRange(old_limits[0], old_limits[1])
 
-        del datahist, canvas
+        del datahist
 
     def save_to_workspace(self):
 
