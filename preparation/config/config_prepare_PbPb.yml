@@ -1,15 +1,11 @@
 # Same event
 same_event:
   input_data:   [ 
-                  #'/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass5_same.root',
-                  #'/data/galucia/lithium_local/same_merged/LHC24ar_pass3_same.root',
-
-                  #'/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass4_hadronpid_same.root',
-                  #'/data/galucia/lithium_local/same_merged/LHC24ar_pass1_hadronpid_same.root',
-                  #'/data/galucia/lithium_local/same_merged/LHC24as_pass1_hadronpid_same.root',
+                  '/data/galucia/lithium_local/same/LHC23_PbPb_pass5_hadronpid_same.root',
+                  #'/data/galucia/lithium_local/same/LHC24ar_pass3_hadronpid_same.root',
 
                   #'/data/galucia/lithium_local/same/LHC24_pass1_skimmed_hadronpid_same.root',
-                  '/data/galucia/lithium_local/same/LHC25_pass1_skimmed_hadronpid_same.root',
+                  #'/data/galucia/lithium_local/same/LHC25_pass1_skimmed_hadronpid_same.root',
 
                   #'/data/galucia/lithium_local/same_merged/LHC25an_pass1_same.root',
                   #'/data/galucia/lithium_local/same_merged/LHC25ao_pass1_same.root',
@@ -20,8 +16,9 @@ same_event:
                 ]
   tree_names:    ['O2he3hadtable', 'O2he3hadmult']
   mode:         'DF'
-  #output_file:  'output/pp/LHC24_pass1_skimmed_hadronpid_same.root'
-  output_file:  'output/pp/LHC25_pass1_skimmed_hadronpid_same.root'
+  #output_file:  'output/same_event.root'
+  #output_file:  'output/PbPb/LHC24ar_pass3_hadronpid_same.root'
+  output_file:  'output/PbPb/LHC23_PbPb_pass5_hadronpid_same.root'
 
 # Mixed event
 mixed_event:
@@ -33,14 +30,20 @@ mixed_event:
                   #'/data/galucia/lithium_local/mixing/LHC25ar_pass1_event_mixing_batch256_reject_multiples.root',
                   #'/data/galucia/lithium_local/mixing/LHC25as_pass1_event_mixing_batch256_reject_multiples.root',
 
-                  # pp
-                  '/data/galucia/lithium_local/mixing/LHC24_pass1_skimmed_hadronpid_event_mixing_batch256.root',
-                  #'/data/galucia/lithium_local/mixing/LHC25_pass1_skimmed_hadronpid_event_mixing_batch256.root',
+                  #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_event_mixing_batch256_reject_multiples.root',
+                  '/data/galucia/lithium_local/mixing/LHC24ar_pass3_hadronpid_event_mixing_batch256.root',
                 ]
   tree_names:   ['MixedTree']
   mode:         'tree'
-  output_file:  'output/pp/LHC24_pass1_skimmed_hadronpid_event_mixing.root'
-  #output_file:  'output/pp/LHC25_pass1_skimmed_hadronpid_event_mixing.root'
+  #scan_branch:  ['fNSigmaTPCHadPr', 'fDCAzHad']
+  #scan_branch:  ['fEtaHad']
+  #tree_name:    'O2he3hadtable'
+  #mode:         'DF'
+  #output_file:  'output/mixed_event.root'
+  #output_file:  'output/mixed_event_grid.root'
+  #output_file:  'output/mixed_rotation.root'
+  output_file:  'output/PbPb/LHC23_PbPb_pass5_hadronpid_event_mixing.root'
+  #output_file:  'output/PbPb/LHC24ar_pass3_hadronpid_event_mixing.root'
 
 ## MC
 #input_data:   ['input/mc.root',
@@ -59,12 +62,12 @@ selections:     [
                  '(std::abs(fEtaHad) < 0.9)',
                  '(fNClsTPCHe3 > 110)',
                  
-                 #'((fPtHe3 < 2.25) || (fPIDtrkHe3 == 7))',
                  #'((fPtHe3 < 2.5) || (fPIDtrkHe3 == 7))',
                  #'((fPIDtrkHe3 == 6) || (fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8))',
-                 '((fPIDtrkHe3 == 7))',
+                 #'((fPIDtrkHe3 == 7))',
+                 '((fPIDtrkHe3 == 6))',
                  
-                 '((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 2.))',
+                 '((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 3.))',
                  '(std::abs(fNSigmaDCAxyHe3) < 3)',
                  '(std::abs(fNSigmaDCAzHe3) < 3)',
                  #'(fClusterSizeCosLamHe3 > 4)',
@@ -100,17 +103,14 @@ parameterisation: {
     kDCAzResolutionParamsMC_He: [-2.06e-5, 0.0018, 0.0080, 1.6000],
     
     # PbPb 23 pass5
-    ### kHeTPCParams: [-162.83, -0.4007, 1.1513, 0.9589, 2.7651],
-    ### kHeTPCResolution: 0.061,
+    kHeTPCParams: [-335.570, 0.7066, 1.5731, 0.5202, 2.8735],
+    kHeTPCResolution: 0.060,
+    kHeTPCParamsResiduals: [31.8927, 0.6830, 0.0750, -8.3483, 0.9692, 0.1287],
     
     # 24_pass3
-    ### kHeTPCParams: [-443.13, 1.1916, 2.0763, 0.5018, 2.4547],
-    ### kHeTPCResolution: 0.063,
-
-    # pp 24 and 25 pass1
-    kHeTPCParams: [-261.62, 0.1859, 1.1907, 0.5000, 3.0748],
-    kHeTPCResolution: 0.045,
-    kHeTPCParamsResiduals: [44.784, 0.6374, 0.0715, -13.329, 0.8686, 0.1638],
+    ### kHeTPCParams: [-372.210, 0.8966, 1.7426, 0.5313, 2.9516],
+    ### kHeTPCResolution: 0.059,
+    ### kHeTPCParamsResiduals: [29.733, 0.6556, 0.0807, -11.574, 0.9746, 0.1368],
 
     kHeTPCParamsMC: [-283.35, 0.2261, 1.2371, 0.6793, 2.6862],
     kHeTPCResolutionMC: 0.050,
@@ -123,15 +123,11 @@ parameterisation: {
     kPrTPCResolutionMC: 0.076,
 
     # PbPb 23 pass5
-    ### kITSParams_Pr: [1.0228, 1.9634, 2.2081],  // Pr from Ka fitting
-    ### kITSParams_He: [2.6916, 1.2630, 4.8939],  // He
-    
-    # pp 24 and 25 pass1
-    kITSParams_Pr: [1.0228, 1.9634, 2.2081],
-    kITSParams_He: [2.6692, 1.5112, 5.0994],
+    kITSParams_Pr: [1.0228, 1.9634, 2.2081], # Pr from Ka fitting
+    kITSParams_He: [2.5734, 1.3620, 5.1383],  # He 
 
     kITSResolutionParams_Pr: [0.1575, 0., 0.],
-    kITSResolutionParams_He: [0.1132, -0.0135, 0.0001],
+    kITSResolutionParams_He: [0.1124, -0.0100, 0.],
     
     kITSParamsMC_Pr: [1.5273, 1.8027, 2.8959],
     kITSParamsMC_He: [2.4882, 1.7105, 7.3087],
@@ -142,5 +138,6 @@ parameterisation: {
     kPrTOFParams: [0.9452, -0.0098, 0.0039],
     kPrTOFResolutionParams: [-0.0069, 0.0289],
 
-    kHePidTrkParams: [0.3009, -0.1166],
+    kHePidTrkParamsPt: [0.1593, -0.0445],
+    kHePidTrkParamsP: [0.1113, -0.0208],
 }

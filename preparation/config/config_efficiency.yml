@@ -1,8 +1,8 @@
-input_data:   ['/data/galucia/lithium_local/MC_merged/LHC25a4.root',
+input_data:   ['/data/galucia/lithium_local/MC/LHC25g11.root',
                 ]
-tree_name:    'O2he3hadtable'
+tree_names:   ['O2he3hadtable', 'O2he3hadtablemc', 'O2he3hadmult']
 mode:         'DF'
-output_file:  'output/efficiency.root'
+output_file:  'output/PbPb/LHC25g11_efficiency.root'
 
 selections:     [
                 # quality cuts
@@ -22,14 +22,72 @@ selections:     [
                  '(std::abs(fNSigmaDCAxyHe3) < 3)',
                  '(std::abs(fNSigmaDCAzHe3) < 3)',
                  #'(fClusterSizeCosLamHe3 > 4)',
-                 ##'(fNSigmaITSHe3 > -1.5)',  ## ITS pid not implemented in mc
-                 '(fMassTOFHe3 > 2 || fMassTOFHe3 < 0)',
+                 '(fNSigmaITSHe3 > -1.5)',
+                 #'(fMassTOFHe3 > 2 || fMassTOFHe3 < 0)',
 
                  '(std::abs(fNSigmaTPCHad) < 2)',
                  #'(std::abs(fNSigmaTPCHadPr) < 2)',
-                 '((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2))',  # TOF hard cut
+                 #'((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2))',  # TOF hard cut
+                 '((std::abs(fPtHad) < 0.8) || (fNSigmaTOFHad > -99.))', # TOF hit
                  #'((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2) || (fNSigmaTOFHad < -9.9))', # TOF veto
                  ##'(fNSigmaITSHad > -2.)', ## ITS pid not implemented in mc
+                 '(fNSigmaITSHad > -2.)',
                  '(std::abs(fNSigmaDCAxyHad) < 3)',
                  '(std::abs(fNSigmaDCAzHad) < 3)',
                 ]
+
+parameterisation: {
+
+    kDCAxyResolutionParams_Pr: [8.19e-5, 0.004, 0.0026, 1.1741],
+    kDCAxyResolutionParams_He: [1.09e-4, 0.0011, 0.0065, 1.0399],
+      
+    kDCAzResolutionParams_Pr: [1.18e-4, 0.0020, 0.0025, 1.3460],
+    kDCAzResolutionParams_He: [9.36e-5, 0.0019, 0.0080, 1.416],
+
+    kDCAxyResolutionParamsMC_Pr: [3.60e-5, 0.0013, 0.0021, 1.4722],
+    kDCAxyResolutionParamsMC_He: [4.54e-5, 0.0015, 0.0081, 1.6000],
+      
+    kDCAzResolutionParamsMC_Pr: [-1.86e-5, 0.0016, 0.0022, 1.5610],
+    kDCAzResolutionParamsMC_He: [-2.06e-5, 0.0018, 0.0080, 1.6000],
+    
+    # PbPb 23 pass5
+    ### kHeTPCParams: [-335.570, 0.7066, 1.5731, 0.5202, 2.8735],
+    ### kHeTPCResolution: 0.060,
+    ### kHeTPCParamsResiduals: [31.8927, 0.6830, 0.0750, -8.3483, 0.9692, 0.1287],
+    
+    # 24_pass3
+    ### kHeTPCParams: [-372.210, 0.8966, 1.7426, 0.5313, 2.9516],
+    ### kHeTPCResolution: 0.059,
+    ### kHeTPCParamsResiduals: [29.733, 0.6556, 0.0807, -11.574, 0.9746, 0.1368],
+
+    # PbPb MC 25g11
+    kHeTPCParamsMC: [-302.441, 0.3949, 1.3444, 1.1672, 2.4508],
+    kHeTPCResolutionMC: 0.049,
+    kHeTPCParamsResiduals: [117.291, 0.5298, 0.0829, -11.7343, 0.8000, 0.2164],
+
+    kPrTPCParams: [-13.9261, -2.4156, 0.9469, 1.2628, 3.4574],
+    kPrTPCResolution: 0.076,
+
+    # not computed yet, using the same as data
+    kPrTPCParamsMC: [-13.9261, -2.4156, 0.9469, 1.2628, 3.4574],
+    kPrTPCResolutionMC: 0.076,
+
+    # PbPb 23 pass5
+    kITSParams_Pr: [1.0228, 1.9634, 2.2081], # Pr from Ka fitting
+    kITSParams_He: [2.5734, 1.3620, 5.1383],  # He 
+
+    kITSResolutionParams_Pr: [0.1575, 0., 0.],
+    kITSResolutionParams_He: [0.1124, -0.0100, 0.],
+    
+    kITSParamsMC_Pr: [1.5273, 1.8027, 2.8959],
+    kITSParamsMC_He: [2.4882, 1.7105, 7.3087],
+
+    kITSResolutionParamsMC_Pr: [0.1300, 0., 0.],
+    kITSResolutionParamsMC_He: [0.0885, 0.0015, -0.0010],
+      
+    kPrTOFParams: [0.9452, -0.0098, 0.0039],
+    kPrTOFResolutionParams: [-0.0069, 0.0289],
+
+    kHePidTrkParamsPt: [0.1593, -0.0445],
+    kHePidTrkParamsP: [0.1113, -0.0208],
+}
