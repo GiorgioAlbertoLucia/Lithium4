@@ -11,11 +11,10 @@ from utils.particles import ParticleMasses
 from utils.histogram_registry import HistogramRegistry
 from utils.histogram_archive import register_qa_histograms, Archive
 
-gInterpreter.ProcessLine(f'#include "../include/Common.h"')
-from ROOT import ComputeNsigmaTPCHe, ComputeNsigmaITSHe, ComputeNsigmaITSPr, ComputeNsigmaTOFPr, ComputeAverageClusterSize, CorrectPidTrkHe, \
-  ComputeKstar, ComputeExpectedClusterSizeCosLambdaHe, ComputeExpectedClusterSizeCosLambdaPr, ComputeNsigmaDCAxyHe, ComputeNsigmaDCAxyPr, ComputeNsigmaDCAzHe, ComputeNsigmaDCAzPr 
+from include.load_parameters import load_parametrisation
 
-ROOT.EnableImplicitMT(30)
+gInterpreter.ProcessLine(f'#include "../include/Common.h"')
+ROOT.EnableImplicitMT(10)
 ROOT.gROOT.SetBatch(True)
 
 
@@ -35,29 +34,43 @@ def prepare_selections(config):
 
     return base_selection, selection
 
-def prepare_input_tchain(config):
+def prepare_input_tchain(config:dict):
 
     input_data = config['input_data']
-    tree_name = config['tree_name']
+    tree_names = config['tree_names']
     mode = config['mode']
 
     file_data_list = input_data if isinstance(input_data, list) else [input_data]
+    tree_name = tree_names if isinstance(tree_names, str) else tree_names[0]
     chain_data = TChain('tchain')
 
-    for file_name in file_data_list:
-      fileData = TFile(file_name)
+    additional_chains = []
+    if isinstance(tree_names, list) and len(tree_names) > 1:
+        for idx, tname in enumerate(tree_names[1:]):
+            additional_chain = TChain(f'tchain_friend_{idx}')
+            additional_chains.append(additional_chain)
 
-      if mode == 'DF':
-        for key in fileData.GetListOfKeys():
-          key_name = key.GetName()
-          if 'DF_' in key_name :
-              print(f'Adding {tc.CYAN+tc.UNDERLINE}{file_name}/{key_name}/{tree_name}{tc.RESET} to the chain')
-              chain_data.Add(f'{file_name}/{key_name}/{tree_name}')
-      elif mode == 'tree':
-        print(f'Adding {tc.CYAN+tc.UNDERLINE}{file_name}/{tree_name}{tc.RESET} to the chain')
-        chain_data.Add(f'{file_name}/{tree_name}')
-    
-    return chain_data
+    for file_name in file_data_list:
+        fileData = TFile(file_name)
+
+        if mode == 'DF':
+            for key in fileData.GetListOfKeys():
+                key_name = key.GetName()
+                if 'DF_' in key_name :
+                    chain_data.Add(f'{file_name}/{key_name}/{tree_name}')
+                    for idx, additional_chain in enumerate(additional_chains):
+                        additional_chain.Add(f'{file_name}/{key_name}/{tree_names[idx+1]}')
+            
+        elif mode == 'tree':
+            print(f'Adding {tc.CYAN+tc.UNDERLINE}{file_name}/{tree_name}{tc.RESET} to the chain')
+            chain_data.Add(f'{file_name}/{tree_name}')
+            for idx, additional_chain in enumerate(additional_chains):
+                additional_chain.Add(f'{file_name}/{tree_names[idx+1]}')
+
+    for idx, additional_chain in enumerate(additional_chains):
+        chain_data.AddFriend(additional_chain)
+
+    return chain_data, additional_chains
 
 def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
    
@@ -72,13 +85,12 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
         rdf = rdf.Define('fNSigmaTPCHadPr', 'fNSigmaTPCHad')
     
     # TOF
-    if 'fNSigmaTOFHadPr' not in rdf.GetColumnNames():
+    if 'fNSigmaTOFHad' not in rdf.GetColumnNames() and 'fNSigmaTOFHadPr' not in rdf.GetColumnNames():
         rdf = rdf.Define('fNSigmaTOFHad', 'ComputeNsigmaTOFPr(std::abs(fPtHad), fMassTOFHad)')
-    else:
+    elif 'fNSigmaTOFHad' not in rdf.GetColumnNames() and 'fNSigmaTOFHadPr' in rdf.GetColumnNames():
        rdf = rdf.Define('fNSigmaTOFHad', 'fNSigmaTOFHadPr')
     
       # Recalibration
-      #.Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3)') \
       # Correct for PID in tracking
     
     rdf_gen = rdf.Define('fSignedPtHe3', 'fPtHe3') \
@@ -89,27 +101,29 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
         .Define('fSignHe3', 'fPtMCHe3/std::abs(fPtMCHe3)') \
         .Define('fPtLiMC', 'std::abs(fSignedPtMC)') \
       
+      #.Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
+      
     rdf_rec = rdf.Define('fSignedPtHad', 'fPtHad') \
       .Define('fSignHe3', 'fPtHe3/std::abs(fPtHe3)') \
       .Redefine('fPtHe3', 'std::abs(fPtHe3)') \
       .Redefine('fPtHad', 'std::abs(fPtHad)') \
-      .Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
       .Define('fSignedPtHe3', 'fPtHe3 * fSignHe3') \
       .Define(f'fEHe3', f'std::sqrt((fPtHe3 * std::cosh(fEtaHe3))*(fPtHe3 * std::cosh(fEtaHe3)) + {ParticleMasses["He"]}*{ParticleMasses["He"]})') \
       .Define(f'fEHad', f'std::sqrt((fPtHad * std::cosh(fEtaHad))*(fPtHad * std::cosh(fEtaHad)) + {ParticleMasses["Pr"]}*{ParticleMasses["Pr"]})') \
       .Define('fDeltaEta', 'fEtaHe3 - fEtaHad') \
       .Define('fDeltaPhi', 'fPhiHe3 - fPhiHad') \
       .Redefine('fInnerParamTPCHe3', 'fInnerParamTPCHe3 * 2') \
+      .Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3, true)') \
       .Define('fClusterSizeCosLamHe3', 'ComputeAverageClusterSize(fItsClusterSizeHe3) / cosh(fEtaHe3)') \
       .Define('fClusterSizeCosLamHad', 'ComputeAverageClusterSize(fItsClusterSizeHad) / cosh(fEtaHad)') \
       .Define('fExpectedClusterSizeHe3', 'ComputeExpectedClusterSizeCosLambdaHe(fPtHe3 * std::cosh(fEtaHe3))') \
       .Define('fExpectedClusterSizeHad', 'ComputeExpectedClusterSizeCosLambdaPr(fPtHad * std::cosh(fEtaHad))') \
-      .Define('fNSigmaITSHe3', 'ComputeNsigmaITSHe(fPtHe3 * std::cosh(fEtaHe3), fClusterSizeCosLamHe3)') \
-      .Define('fNSigmaITSHad', 'ComputeNsigmaITSPr(fPtHad * std::cosh(fEtaHad), fClusterSizeCosLamHad)') \
-      .Define('fNSigmaDCAxyHe3', 'ComputeNsigmaDCAxyHe(fPtHe3, fDCAxyHe3)') \
-      .Define('fNSigmaDCAzHe3', 'ComputeNsigmaDCAzHe(fPtHe3, fDCAzHe3)') \
-      .Define('fNSigmaDCAxyHad', 'ComputeNsigmaDCAxyPr(fPtHad, fDCAxyHad)') \
-      .Define('fNSigmaDCAzHad', 'ComputeNsigmaDCAzPr(fPtHad, fDCAzHad)') \
+      .Define('fNSigmaITSHe3', 'ComputeNsigmaITSHe(fPtHe3 * std::cosh(fEtaHe3), fClusterSizeCosLamHe3, true)') \
+      .Define('fNSigmaITSHad', 'ComputeNsigmaITSPr(fPtHad * std::cosh(fEtaHad), fClusterSizeCosLamHad, true)') \
+      .Define('fNSigmaDCAxyHe3', 'ComputeNsigmaDCAxyHe(fPtHe3, fDCAxyHe3, true)') \
+      .Define('fNSigmaDCAzHe3', 'ComputeNsigmaDCAzHe(fPtHe3, fDCAzHe3, true)') \
+      .Define('fNSigmaDCAxyHad', 'ComputeNsigmaDCAxyPr(fPtHad, fDCAxyHad, true)') \
+      .Define('fNSigmaDCAzHad', 'ComputeNsigmaDCAzPr(fPtHad, fDCAzHad, true)') \
       .Filter(base_selection).Filter(selection) \
       .Define('fPxLi', 'fPtHe3 * std::cos(fPhiHe3) + fPtHad * std::cos(fPhiHad)') \
       .Define('fPyLi', 'fPtHe3 * std::sin(fPhiHe3) + fPtHad * std::sin(fPhiHad)') \
@@ -153,6 +167,7 @@ def produce_efficiency_histogram(hist_rec, hist_gen, name):
             efficiency_hist.SetBinContent(ibin, 0)
             efficiency_hist.SetBinError(ibin, 0)
 
+    efficiency_hist.GetYaxis().SetTitle('Efficiency')
     return efficiency_hist
 
 def efficiency_histograms(rdf_rec, rdf_gen, output_file: TFile):
@@ -162,17 +177,14 @@ def efficiency_histograms(rdf_rec, rdf_gen, output_file: TFile):
     hPtLiAntimatter = rdf_rec.Filter('fSignHe3 < 0').Histo1D(("hPtLiAntimatter", ";#it{p}_{T} (^{4}Li) (GeV/#it{c});", pt_bins, pt_min, pt_max), "fPtLi").GetValue()
     hPtLiMCMatter = rdf_gen.Filter('fSignHe3 > 0').Histo1D(("hPtLiMCMatter", ";#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", pt_bins, pt_min, pt_max), "fPtLiMC").GetValue()
     hPtLiMCAntimatter = rdf_gen.Filter('fSignHe3 < 0').Histo1D(("hPtLiMCAntimatter", ";#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", pt_bins, pt_min, pt_max), "fPtLiMC").GetValue()
-    
+
     hEfficiencyMatter = produce_efficiency_histogram(hPtLiMatter, hPtLiMCMatter, "hEfficiencyMatter")
     hEfficiencyAntimatter = produce_efficiency_histogram(hPtLiAntimatter, hPtLiMCAntimatter, "hEfficiencyAntimatter")
 
     output_file.cd()
-    hPtLiMatter.Write()
-    hPtLiAntimatter.Write()
-    hPtLiMCMatter.Write()
-    hPtLiMCAntimatter.Write()
-    hEfficiencyMatter.Write()
-    hEfficiencyAntimatter.Write()
+    for hist in [hPtLiMatter, hPtLiAntimatter, hPtLiMCMatter, hPtLiMCAntimatter,
+                 hEfficiencyMatter, hEfficiencyAntimatter]:
+        hist.Write()
 
 
 if __name__ == '__main__':
@@ -180,8 +192,10 @@ if __name__ == '__main__':
     config_file = 'config/config_efficiency.yml'
     config = yaml.safe_load(open(config_file, 'r'))
 
+    load_parametrisation(config)  # Load parametrisation into Common.h
+
     base_selection, selection = prepare_selections(config)
-    chain_data = prepare_input_tchain(config)
+    chain_data, additional_chain_data = prepare_input_tchain(config)
     rdf_rec, rdf_gen = prepare_rdataframe(chain_data, base_selection, selection)
 
     output_file_path = config['output_file']

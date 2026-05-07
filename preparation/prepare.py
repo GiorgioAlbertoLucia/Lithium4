@@ -1,5 +1,8 @@
 import sys
 import yaml
+from tqdm import tqdm
+import argparse
+
 import ROOT
 from ROOT import TFile, TChain, gInterpreter, RDataFrame
 
@@ -10,6 +13,8 @@ from utils.particles import ParticleMasses
 from utils.histogram_registry import HistogramRegistry
 from utils.histogram_archive import register_qa_histograms, register_kstar_histograms, register_kstar_matter_histograms, \
     register_kstar_antimatter_histograms, register_invmass_histograms
+    
+from include.load_parameters import load_parametrisation
 
 gInterpreter.ProcessLine(f'#include "../include/Common.h"')
 
@@ -17,15 +22,13 @@ ROOT.EnableImplicitMT(30)
 ROOT.gROOT.SetBatch(True)
 
 
-def prepare_selections(config):
+def prepare_selections(selections):
 
     base_selection = ''
     if config.get('like_sign', True):  
         base_selection = '(fSignedPtHe3 > 0 && fSignedPtHad > 0) || (fSignedPtHe3 < 0 && fSignedPtHad < 0)'
     else:
         base_selection = '(fSignedPtHe3 > 0 && fSignedPtHad < 0) || (fSignedPtHe3 < 0 && fSignedPtHad > 0)'
-
-    selections = config['selections']
     
     selection = selections[0]
     for sel in selections[1:]:
@@ -33,29 +36,95 @@ def prepare_selections(config):
 
     return base_selection, selection
 
-def prepare_input_tchain(config):
+def find_bad_regions(tree, scan_branch):
+    ROOT.gErrorIgnoreLevel = ROOT.kFatal
+
+    branch = tree.GetBranch(scan_branch)
+    n_baskets = branch.GetWriteBasket()  # number of baskets written
+
+    bad_regions = []
+
+    print(f"  Scanning {n_baskets} baskets on branch '{scan_branch}'...")
+    for i in tqdm(range(n_baskets)):
+        basket = branch.GetBasket(i)
+        if basket is None or basket.GetNbytes() == 0:
+            # find the entry range for this basket
+            first_entry = branch.GetBasketEntry(i)
+            # last entry of this basket is first entry of next basket minus 1
+            if i + 1 < n_baskets:
+                last_entry = branch.GetBasketEntry(i + 1) - 1
+            else:
+                last_entry = tree.GetEntries() - 1
+            bad_regions.append((first_entry, last_entry))
+            print(f"  Bad basket {i}: entries [{first_entry}, {last_entry}]")
+
+    ROOT.gErrorIgnoreLevel = ROOT.kInfo
+    return bad_regions
+
+def find_bad_entries(tree, scan_branch):
+    n_total = tree.GetEntries()
+
+    bad_regions = []
+    if isinstance(scan_branch, list):
+        for branch_name in scan_branch:
+            bad_region = find_bad_regions(tree, branch_name)
+        bad_regions.extend(bad_region)
+    elif isinstance(scan_branch, str):
+        bad_regions = find_bad_regions(tree, scan_branch)
+
+    entry_list = ROOT.TEntryList("good_entries", "good_entries")
+    good_ranges = []
+    cursor = 0
+    for bad_start, bad_end in bad_regions:
+        if cursor < bad_start:
+            good_ranges.append((cursor, bad_start - 1))
+        cursor = bad_end + 1
+    if cursor < n_total:
+        good_ranges.append((cursor, n_total - 1))
+
+    for start, end in good_ranges:
+        for i in tqdm(range(start, end + 1)):
+            entry_list.Enter(i)
+
+    return entry_list
+
+def prepare_input_tchain(config:dict):
 
     input_data = config['input_data']
-    tree_name = config['tree_name']
+    tree_names = config['tree_names']
     mode = config['mode']
 
     file_data_list = input_data if isinstance(input_data, list) else [input_data]
+    tree_name = tree_names if isinstance(tree_names, str) else tree_names[0]
     chain_data = TChain('tchain')
 
-    for file_name in file_data_list:
-      fileData = TFile(file_name)
+    additional_chains = []
+    if isinstance(tree_names, list) and len(tree_names) > 1:
+        for idx, tname in enumerate(tree_names[1:]):
+            additional_chain = TChain(f'tchain_friend_{idx}')
+            additional_chains.append(additional_chain)
 
-      if mode == 'DF':
-        for key in fileData.GetListOfKeys():
-          key_name = key.GetName()
-          if 'DF_' in key_name :
-              print(f'Adding {tc.CYAN+tc.UNDERLINE}{file_name}/{key_name}/{tree_name}{tc.RESET} to the chain')
-              chain_data.Add(f'{file_name}/{key_name}/{tree_name}')
-      elif mode == 'tree':
-        print(f'Adding {tc.CYAN+tc.UNDERLINE}{file_name}/{tree_name}{tc.RESET} to the chain')
-        chain_data.Add(f'{file_name}/{tree_name}')
-    
-    return chain_data
+    for file_name in file_data_list:
+        fileData = TFile(file_name)
+
+        if mode == 'DF':
+            for key in fileData.GetListOfKeys():
+                key_name = key.GetName()
+                if 'DF_' in key_name :
+                    chain_data.Add(f'{file_name}/{key_name}/{tree_name}')
+                    for idx, additional_chain in enumerate(additional_chains):
+                        additional_chain.Add(f'{file_name}/{key_name}/{tree_names[idx+1]}')
+            
+        elif mode == 'tree':
+            print(f'Adding {tc.CYAN+tc.UNDERLINE}{file_name}/{tree_name}{tc.RESET} to the chain')
+            chain_data.Add(f'{file_name}/{tree_name}')
+            for idx, additional_chain in enumerate(additional_chains):
+                additional_chain.Add(f'{file_name}/{tree_names[idx+1]}')
+
+    for idx, additional_chain in enumerate(additional_chains):
+        chain_data.AddFriend(additional_chain)
+
+    return chain_data, additional_chains
 
 def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
    
@@ -66,12 +135,16 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
     # TPC
     if 'fNSigmaTPCHadPr' in rdf.GetColumnNames():
         rdf = rdf.Define('fNSigmaTPCHad', 'fNSigmaTPCHadPr')
+    elif 'fNSigmaTPCHad' not in rdf.GetColumnNames():
+        raise RuntimeError("Neither fNSigmaTPCHadPr nor fNSigmaTPCHad found in dataset!")
     
     # TOF
-    if 'fNSigmaTOFHadPr' not in rdf.GetColumnNames():
-        rdf = rdf.Define('fNSigmaTOFHad', 'ComputeNsigmaTOFPr(std::abs(fPtHad), fMassTOFHad)')
-    else:
-       rdf = rdf.Define('fNSigmaTOFHad', 'fNSigmaTOFHadPr')
+    if  'fNSigmaTOFHad' not in rdf.GetColumnNames():
+        #if 'fNSigmaTOFHadPr' not in rdf.GetColumnNames():
+        #    rdf = rdf.Define('fNSigmaTOFHad', 'ComputeNsigmaTOFPr(std::abs(fPtHad), fMassTOFHad)')
+        #else:
+        #    rdf = rdf.Define('fNSigmaTOFHad', 'fNSigmaTOFHadPr')
+       rdf = rdf.Define('fNSigmaTOFHad', 'ComputeNsigmaTOFPr(std::abs(fPtHad), fMassTOFHad)')
     
       # Recalibration
       # Correct for PID in tracking
@@ -81,19 +154,21 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
       .Redefine('fPtHe3', 'std::abs(fPtHe3)') \
       .Redefine('fPtHad', 'std::abs(fPtHad)') \
       .Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
+      .Redefine('fInnerParamTPCHe3', 'fInnerParamTPCHe3 * 2') \
+      .Redefine('fInnerParamTPCHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fInnerParamTPCHe3 : CorrectPidTrkHe(fInnerParamTPCHe3, false)') \
       .Define('fSignedPtHe3', 'fPtHe3 * fSignHe3') \
       .Define(f'fEHe3', f'std::sqrt((fPtHe3 * std::cosh(fEtaHe3))*(fPtHe3 * std::cosh(fEtaHe3)) + {ParticleMasses["He"]}*{ParticleMasses["He"]})') \
       .Define(f'fEHad', f'std::sqrt((fPtHad * std::cosh(fEtaHad))*(fPtHad * std::cosh(fEtaHad)) + {ParticleMasses["Pr"]}*{ParticleMasses["Pr"]})') \
       .Define('fDeltaEta', 'fEtaHe3 - fEtaHad') \
       .Define('fDeltaPhi', 'fPhiHe3 - fPhiHad') \
-      .Redefine('fInnerParamTPCHe3', 'fInnerParamTPCHe3 * 2') \
       .Define('fClusterSizeCosLamHe3', 'ComputeAverageClusterSize(fItsClusterSizeHe3) / cosh(fEtaHe3)') \
       .Define('fClusterSizeCosLamHad', 'ComputeAverageClusterSize(fItsClusterSizeHad) / cosh(fEtaHad)') \
       .Define('fExpectedClusterSizeHe3', 'ComputeExpectedClusterSizeCosLambdaHe(fPtHe3 * std::cosh(fEtaHe3))') \
       .Define('fExpectedClusterSizeHad', 'ComputeExpectedClusterSizeCosLambdaPr(fPtHad * std::cosh(fEtaHad))') \
       .Define('fNSigmaITSHe3', 'ComputeNsigmaITSHe(fPtHe3 * std::cosh(fEtaHe3), fClusterSizeCosLamHe3)') \
       .Define('fNSigmaITSHad', 'ComputeNsigmaITSPr(fPtHad * std::cosh(fEtaHad), fClusterSizeCosLamHad)') \
-      .Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3)') \
+      .Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3, false, true)') \
+      .Define('fNSigmaTPCPi', 'ComputeNsigmaTPCPi(std::abs(fInnerParamTPCHad), fSignalTPCHad)') \
       .Define('fNSigmaDCAxyHe3', 'ComputeNsigmaDCAxyHe(fPtHe3, fDCAxyHe3)') \
       .Define('fNSigmaDCAzHe3', 'ComputeNsigmaDCAzHe(fPtHe3, fDCAzHe3)') \
       .Define('fNSigmaDCAxyHad', 'ComputeNsigmaDCAxyPr(fPtHad, fDCAxyHad)') \
@@ -144,11 +219,21 @@ def visualise(rdf, output_file: TFile):
 
 if __name__ == '__main__':
 
-    config_file = 'config/config_prepare.yml'
-    config = yaml.safe_load(open(config_file, 'r'))
+    parser = argparse.ArgumentParser(description='Prepare data for femtoscopic analysis')
+    parser.add_argument('--config', type=str, default='config/config_prepare.yml', help='Path to the configuration YAML file')  
+    parser.add_argument('--mode', type=str, default='same_event', choices=['same_event', 'mixed_event'], help='Mode of analysis: same_event or mixed_event')
+    args = parser.parse_args()
 
-    base_selection, selection = prepare_selections(config)
-    chain_data = prepare_input_tchain(config)
+    config_file = args.config
+    config = yaml.safe_load(open(config_file, 'r'))
+    
+    load_parametrisation(config)  # Load parametrisation into Common.h
+    
+    selections = config.get('selections', [])
+    config = config[args.mode]  # Use the specific mode section from the config
+
+    base_selection, selection = prepare_selections(selections)
+    chain_data, additional_chain_data = prepare_input_tchain(config)
     rdf = prepare_rdataframe(chain_data, base_selection, selection)
 
     output_file_path = config['output_file']
