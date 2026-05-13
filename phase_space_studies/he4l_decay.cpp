@@ -45,11 +45,11 @@ void he4l_decay() {
 
     TH1F *h_kstar_pHe3 = new TH1F("h_kstar_pHe3", 
         "Relative Momentum k* of Proton-Helium3 Pair;#it{k}* (GeV/#it{c});Counts", 
-        100, 0.0, 0.5);
+        50, 0.0, 0.5);
 
     TH1F *h_correlation_pHe3 = new TH1F("h_correlation_pHe3", 
         "Contribution to the correlation function of p-^{3}He from the ^{4}_{#Lambda}He weak decay;#it{k}* (GeV/#it{c});C_{^{4}_{#Lambda}He}(#it{k}*)", 
-        100, 0.0, 0.5);
+        50, 0.0, 0.5);
 
     TFile infileMixedEvent("/home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root");
     TH1F* h_mixed_event_kstar_pHe3 = (TH1F*)infileMixedEvent.Get("Correlation/Default/hNormalisedMixedEvent050");
@@ -119,6 +119,7 @@ void he4l_decay() {
     h_invmass_all->Write();
     h_invmass_pHe3->Write();
     h_kstar_pHe3->Write();
+    h_mixed_event_kstar_pHe3->Write();
     h_correlation_pHe3->Write();
     c1->Write();
     
