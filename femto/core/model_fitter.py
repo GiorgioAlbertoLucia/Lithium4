@@ -3,6 +3,7 @@ from ROOT import TFile, TCanvas, TH1F, TLegend, TPaveText, TColor, \
                  RooRealVar, RooCrystalBall, RooFit, RooHistPdf, RooDataHist, RooWorkspace, RooAddPdf, RooArgList, RooPlot, RooAbsReal
 from torchic import AxisSpec
 from torchic.utils.root import set_root_object
+from torchic.utils.colors import get_color
 
 import sys
 sys.path.append('/home/galucia/Lithium4/femto')
@@ -170,17 +171,17 @@ class ModelFitter(Fitter):
 
         roodatahist.plotOn(frame, MarkerStyle=20, LineColor=797, MarkerColor=797, MarkerSize=1.7) #, FillColorAlpha=(797, 0.3))
         
-        line_color = TColor.GetColor('#50ad9f')
+        line_color = get_color(0)
         for signal in self._signal_pdfs.values():
             self._model_pdf.plotOn(frame, Name=signal.GetName(),  Title= signal.GetTitle(), Normalization=(1.0, RooAbsReal.RelativeExpected), Components={signal}, LineColor=line_color)
             line_color += 1
         
-        line_color = TColor.GetColor('#0000a2')
+        line_color = get_color(1)
         for bkg in self._bkg_pdfs.values():
             self._model_pdf.plotOn(frame, Name=bkg.GetName(),  Title= bkg.GetTitle(), Normalization=(1.0, RooAbsReal.RelativeExpected), Components={bkg}, LineColor=line_color)
             line_color += 1
         
-        line_color = TColor.GetColor('#bc272d')
+        line_color = get_color(2)
         self._model_pdf.plotOn(frame, Name=self._model_pdf.GetName(),  Title=self._model_pdf.GetTitle(),  
                                Normalization=(1.0, RooAbsReal.RelativeExpected), LineColor=line_color)
                                
@@ -194,7 +195,7 @@ class ModelFitter(Fitter):
         #text.AddText(f'#bf{{#chi^{{2}} / ndf = {frame.chiSquare():.2f}}}')
         #frame.addObject(text)
 
-        legend = TLegend(0.48, 0.23, 0.81, 0.38)
+        legend = TLegend(0.52, 0.18, 0.81, 0.33)
         legend.SetBorderSize(0)
         legend.SetTextSize(0.045)
         h_dummy = TH1F('h_dummy', ';#it{k}* (GeV/#it{c}); C(k*)', 1, 0, 1)

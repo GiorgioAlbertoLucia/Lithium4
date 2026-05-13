@@ -16,7 +16,8 @@ HIST_BKG_NAME = 'hHe3_p_Coul_CF'
 #DATA_INPUT_PATH = '/home/galucia/Lithium4/preparation/output/correlation.root'
 #DATA_INPUT_PATH = '/home/galucia/Lithium4/preparation/checks/correlation_all_pass1_pass4_nclstpc.root'
 #DATA_INPUT_PATH = '/home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root'
-DATA_INPUT_PATH = '/home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root'
+DATA_INPUT_PATH = '/home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root'
+INPUT_SUFFIX = 'PbPb'
 #DATA_INPUT_PATH = '/home/galucia/Lithium4/preparation/checks/correlation_23_24_25_pass1_pass4_pass1_reject_multiples_pidintrk.root'
 
 def prepare_centrality_dict(mode:str, use_lambda_parameters:bool=False, use_strong_interaction:bool=False, 
@@ -118,9 +119,9 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
     h_correlation_function = load_hist(data_input_path, h_data_name)
     h_mixed_event = load_hist(mixed_event_input_path, h_mixed_event_name)
 
-    KSTAR_MIN, KSTAR_MAX = ((0.01, 0.4) if ('010' not in h_data_name or mode != 'Antimatter' ) 
-                            else (0.02, 0.4))
-    #KSTAR_MIN, KSTAR_MAX = (0.01, 0.4)
+    #KSTAR_MIN, KSTAR_MAX = ((0.01, 0.4) if ('010' not in h_data_name or mode != 'Antimatter' ) 
+    #                        else (0.02, 0.4))
+    KSTAR_MIN, KSTAR_MAX = (0.02, 0.4)
     kstar_spec = AxisSpec(100, KSTAR_MIN, KSTAR_MAX, 'kstar', '#it{k}* (GeV/#it{c})')
     
     signal_fitter = SignalFitter('signal', kstar_spec, outfile, workspace)
@@ -186,7 +187,7 @@ if __name__ == '__main__':
 
     #outfile = TFile('output/fit_correlation_function_all_pass1_pass4_nclstpc.root', 'recreate')
     #outfile = TFile(f'output/fit_correlation_function_hadronpid_pass1_pass4_nohe3pcut_offlinetpc{suffix_lambda}{suffix_strong}.root', 'recreate')
-    outfile = TFile(f'output/fit_correlation_function_hadronpid_pass1_pass4_refined_dca{suffix_lambda}{suffix_strong}{systematics_suffix}{sigma_suffix}{smoothening_suffix}{rebinning_suffix}{plus_10_percent_suffix}{minus_10_percent_suffix}{finer_binning_suffix}{smeared_lambda_suffix}.root', 'recreate')
+    outfile = TFile(f'output/{INPUT_SUFFIX}_fit_correlation_function_hadronpid_{suffix_lambda}{suffix_strong}{systematics_suffix}{sigma_suffix}{smoothening_suffix}{rebinning_suffix}{plus_10_percent_suffix}{minus_10_percent_suffix}{finer_binning_suffix}{smeared_lambda_suffix}.root', 'recreate')
     #outfile = TFile(f'output/fit_correlation_function_23_24_25{suffix_lambda}{suffix_strong}{systematics_suffix}{sigma_suffix}{smoothening_suffix}{rebinning_suffix}{plus_10_percent_suffix}{minus_10_percent_suffix}{finer_binning_suffix}{smeared_lambda_suffix}.root', 'recreate')
 
     #for mode in ['', 'Matter', 'Antimatter']:
@@ -203,7 +204,7 @@ if __name__ == '__main__':
             centrality = name.replace(mode, '') if mode != '' else name
             #output_pdf = f'figures/fit_correlation_function_all_pass1_pass4_nclstpc_{name}.pdf'
             #output_pdf = f'figures/fit_correlation_function_hadronpid_pass1_pass4_nohe3pcut_offlinetpc_{name}{suffix_lambda}{suffix_strong}.pdf'
-            output_pdf = f'figures/fit_correlation_function_hadronpid_pass1_pass4_refined_dca_{name}{suffix_lambda}{suffix_strong}{systematics_suffix}{sigma_suffix}{smoothening_suffix}{rebinning_suffix}{plus_10_percent_suffix}{minus_10_percent_suffix}{finer_binning_suffix}{smeared_lambda_suffix}.pdf' 
+            output_pdf = f'figures/{INPUT_SUFFIX}/fit_correlation_function_hadronpid_{name}{suffix_lambda}{suffix_strong}{systematics_suffix}{sigma_suffix}{smoothening_suffix}{rebinning_suffix}{plus_10_percent_suffix}{minus_10_percent_suffix}{finer_binning_suffix}{smeared_lambda_suffix}.pdf' 
             #output_pdf = f'figures/fit_correlation_function_23_24_25{name}{suffix_lambda}{suffix_strong}{systematics_suffix}{sigma_suffix}{smoothening_suffix}{rebinning_suffix}{plus_10_percent_suffix}{minus_10_percent_suffix}{finer_binning_suffix}{smeared_lambda_suffix}.pdf' 
 
             fitting_routine(outdir, bkg_input_path=bkg_input_path, data_input_path=data_input, mixed_event_input_path=mixed_event_input_path, 

@@ -1,7 +1,7 @@
 from ROOT import TFile, TCanvas, TPad, TH1F, TLine, TLatex, gStyle, TColor
 from torchic.utils.root import set_root_object
 from torchic.core.histogram import load_hist
-from torchic.utils.colors import COLORS
+from torchic.utils.colors import get_color
 
 def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:str, centrality:str):
 
@@ -45,7 +45,7 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
                     n_priors += 1
             canvas_primitives_dict[f'{primitive.GetName()};{n_priors}'] = primitive
         
-    hframe_upper = upper_canvas.DrawFrame(x_limits[0], 0., x_limits[1], ymax, f';;#it{{C}}(#it{{k}}*)')
+    hframe_upper = upper_canvas.DrawFrame(x_limits[0], 0., x_limits[1], ymax*1.3, f';;#it{{C}}(#it{{k}}*)')
     hframe_upper.GetYaxis().SetTitleSize(0.05)
     #hframe_upper.GetXaxis().SetLabelSize(0.045)
     hframe_upper.GetYaxis().SetLabelSize(0.045)
@@ -68,17 +68,17 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
             continue # save for last
 
         if 'signal_pdf' in name:
-            set_root_object(primitive, line_color=COLORS[2])
+            set_root_object(primitive, line_color=get_color(0))
             #continue
 
         #if 'model' in name:
         #    continue
         
         if 'TPave' in name:  # legend
-            primitive.SetX1(0.25)
+            primitive.SetX1(0.32)
             primitive.SetX2(0.75)
-            primitive.SetY1(0.2)
-            primitive.SetY2(0.4)
+            primitive.SetY1(0.15)
+            primitive.SetY2(0.35)
             primitive.SetMargin(0.1)
             correlation_names = [_name for _name in canvas_primitives_dict.keys() if 'hCorrelation' in _name]
             #primitive.AddEntry(canvas_primitives_dict[correlation_names[0]], sign_label, 'p')
@@ -91,17 +91,17 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
     h_systematics.SetFillColorAlpha(1, 0.3)
     h_systematics.SetLineColor(1)
     h_systematics.SetMarkerColor(1)  
-    h_systematics.Draw('e2 same')
+    #h_systematics.Draw('e2 same')
         
     latex = TLatex()
     latex.SetNDC()
     latex.SetTextSize(0.045)
     latex.SetTextFont(42)
-    latex.DrawLatex(0.28, 0.56, f'ALICE Preliminary')
+    latex.DrawLatex(0.32, 0.8, f'ALICE Preliminary')
     centrality_label = f'{centrality[:1]}#minus{centrality[1:]}' if len(centrality) < 4 else f'{centrality[:2]}#minus{centrality[2:]}'
-    latex.DrawLatex(0.28, 0.5, f'Pb#minusPb #sqrt{{#it{{s}}_{{NN}}}} = 5.36 TeV')
-    #latex.DrawLatex(0.28, 0.26, f'{sign_label}')
-    latex.DrawLatex(0.28, 0.44, f'FT0C Centrality: {centrality_label}%')
+    latex.DrawLatex(0.32, 0.74, f'Pb#minusPb #sqrt{{#it{{s}}_{{NN}}}} = 5.36 TeV')
+    #latex.DrawLatex(0.32, 0.26, f'{sign_label}')
+    latex.DrawLatex(0.32, 0.68, f'FT0C Centrality: {centrality_label}%')
 
     canvas.cd()
     lower_pad = TPad('lower_pad', '', 0, 0., 1, y_portion + 0.024)
@@ -110,9 +110,9 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
     lower_pad.Draw()
 
     h_nsigma = file.Get('model/nsigma')
-    set_root_object(h_nsigma, marker_color=TColor.GetColor('#0000a2'), marker_style=20, marker_size=1.7)
+    set_root_object(h_nsigma, marker_color=get_color(0), marker_style=20, marker_size=1.7)
     h_nsigma_model = file.Get('model/nsigma_model')
-    set_root_object(h_nsigma_model, marker_color=TColor.GetColor('#bc272d'), marker_style=20, marker_size=1.7)
+    set_root_object(h_nsigma_model, marker_color=get_color(2), marker_style=20, marker_size=1.7)
 
     x_step = h_nsigma.GetBinWidth(1)
     nbins = int((x_limits[1] - x_limits[0])/x_step)
