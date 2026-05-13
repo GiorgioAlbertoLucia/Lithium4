@@ -24,7 +24,7 @@ def parametrise_resolution(h2_res, xmin, xmax, ymin, ymax, output_file: TDirecto
         pars['mean'].setRange(ymin, ymax)
         pars['sigma'].setRange(0.0001, 0.5)
         pars['mean'].setVal(0.05)
-        pars['sigma'].setVal(0.1)
+        pars['sigma'].setVal(0.2)
         pars['mean'].setConstant(False)
         pars['sigma'].setConstant(False)
     
@@ -67,15 +67,15 @@ def parametrise_resolution(h2_res, xmin, xmax, ymin, ymax, output_file: TDirecto
     # fit_res.SetParameter(0, 0.1)
     # fit_res.SetParameter(1, 1.9)
     # fit_res.SetParameter(2, 0.1)
-    # fit_res = TF1('fit_res', '[0] + [1] * x + [2] * x^2', xmin_fit, xmax_fit)
-    fit_res = TF1('fit_res', '[0] + [1] * x', xmin_fit, xmax_fit)
+    fit_res = TF1('fit_res', '[0] + [1] * x + [2] * x^2', xmin_fit, xmax_fit)
+    #fit_res = TF1('fit_res', '[0] + [1] * x', xmin_fit, xmax_fit)
     fit_res.SetParameter(0, 0.1)
     fit_res.SetParameter(1, -1.)
     # fit_res.SetParameter(2, 0.1)
     graph_mean.Fit(fit_res, 'RMS+')
 
-    # fit_res_results = [fit_res.GetParameter(i) for i in range(3)]
-    fit_res_results = [fit_res.GetParameter(i) for i in range(2)]
+    fit_res_results = [fit_res.GetParameter(i) for i in range(3)]
+    #fit_res_results = [fit_res.GetParameter(i) for i in range(2)]
 
     output_file.cd()
     graph_mean.Write()
@@ -120,8 +120,10 @@ def main(input_file_path, output_file_path):
 
     h_pt = dataset.build_th1('fPtHe3', axis_spec_pt)
     h_gpt = dataset.build_th1('fPtMCHe3', axis_spec_gpt)
-    h2_res = dataset.build_th2('fPtHe3', 'fPtRes', axis_spec_pt, AxisSpec(100, -0.5, 0.5, 'fPtRes', ';#it{p}_{T}^{rec} (GeV/#it{c});(#it{p}_{T}^{rec} - #it{p}_{T}^{gen}) / #it{p}_{T}^{rec}'))
-    h2_resh3 = dataset.build_th2('fPtHe3', 'fPtRes', axis_spec_pt, AxisSpec(100, -0.5, 0.5, 'fPtResH3', ';#it{p}_{T}^{rec} (GeV/#it{c});(#it{p}_{T}^{rec} - #it{p}_{T}^{gen}) / #it{p}_{T}^{rec}'), subset='H3')
+    h2_res = dataset.build_th2('fPtHe3', 'fPtRes', axis_spec_pt, AxisSpec(100, -0.5, 0.5, 'fPtRes', ';#it{p}_{T}^{rec} (GeV/#it{c});(#it{p}_{T}^{rec} - #it{p}_{T}^{gen}) / #it{p}_{T}^{rec}'),
+                                 title=';#it{p}_{T}^{rec} (GeV/#it{c});(#it{p}_{T}^{rec} - #it{p}_{T}^{gen}) / #it{p}_{T}^{rec}')
+    h2_resh3 = dataset.build_th2('fPtHe3', 'fPtRes', axis_spec_pt, AxisSpec(100, -0.5, 0.5, 'fPtResH3', ';#it{p}_{T}^{rec} (GeV/#it{c});(#it{p}_{T}^{rec} - #it{p}_{T}^{gen}) / #it{p}_{T}^{rec}'), subset='H3',
+                                 title=';#it{p}_{T}^{rec} (GeV/#it{c});(#it{p}_{T}^{rec} - #it{p}_{T}^{gen}) / #it{p}_{T}^{rec}')
     h2_reshe4 = dataset.build_th2('fPtHe3', 'fPtRes', axis_spec_pt, AxisSpec(100, -0.5, 0.5, 'fPtResHe4', ';#it{p}_{T}^{rec} (GeV/#it{c});(#it{p}_{T}^{rec} - #it{p}_{T}^{gen}) / #it{p}_{T}^{rec}'), subset='He4')
     
     axis_spec_p = AxisSpec(100, 0., 10., 'fPHe3', ';#it{p}^{rec} (GeV/#it{c})')
@@ -129,8 +131,10 @@ def main(input_file_path, output_file_path):
 
     h_p = dataset.build_th1('fPHe3', axis_spec_p)
     h_gp = dataset.build_th1('fPMCHe3', axis_spec_gp)
-    h2_res_p = dataset.build_th2('fPHe3', 'fPRes', axis_spec_p, AxisSpec(100, -0.5, 0.5, 'fPRes', ';#it{p}^{rec} (GeV/#it{c});(#it{p}^{rec} - #it{p}^{gen}) / #it{p}^{rec}'))
-    h2_res_ph3 = dataset.build_th2('fPHe3', 'fPRes', axis_spec_p, AxisSpec(100, -0.5, 0.5, 'fPResH3', ';#it{p}^{rec} (GeV/#it{c});(#it{p}^{rec} - #it{p}^{gen}) / #it{p}^{rec}'), subset='H3')
+    h2_res_p = dataset.build_th2('fPHe3', 'fPRes', axis_spec_p, AxisSpec(100, -0.5, 0.5, 'fPRes', ';#it{p}^{rec} (GeV/#it{c});(#it{p}^{rec} - #it{p}^{gen}) / #it{p}^{rec}'),
+                                 title=';#it{p}^{rec} (GeV/#it{c});(#it{p}^{rec} - #it{p}^{gen}) / #it{p}^{rec}')
+    h2_res_ph3 = dataset.build_th2('fPHe3', 'fPRes', axis_spec_p, AxisSpec(100, -0.5, 0.5, 'fPResH3', ';#it{p}^{rec} (GeV/#it{c});(#it{p}^{rec} - #it{p}^{gen}) / #it{p}^{rec}'), subset='H3',
+                                   title=';#it{p}^{rec} (GeV/#it{c});(#it{p}^{rec} - #it{p}^{gen}) / #it{p}^{rec}')
 
     output_file = TFile.Open(output_file_path, 'recreate')
     output_dir_pt = output_file.mkdir('pt_resolution')
@@ -149,30 +153,35 @@ def main(input_file_path, output_file_path):
     h2_res_p.Write()
     h2_res_ph3.Write()
 
-    fit_res_results = parametrise_resolution(h2_resh3, 1.55, 2.2, -0.5, 0.5, output_dir_pt)
+    fit_res_results = parametrise_resolution(h2_resh3, 1.45, 2.3, -0.5, 0.5, output_dir_pt)
 
     # pol1 correction
-    dataset.loc[dataset['fPIDtrkHe3'] == 6, 'fPtHe3'] = dataset['fPtHe3'] - dataset['fPtHe3']*(fit_res_results[0] + fit_res_results[1] * dataset['fPtHe3'])
+    # dataset.loc[dataset['fPIDtrkHe3'] == 6, 'fPtHe3'] = dataset['fPtHe3'] - dataset['fPtHe3']*(fit_res_results[0] + fit_res_results[1] * dataset['fPtHe3'])
     # pol2 correction
-    # dataset.loc[dataset['fPidTracking'] == 6, 'fPt'] = dataset['fPt'] - dataset['fPt']*(fit_res_results[0] + fit_res_results[1] * dataset['fPt'] + fit_res_results[2] * dataset['fPt']**2)
+    dataset.loc[dataset['fPIDtrkHe3'] == 6, 'fPtHe3'] = dataset['fPtHe3'] - dataset['fPtHe3']*(fit_res_results[0] + fit_res_results[1] * dataset['fPtHe3'] + fit_res_results[2] * dataset['fPtHe3']**2)
     
     dataset['fPtDiff'] = dataset['fPtHe3'] - dataset['fPtMCHe3']
     dataset['fPtRes'] = dataset['fPtDiff'] / dataset['fPtHe3']
-    h2_res_corrected = dataset.build_th2('fPtHe3', 'fPtRes', axis_spec_pt, AxisSpec(100, -0.5, 0.5, 'fPtResCorrected', ';#it{p}_{T}^{rec} (GeV/#it{c});(#it{p}_{T}^{rec} - #it{p}_{T}^{gen}) / #it{p}_{T}^{rec}'))
-    h2_resh3_corrected = dataset.build_th2('fPtHe3', 'fPtRes', axis_spec_pt, AxisSpec(100, -0.5, 0.5, 'fPtResH3Corrected', ';#it{p}_{T}^{rec} (GeV/#it{c});(#it{p}_{T}^{rec} - #it{p}_{T}^{gen}) / #it{p}_{T}^{rec}'), subset='H3')
+    h2_res_corrected = dataset.build_th2('fPtHe3', 'fPtRes', axis_spec_pt, AxisSpec(100, -0.5, 0.5, 'fPtResCorrected', ';#it{p}_{T}^{rec} (GeV/#it{c});(#it{p}_{T}^{rec} - #it{p}_{T}^{gen}) / #it{p}_{T}^{rec}'),
+                                             title=';#it{p}_{T}^{rec} (GeV/#it{c});(#it{p}_{T}^{rec} - #it{p}_{T}^{gen}) / #it{p}_{T}^{rec}')
+    h2_resh3_corrected = dataset.build_th2('fPtHe3', 'fPtRes', axis_spec_pt, AxisSpec(100, -0.5, 0.5, 'fPtResH3Corrected', ';#it{p}_{T}^{rec} (GeV/#it{c});(#it{p}_{T}^{rec} - #it{p}_{T}^{gen}) / #it{p}_{T}^{rec}'), subset='H3',
+                                             title=';#it{p}_{T}^{rec} (GeV/#it{c});(#it{p}_{T}^{rec} - #it{p}_{T}^{gen}) / #it{p}_{T}^{rec}')
     
     output_dir_pt.cd()
     h2_res_corrected.Write()
     h2_resh3_corrected.Write()
     
-    fit_res_results_p = parametrise_resolution(h2_res_ph3, 1.55, 2.2, -0.5, 0.5, output_dir_p)
+    fit_res_results_p = parametrise_resolution(h2_res_ph3, 1.55, 2.5, -0.5, 0.5, output_dir_p)
 
-    dataset.loc[dataset['fPIDtrkHe3'] == 6, 'fPHe3'] = dataset['fPHe3'] - dataset['fPHe3'] * (fit_res_results_p[0] + fit_res_results_p[1] * dataset['fPHe3'])
+    # dataset.loc[dataset['fPIDtrkHe3'] == 6, 'fPHe3'] = dataset['fPHe3'] - dataset['fPHe3'] * (fit_res_results_p[0] + fit_res_results_p[1] * dataset['fPHe3'])
+    dataset.loc[dataset['fPIDtrkHe3'] == 6, 'fPHe3'] = dataset['fPHe3'] - dataset['fPHe3']*(fit_res_results_p[0] + fit_res_results_p[1] * dataset['fPHe3'] + fit_res_results_p[2] * dataset['fPHe3']**2)
 
     dataset['fPDiff'] = dataset['fPHe3'] - dataset['fPMCHe3']
     dataset['fPRes'] = dataset['fPDiff'] / dataset['fPHe3']
-    h2_res_p_corrected = dataset.build_th2('fPHe3', 'fPRes', axis_spec_p, AxisSpec(100, -0.5, 0.5, 'fPResCorrected', ';#it{p}^{rec} (GeV/#it{c});(#it{p}^{rec} - #it{p}^{gen}) / #it{p}^{rec}'))
-    h2_res_ph3_corrected = dataset.build_th2('fPHe3', 'fPRes', axis_spec_p, AxisSpec(100, -0.5, 0.5, 'fPResH3Corrected', ';#it{p}^{rec} (GeV/#it{c});(#it{p}^{rec} - #it{p}^{gen}) / #it{p}^{rec}'), subset='H3')
+    h2_res_p_corrected = dataset.build_th2('fPHe3', 'fPRes', axis_spec_p, AxisSpec(100, -0.5, 0.5, 'fPResCorrected', ';#it{p}^{rec} (GeV/#it{c});(#it{p}^{rec} - #it{p}^{gen}) / #it{p}^{rec}'),
+                                             title=';#it{p}^{rec} (GeV/#it{c});(#it{p}^{rec} - #it{p}^{gen}) / #it{p}^{rec}')
+    h2_res_ph3_corrected = dataset.build_th2('fPHe3', 'fPRes', axis_spec_p, AxisSpec(100, -0.5, 0.5, 'fPResH3Corrected', ';#it{p}^{rec} (GeV/#it{c});(#it{p}^{rec} - #it{p}^{gen}) / #it{p}^{rec}'), subset='H3',
+                                             title=';#it{p}^{rec} (GeV/#it{c});(#it{p}^{rec} - #it{p}^{gen}) / #it{p}^{rec}')
 
     output_dir_p.cd()
     h2_res_p_corrected.Write()
@@ -183,7 +192,7 @@ if __name__ == '__main__':
     #input_file_path = '/data/galucia/lithium_local/MC/LHC26c6.root'
     #output_file_path = 'output/he3_pid_trk_correction.root'
     
-    input_file_path = '/home/galucia/Lithium4/task/he3HadronFemto/AO2D_lit_mc.root'
+    input_file_path = '/data/galucia/lithium_local/MC/LHC25g11.root'
     output_file_path = 'output/he3_pid_trk_correction_LHC25g11.root'
     main(input_file_path, output_file_path)
     
