@@ -83,8 +83,8 @@ namespace parametrisation
     std::array<float, 3> kPrTOFParams = {0.9452, -0.0098, 0.0039};
     std::array<float, 2> kPrTOFResolutionParams = {-0.0069, 0.0289};
 
-    std::array<float, 2> kHePidTrkParamsPt = {0.1593, -0.0445};
-    std::array<float, 2> kHePidTrkParamsP = {0.1113, -0.0208};
+    std::array<float, 3> kHePidTrkParamsPt = {0.1593, -0.0445, 0};
+    std::array<float, 3> kHePidTrkParamsP = {0.1113, -0.0208, 0};
 
     /// Load parameters
 
@@ -133,10 +133,10 @@ namespace parametrisation
     void SetPrTOFResolutionParams(const float p0, const float p1) {
         kPrTOFResolutionParams = {p0, p1};
     }
-    void SetHePidTrkParamsPt(const float p0, const float p1) {
-        kHePidTrkParamsPt = {p0, p1};
+    void SetHePidTrkParamsPt(const float p0, const float p1, const float p2) {
+        kHePidTrkParamsPt = {p0, p1, p2};
     }
-    void SetHePidTrkParamsP(const float p0, const float p1) {
-        kHePidTrkParamsP = {p0, p1};
+    void SetHePidTrkParamsP(const float p0, const float p1, const float p2) {
+        kHePidTrkParamsP = {p0, p1, p2};
     }
 }

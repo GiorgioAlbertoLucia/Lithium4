@@ -46,7 +46,7 @@ def load_parametrisation(config: dict):
         'kPrTPCResolution':     ('SetPrTPCResolution',     1),
         'kPrTOFParams':         ('SetPrTOFParams',         3),
         'kPrTOFResolutionParams':('SetPrTOFResolutionParams',2),
-        'kHePidTrkParams':      ('SetHePidTrkParams',      2),
+        'kHePidTrkParams':      ('SetHePidTrkParams',      3),
     }
     for key, (setter, _) in scalar_setters.items():
         if key in params:

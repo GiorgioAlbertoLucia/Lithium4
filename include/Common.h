@@ -219,7 +219,7 @@ float ComputeNsigmaTOFPr(const float pt, const float tofMass) {
 
 float CorrectPidTrkHe(const float momentum, const bool isPt = true) {
     const auto& params = isPt ? parametrisation::kHePidTrkParamsPt : parametrisation::kHePidTrkParamsP;
-    return momentum * (1. - params[0] - params[1] * momentum);
+    return momentum * (1. - params[0] - params[1] * momentum - params[2] * momentum * momentum);
 }
 
 // ------------------------------------------- Femto ---------------------------------------------------
