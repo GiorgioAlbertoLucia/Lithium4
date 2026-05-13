@@ -1,6 +1,5 @@
 import sys
 import yaml
-from tqdm import tqdm
 import argparse
 
 import ROOT
@@ -35,58 +34,6 @@ def prepare_selections(selections):
         selection += (' && ' + sel)
 
     return base_selection, selection
-
-def find_bad_regions(tree, scan_branch):
-    ROOT.gErrorIgnoreLevel = ROOT.kFatal
-
-    branch = tree.GetBranch(scan_branch)
-    n_baskets = branch.GetWriteBasket()  # number of baskets written
-
-    bad_regions = []
-
-    print(f"  Scanning {n_baskets} baskets on branch '{scan_branch}'...")
-    for i in tqdm(range(n_baskets)):
-        basket = branch.GetBasket(i)
-        if basket is None or basket.GetNbytes() == 0:
-            # find the entry range for this basket
-            first_entry = branch.GetBasketEntry(i)
-            # last entry of this basket is first entry of next basket minus 1
-            if i + 1 < n_baskets:
-                last_entry = branch.GetBasketEntry(i + 1) - 1
-            else:
-                last_entry = tree.GetEntries() - 1
-            bad_regions.append((first_entry, last_entry))
-            print(f"  Bad basket {i}: entries [{first_entry}, {last_entry}]")
-
-    ROOT.gErrorIgnoreLevel = ROOT.kInfo
-    return bad_regions
-
-def find_bad_entries(tree, scan_branch):
-    n_total = tree.GetEntries()
-
-    bad_regions = []
-    if isinstance(scan_branch, list):
-        for branch_name in scan_branch:
-            bad_region = find_bad_regions(tree, branch_name)
-        bad_regions.extend(bad_region)
-    elif isinstance(scan_branch, str):
-        bad_regions = find_bad_regions(tree, scan_branch)
-
-    entry_list = ROOT.TEntryList("good_entries", "good_entries")
-    good_ranges = []
-    cursor = 0
-    for bad_start, bad_end in bad_regions:
-        if cursor < bad_start:
-            good_ranges.append((cursor, bad_start - 1))
-        cursor = bad_end + 1
-    if cursor < n_total:
-        good_ranges.append((cursor, n_total - 1))
-
-    for start, end in good_ranges:
-        for i in tqdm(range(start, end + 1)):
-            entry_list.Enter(i)
-
-    return entry_list
 
 def prepare_input_tchain(config:dict):
 
@@ -139,7 +86,9 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
         raise RuntimeError("Neither fNSigmaTPCHadPr nor fNSigmaTPCHad found in dataset!")
     
     # TOF
-    if  'fNSigmaTOFHad' not in rdf.GetColumnNames():
+    if 'fNSigmaTOFHadPr' in rdf.GetColumnNames() and 'fNSigmaTOFHad' in rdf.GetColumnNames():
+        rdf = rdf.Define('fNSigmaTOFHad', 'fNSigmaTOFHadPr')
+    elif 'fNSigmaTOFHad' not in rdf.GetColumnNames():
         #if 'fNSigmaTOFHadPr' not in rdf.GetColumnNames():
         #    rdf = rdf.Define('fNSigmaTOFHad', 'ComputeNsigmaTOFPr(std::abs(fPtHad), fMassTOFHad)')
         #else:
@@ -182,7 +131,7 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
       .Define('fPLi', 'sqrt(fPxLi*fPxLi + fPyLi*fPyLi + fPzLi*fPzLi)') \
       .Define('fPtLi', 'sqrt(fPxLi*fPxLi + fPyLi*fPyLi)') \
       .Define('fKt', 'fPtLi / 2') \
-      .Define('fMt', f'std::sqrt((fPtLi/4)*(fPtLi/4) + {ParticleMasses["Pr"]}*{ParticleMasses["Pr"]})') \
+      .Define('fMt', f'std::sqrt((fPtLi/4)*(fPtLi/4) + {ParticleMasses["Li"]}*{ParticleMasses["Li"]})') \
       .Define('fEtaLi', 'std::acosh(fPLi / fELi)') \
       .Define('fPhiLi', 'std::atan2(fPyLi, fPxLi)') \
       .Define('fSignedPtLi', 'fPtLi * fSignHe3') \

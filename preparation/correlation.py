@@ -6,18 +6,20 @@ NORM_LOW_KSTAR = 0.2 # 0.25
 NORM_HIGH_KSTAR = 0.4 # 0.8
 NBINS_KSTAR = 40 # 20
 
-def normalise_histograms_and_compute_correlation_no_centrality(infile_same, infile_mixed, outdir:TDirectory,
+def normalise_histograms_and_compute_correlation_no_centrality(infile_sames, infile_mixeds, outdir:TDirectory,
                                                  mode:str, rebin:int=1, suffix:str=''):
 
-    h_same = infile_same.Get(f'QA/hKstar{mode}')
+    h_same = infile_sames[0].Get(f'QA/hKstar{mode}').Clone(f'hSameEvent{suffix}')
     h_same.SetDirectory(0)  # Detach from file to avoid issues with deletion
-    h_same.SetName(f'hSameEvent{suffix}')
+    for infile_same in infile_sames[1:]:
+        h_same.Add(infile_same.Get(f'QA/hKstar{mode}'))
     if rebin > 1:
         h_same.Rebin(rebin)
 
-    h_mixed = infile_mixed.Get(f'QA/hKstar{mode}')
+    h_mixed = infile_mixeds[0].Get(f'QA/hKstar{mode}').Clone(f'hMixedEvent{suffix}')
     h_mixed.SetDirectory(0)  # Detach from file to avoid issues with deletion
-    h_mixed.SetName(f'hMixedEvent{suffix}')
+    for infile_mixed in infile_mixeds[1:]:
+        h_mixed.Add(infile_mixed.Get(f'QA/hKstar{mode}'))
     if rebin > 1:
         h_mixed.Rebin(rebin)
     h_normalised_mixed = h_mixed.Clone(f'hNormalisedMixedEvent{suffix}')
@@ -40,18 +42,20 @@ def normalise_histograms_and_compute_correlation_no_centrality(infile_same, infi
 
     return h_same, h_mixed, h_normalised_mixed, h_corr
 
-def normalise_histograms_and_compute_correlation(infile_same, infile_mixed, outdir:TDirectory,
+def normalise_histograms_and_compute_correlation(infile_sames, infile_mixeds, outdir:TDirectory,
                                                  mode:str, centrality:str, rebin:int=1, suffix:str=''):
 
-    h_same = infile_same.Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}')
+    h_same = infile_sames[0].Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}').Clone(f'hSameEvent{centrality}{suffix}')
     h_same.SetDirectory(0)  # Detach from file to avoid issues with deletion
-    h_same.SetName(f'hSameEvent{centrality}{suffix}')
+    for infile_same in infile_sames[1:]:
+        h_same.Add(infile_same.Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}'))
     if rebin > 1:
         h_same.Rebin(rebin)
 
-    h_mixed = infile_mixed.Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}')
+    h_mixed = infile_mixeds[0].Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}').Clone(f'hMixedEvent{centrality}{suffix}')
     h_mixed.SetDirectory(0)  # Detach from file to avoid issues with deletion
-    h_mixed.SetName(f'hMixedEvent{centrality}{suffix}')
+    for infile_mixed in infile_mixeds[1:]:
+        h_mixed.Add(infile_mixed.Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}'))
     if rebin > 1:
         h_mixed.Rebin(rebin)
     h_normalised_mixed = h_mixed.Clone(f'hNormalisedMixedEvent{centrality}{suffix}')
@@ -186,12 +190,26 @@ if __name__ == '__main__':
     #infile_mixed_path = 'output/mixed_event.root'
     #outfile_path = 'output/correlation.root'
 
-    infile_same_path = 'output/pp/LHC24_pass1_skimmed_hadronpid_same.root'
-    infile_mixed_path = 'output/pp/LHC24_pass1_skimmed_hadronpid_event_mixing.root'
-    outfile_path = 'output/pp/correlation_LHC24_pass1_skimmed_hadronpid.root'
+    infile_same_paths = [
+        'output/PbPb/LHC23_PbPb_pass5_hadronpid_same.root',
+        'output/PbPb/LHC24ar_pass3_hadronpid_same.root',
+        'output/PbPb/LHC25_PbPb_pass1_hadronpid_same.root',
+        ]
+    infile_mixed_paths = [
+        'output/PbPb/LHC23_PbPb_pass5_hadronpid_event_mixing.root',
+        'output/PbPb/LHC24ar_pass3_hadronpid_event_mixing.root',
+        'output/PbPb/LHC25_PbPb_pass1_hadronpid_event_mixing.root',
+        ]
+    outfile_path = (
+        #'output/PbPb/correlation_LHC23_PbPb_pass5_hadronpid.root'
+        #'output/PbPb/correlation_LHC24ar_pass3_hadronpid.root' 
+        #'output/PbPb/correlation_LHC25_PbPb_pass1_hadronpid.root'
+        'output/PbPb/correlation_PbPb_hadronpid.root'
+        #'output/PbPb/correlation_LHC23_PbPb_pass5_LHC24ar_pass3_hadronpid.root'
+        )
 
-    infile_same = TFile.Open(infile_same_path)
-    infile_mixed = TFile.Open(infile_mixed_path)
+    infile_sames = [TFile.Open(infile_same_path) for infile_same_path in infile_same_paths]
+    infile_mixeds = [TFile.Open(infile_mixed_path) for infile_mixed_path in infile_mixed_paths]
     outfile = TFile.Open(outfile_path, 'RECREATE')   
 
     for mode in ['', 'Matter', 'Antimatter']:
@@ -200,9 +218,9 @@ if __name__ == '__main__':
 
         h_sames, h_mixeds, h_normalised_mixeds, h_corrs = [], [], [], []
 
-        normalise_histograms_and_compute_correlation_no_centrality(infile_same, infile_mixed, outdir, mode, rebin=2)
+        normalise_histograms_and_compute_correlation_no_centrality(infile_sames, infile_mixeds, outdir, mode, rebin=2)
         
-        if True:
+        if False:
             continue
             
         for suffix in ['', 'SharedUnder50', 'SharedUnder40', 'SharedUnder30', 'PLi2', 'PLi3', 'PLi4', 'PLi5',
@@ -215,7 +233,7 @@ if __name__ == '__main__':
             for centrality in ['010', '1030', '3050']:
 
                 h_same, h_mixed, h_normalised_mixed, h_corr = normalise_histograms_and_compute_correlation(
-                                                                    infile_same, infile_mixed, outdir_suffix, 
+                                                                    infile_sames, infile_mixeds, outdir_suffix, 
                                                                     mode, centrality, rebin=2, suffix=suffix)
                 #if suffix == '':
                 fit_normalisation_region(h_corr, outdir_suffix, mode, centrality, suffix)
