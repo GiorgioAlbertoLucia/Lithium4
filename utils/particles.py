@@ -10,6 +10,7 @@ ParticleMasses = {
     'Pr':   0.938272081,
     'De':   1.875613,
     'He':   2.80839160743,
+    'Li':   3.75073,
 }
 
 ParticlePDG = {
