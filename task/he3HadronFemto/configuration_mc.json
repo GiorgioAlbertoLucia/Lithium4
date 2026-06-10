@@ -448,92 +448,78 @@
         "mc_findableMode":"0"
         },
     "he3-hadron-femto": {
-        "settingEventSelections": {
-            "labels_rows": [
-                "TVX",
-                "Z vtx",
-                "TF border",
-                "ITS ROF border",
-                "No same-bunch pile-up",
-                "kIsGoodZvtxFT0vsPV",
-                "isGoodITSLayersAll",
-                "isEPtriggered"
-            ],
-            "labels_cols": [
-                "Event selections"
-            ],
+        "settingIsMC": "0",
+        "settingHePidTrkPtParams": {
             "values": [
                 [
-                    "1"
-                ],
-                [
-                    "1"
-                ],
-                [
-                    "1"
-                ],
-                [
-                    "1"
-                ],
-                [
-                    "0"
-                ],
-                [
-                    "0"
-                ],
-                [
-                    "0"
-                ],
-                [
-                    "0"
+                    0.0,
+                    0.0,
+                    0.0
                 ]
             ]
         },
         "settingHadPDGCode": "2212",
-        "settingCutVertex": "10",
-        "settingCutRigidityMinHe3": "0.",
-        "settingCutEta": "0.9",
-        "settingCutDCAxy": "0.02",
-        "settingCutDCAz": "0.02",
-        "settingCutChi2tpcLow": "0.5",
-        "settingCutInvMass": "0",
-        "settingCutPtMinhe3Had": "0",
-        "settingCutClSizeItsHe3": "4",
-        "settingCutNCls": "5",
-        "settingCutChi2NClITS": "36",
-        "settingCutNsigmaTPC": "3",
-        "settingCutNsigmaITS": "-1.5",
-        "settingCutPtMinTOFHad": "0.400000006",
-        "settingCutNsigmaTOF": "3",
-        "settingNoMixedEvents": "5",
-        "settingEnableBkgUS": "false",
-        "settingEnableDCAfitter": "false",
-        "settingSaveUSandLS": "false",
-        "settingIsMC": "true",
-        "settingFillMultiplicity": "false",
-        "settingFillPrimariesAndMixedMc": "false",
-        "settingSkimmedProcessing": "false",
-        "settingSkipAmbiTracks": "false",
-        "settingCustomVertexerTimeMargin": "800",
+        "settingFillMultiplicity": "1",
+        "cutSettings.settingCutClSizeItsHe3": "4",
+        "cutSettings.settingCutDCAxy": "2",
+        "settingSkimmedProcessing": "0",
         "settingDbz": "-999",
-        "settingCcdburl": "http:\/\/alice-ccdb.cern.ch",
-        "settingGrpPath": "GLO\/GRP\/GRP",
-        "settingGrpmagPath": "GLO\/Config\/GRPMagField",
-        "settingLutPath": "GLO\/Param\/MatLUT",
-        "settingGeoPath": "GLO\/Config\/GeometryAligned",
-        "settingPidPath": "",
+        "axisVertex": {
+            "values": [
+                30,
+                -10,
+                10
+            ]
+        },
+        "settingCcdburl": "http://alice-ccdb.cern.ch",
+        "settingGrpmagPath": "GLO/Config/GRPMagField",
+        "settingFillPrimariesMc": "1",
+        "settingFillLi4DaughtersMc": "0",
+        "settingFillMixedMc": "0",
+        "settingEventSelections": {
+            "values": [
+                [
+                    1
+                ],
+                [
+                    1
+                ],
+                [
+                    1
+                ],
+                [
+                    1
+                ],
+                [
+                    0
+                ],
+                [
+                    0
+                ],
+                [
+                    0
+                ],
+                [
+                    0
+                ]
+            ]
+        },
+        "cutSettings.settingCutInvMass": "0",
+        "cutSettings.settingCutNsigmaTOF": "3",
+        "cutSettings.settingCutNsigmaITSHad": "-2",
+        "settingCustomVertexerTimeMargin": "800",
+        "settingHePidTrkPParams": {
+            "values": [
+                [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            ]
+        },
+        "cutSettings.settingCutNsigmaDcaXy": "3",
+        "cutSettings.settingCutPtMinTOFHad": "0.4",
         "settingBetheBlochParams": {
-            "labels_rows": [
-                "He3"
-            ],
-            "labels_cols": [
-                "p0",
-                "p1",
-                "p2",
-                "p3",
-                "p4",
-                "resolution"
-            ],
             "values": [
                 [
                     -162.83, -0.4007, 1.1513, 0.9589, 2.7651,
@@ -541,28 +527,108 @@
                 ]
             ]
         },
-        "settingCompensatePIDinTracking": "false",
+        "settingGeoPath": "GLO/Config/GeometryAligned",
+        "settingCompensatePIDinTracking": "0",
+        "processMixedEvent": "0",
+        "processSameEvent": "0",
+        "settingPidPath": "",
+        "cutSettings.settingCutVertex": "10",
+        "cutSettings.settingCutChi2NClITS": "36",
+        "cutSettings.settingCutNClsTPC": "90",
+        "cutSettings.settingCutNClsTPCHe3": "110",
+        "cutSettings.settingCutChi2tpcLow": "0",
+        "cutSettings.settingCutNsigmaDcaZ": "3",
+        "cutSettings.settingCutRigidityMinHe3": "0.8",
         "settingMaterialCorrection": "0",
-        "axisVertex": {
+        "settingDCAxyResParams": {
             "values": [
-                "30",
-                "-10",
-                "10"
+                [
+                    0.000109,
+                    0.0011,
+                    0.0065,
+                    1.0399
+                ],
+                [
+                    0.0000819,
+                    0.004,
+                    0.0026,
+                    1.1741
+                ]
+            ]
+        },
+        "settingDCAzResParams": {
+            "values": [
+                [
+                    0.0000936,
+                    0.0019,
+                    0.008,
+                    1.416
+                ],
+                [
+                    0.000118,
+                    0.002,
+                    0.0025,
+                    1.346
+                ]
+            ]
+        },
+        "cutSettings.settingCutPtMinhe3Had": "0",
+        "cutSettings.settingCutDCAz": "2",
+        "settingEnableBkgUS": "0",
+        "settingEnableDCAfitter": "0",
+        "processPurityMc": "0",
+        "settingFillQa": "0",
+        "cutSettings.settingCutEta": "0.9",
+        "settingSkipAmbiTracks": "0",
+        "cutSettings.settingCutNsigmaITSHe3": "-1.5",
+        "processPurity": "0",
+        "cutSettings.settingCutNsigmaTPC": "3",
+        "settingBetheBlochCorrectionParams": {
+            "values": [
+                [
+                    0.0,
+                    0.6556,
+                    0.0807,
+                    0.0,
+                    0.9746,
+                    0.1368
+                ]
+            ]
+        },
+        "settingItsParams": {
+            "values": [
+                [
+                    2.5734,
+                    1.362,
+                    5.1383,
+                    0.1124,
+                    -0.01,
+                    0
+                ],
+                [
+                    1.0228,
+                    1.9634,
+                    2.2081,
+                    0.1575,
+                    0,
+                    0
+                ]
             ]
         },
         "axisCentrality": {
             "values": [
-                "40",
-                "0",
-                "100"
+                40,
+                0,
+                100
             ]
         },
-        "processSameEvent": "false",
-        "processMixedEvent": "false",
-        "processMC": "true",
-        "processSameEventPools": "false",
-        "processMcPools": "false",
-        "processPurity": "false"
+        "cutSettings.settingCutNCls": "5",
+        "processMC": "1",
+        "settingNoMixedEvents": "5",
+        "settingSaveUSandLS": "0",
+        "cutSettings.settingCutChi2tpcLowHe3": "0.5",
+        "settingGrpPath": "GLO/GRP/GRP",
+        "settingLutPath": "GLO/Param/MatLUT"
     },
     "internal-dpl-aod-writer": "",
     "internal-dpl-aod-global-analysis-file-sink": "",

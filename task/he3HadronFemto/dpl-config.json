@@ -733,11 +733,16 @@
             ]
         },
         "autoConfigureProcess": "false",
+        "doNTrackStudies": "true",
         "doVertexZeq": "1",
         "minPtGlobalTrack": "0.150000006",
         "maxPtGlobalTrack": "1e+10",
         "minNclsITSGlobalTrack": "5",
         "minNclsITSibGlobalTrack": "1",
+        "minNclsMFTTrack": "5",
+        "maxDCAxyToPVMFTTrack": "2",
+        "minEtaMFTTrack": "-3.9000001",
+        "maxEtaMFTTrack": "-2",
         "ccdbPathVtxZ": "Centrality\/Calibration",
         "ccdbPathCentrality": "Centrality\/Estimators",
         "reconstructionPass": "",
@@ -829,27 +834,29 @@
     },
     "he3-hadron-femto": {
         "settingHadPDGCode": "2212",
-        "settingCutVertex": "10",
-        "settingCutRigidityMinHe3": "0",
-        "settingCutEta": "0.899999976",
-        "settingCutDCAxy": "0.0199999996",
-        "settingCutDCAz": "0.0199999996",
-        "settingCutNClsTPC": "90",
-        "settingCutNClsTPCHe3": "110",
-        "settingCutChi2tpcLow": "0.5",
-        "settingCutChi2tpcLowHe3": "0.5",
-        "settingCutInvMass": "0",
-        "settingCutPtMinhe3Had": "0",
-        "settingCutClSizeItsHe3": "4",
-        "settingCutNCls": "5",
-        "settingCutChi2NClITS": "36",
-        "settingCutNsigmaDcaXy": "3",
-        "settingCutNsigmaDcaZ": "3",
-        "settingCutNsigmaTPC": "3",
-        "settingCutNsigmaITSHad": "-2",
-        "settingCutNsigmaITSHe3": "-1.5",
-        "settingCutPtMinTOFHad": "0.400000006",
-        "settingCutNsigmaTOF": "3",
+        "cutSettings": {
+            "settingCutVertex": "10",
+            "settingCutRigidityMinHe3": "0.800000012",
+            "settingCutEta": "0.899999976",
+            "settingCutDCAxy": "2",
+            "settingCutDCAz": "2",
+            "settingCutNClsTPC": "90",
+            "settingCutNClsTPCHe3": "110",
+            "settingCutChi2tpcLow": "0",
+            "settingCutChi2tpcLowHe3": "0.5",
+            "settingCutInvMass": "0",
+            "settingCutPtMinhe3Had": "0",
+            "settingCutClSizeItsHe3": "4",
+            "settingCutNCls": "5",
+            "settingCutChi2NClITS": "36",
+            "settingCutNsigmaDcaXy": "3",
+            "settingCutNsigmaDcaZ": "3",
+            "settingCutNsigmaTPC": "3",
+            "settingCutNsigmaITSHad": "-2",
+            "settingCutNsigmaITSHe3": "-1.5",
+            "settingCutPtMinTOFHad": "0.400000006",
+            "settingCutNsigmaTOF": "3"
+        },
         "settingEventSelections": {
             "labels_rows": [
                 "TVX",
@@ -895,10 +902,12 @@
         "settingEnableBkgUS": "false",
         "settingEnableDCAfitter": "false",
         "settingSaveUSandLS": "false",
-        "settingIsMC": "true",
-        "settingFillMultiplicity": "false",
+        "settingIsMC": "false",
+        "settingFillMultiplicity": "true",
         "settingFillQa": "false",
-        "settingFillPrimariesAndMixedMc": "false",
+        "settingFillPrimariesMc": "true",
+        "settingFillLi4DaughtersMc": "false",
+        "settingFillMixedMc": "false",
         "settingSkimmedProcessing": "false",
         "settingSkipAmbiTracks": "false",
         "settingCustomVertexerTimeMargin": "800",
@@ -923,12 +932,153 @@
             ],
             "values": [
                 [
-                    "-162.83",
+                    "-162.83000000000001",
                     "-0.4007",
                     "1.1513",
-                    "0.9589",
-                    "2.7651",
-                    "0.061"
+                    "0.95889999999999997",
+                    "2.7650999999999999",
+                    "0.060999999999999999"
+                ]
+            ]
+        },
+        "settingBetheBlochCorrectionParams": {
+            "labels_rows": [
+                "He3"
+            ],
+            "labels_cols": [
+                "p0",
+                "p1",
+                "p2",
+                "p3",
+                "p4",
+                "p5"
+            ],
+            "values": [
+                [
+                    "0",
+                    "0.65559999999999996",
+                    "0.080699999999999994",
+                    "0",
+                    "0.97460000000000002",
+                    "0.1368"
+                ]
+            ]
+        },
+        "settingItsParams": {
+            "labels_rows": [
+                "He3",
+                "Had"
+            ],
+            "labels_cols": [
+                "p0",
+                "p1",
+                "p2",
+                "res0",
+                "res1",
+                "res2"
+            ],
+            "values": [
+                [
+                    "2.5733999999999999",
+                    "1.3620000000000001",
+                    "5.1383000000000001",
+                    "0.1124",
+                    "-0.01",
+                    "0"
+                ],
+                [
+                    "1.0227999999999999",
+                    "1.9634",
+                    "2.2081",
+                    "0.1575",
+                    "0",
+                    "0"
+                ]
+            ]
+        },
+        "settingDCAxyResParams": {
+            "labels_rows": [
+                "He3",
+                "Had"
+            ],
+            "labels_cols": [
+                "res0",
+                "res1",
+                "res2",
+                "mean"
+            ],
+            "values": [
+                [
+                    "0.00010900000000000001",
+                    "0.0011000000000000001",
+                    "0.0064999999999999997",
+                    "1.0399"
+                ],
+                [
+                    "8.1899999999999999e-05",
+                    "0.0040000000000000001",
+                    "0.0025999999999999999",
+                    "1.1740999999999999"
+                ]
+            ]
+        },
+        "settingDCAzResParams": {
+            "labels_rows": [
+                "He3",
+                "Had"
+            ],
+            "labels_cols": [
+                "res0",
+                "res1",
+                "res2",
+                "mean"
+            ],
+            "values": [
+                [
+                    "9.3599999999999998e-05",
+                    "0.0019",
+                    "0.0080000000000000002",
+                    "1.4159999999999999"
+                ],
+                [
+                    "0.000118",
+                    "0.002",
+                    "0.0025000000000000001",
+                    "1.3460000000000001"
+                ]
+            ]
+        },
+        "settingHePidTrkPtParams": {
+            "labels_rows": [
+                "He3"
+            ],
+            "labels_cols": [
+                "p0",
+                "p1",
+                "p2"
+            ],
+            "values": [
+                [
+                    "0",
+                    "0",
+                    "0"
+                ]
+            ]
+        },
+        "settingHePidTrkPParams": {
+            "labels_rows": [
+                "He3"
+            ],
+            "labels_cols": [
+                "p0",
+                "p1",
+                "p2"
+            ],
+            "values": [
+                [
+                    "0",
+                    "0",
+                    "0"
                 ]
             ]
         },
@@ -951,8 +1101,6 @@
         "processSameEvent": "false",
         "processMixedEvent": "false",
         "processMC": "true",
-        "processSameEventPools": "false",
-        "processMcPools": "false",
         "processPurity": "false",
         "processPurityMc": "false"
     },

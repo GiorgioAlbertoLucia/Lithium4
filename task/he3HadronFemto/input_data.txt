@@ -1,2 +1,8 @@
-/data/galucia/nucleiQC/LHC25g11/AOD_008.root  
-/data/galucia/nucleiQC/LHC25g11/AOD_190.root
+file:/data/galucia/lithium/raw/LHC25g11/113_AO2D.root
+file:/data/galucia/lithium/raw/LHC25g11/191_AO2D.root
+file:/data/galucia/lithium/raw/LHC25g11/242_AO2D.root
+file:/data/galucia/lithium/raw/LHC25g11/192_AO2D.root
+file:/data/galucia/lithium/raw/LHC25g11/112_AO2D.root
+file:/data/galucia/lithium/raw/LHC25g11/008_AO2D.root
+file:/data/galucia/lithium/raw/LHC25g11/111_AO2D.root
+file:/data/galucia/lithium/raw/LHC25g11/190_AO2D.root

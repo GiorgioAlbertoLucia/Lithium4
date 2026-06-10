@@ -1,4 +1,6 @@
-input_data:   ['/data/galucia/lithium_local/MC/LHC25g11.root',
+input_data:   [
+                '/data/galucia/lithium/MC/LHC25g11.root',
+                #'/data/galucia/QA/LHC26c6/AO2D.root',
                 ]
 tree_names:   ['O2he3hadtable', 'O2he3hadtablemc', 'O2he3hadmult']
 mode:         'DF'
@@ -16,24 +18,23 @@ selections:     [
                  '(fNClsTPCHe3 > 110)',
                  
                  '((fPtHe3 < 2.5) || (fPIDtrkHe3 == 7))',
-                 '((fPIDtrkHe3 == 6) || (fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8))',
                  #'((fPIDtrkHe3 == 7))',
-                 '((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 2.))',
-                 '(std::abs(fNSigmaDCAxyHe3) < 3)',
-                 '(std::abs(fNSigmaDCAzHe3) < 3)',
+                 '((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 3.))',
+                 '(std::abs(fNSigmaDCAxyHe3) < 5)',
+                 '(std::abs(fNSigmaDCAzHe3) < 5)',
                  #'(fClusterSizeCosLamHe3 > 4)',
                  '(fNSigmaITSHe3 > -1.5)',
                  #'(fMassTOFHe3 > 2 || fMassTOFHe3 < 0)',
 
                  '(std::abs(fNSigmaTPCHad) < 2)',
                  #'(std::abs(fNSigmaTPCHadPr) < 2)',
-                 #'((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2))',  # TOF hard cut
-                 '((std::abs(fPtHad) < 0.8) || (fNSigmaTOFHad > -99.))', # TOF hit
+                 '((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2))',  # TOF hard cut
+                 #'((std::abs(fPtHad) < 0.8) || (fNSigmaTOFHad > -99.))', # TOF hit
                  #'((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2) || (fNSigmaTOFHad < -9.9))', # TOF veto
                  ##'(fNSigmaITSHad > -2.)', ## ITS pid not implemented in mc
                  '(fNSigmaITSHad > -2.)',
-                 '(std::abs(fNSigmaDCAxyHad) < 3)',
-                 '(std::abs(fNSigmaDCAzHad) < 3)',
+                 '(std::abs(fNSigmaDCAxyHad) < 5)',
+                 '(std::abs(fNSigmaDCAzHad) < 5)',
                 ]
 
 parameterisation: {
@@ -61,9 +62,9 @@ parameterisation: {
     ### kHeTPCParamsResiduals: [29.733, 0.6556, 0.0807, -11.574, 0.9746, 0.1368],
 
     # PbPb MC 25g11
-    kHeTPCParamsMC: [-302.441, 0.3949, 1.3444, 1.1672, 2.4508],
-    kHeTPCResolutionMC: 0.049,
-    kHeTPCParamsResiduals: [117.291, 0.5298, 0.0829, -11.7343, 0.8000, 0.2164],
+    kHeTPCParamsMC: [-290.16, 0.12445, 1.0868, 0.5000, 3.0244],
+    kHeTPCResolutionMC: 0.05,
+    kHeTPCParamsResidualsMC: [188.58, 0.3435, 0.0994, -30.418, 0.6842, 0.2525],
 
     kPrTPCParams: [-13.9261, -2.4156, 0.9469, 1.2628, 3.4574],
     kPrTPCResolution: 0.076,
@@ -88,6 +89,7 @@ parameterisation: {
     kPrTOFParams: [0.9452, -0.0098, 0.0039],
     kPrTOFResolutionParams: [-0.0069, 0.0289],
 
-    kHePidTrkParamsPt: [0.1593, -0.0445],
-    kHePidTrkParamsP: [0.1113, -0.0208],
+    kHePidTrkParamsPt: [0.3101, -0.1759, 0.0262],
+    #kHePidTrkParamsP: [1.1157, -0.9171, 0.1987],
+    kHePidTrkParamsP: [0., -0., 0.],
 }
