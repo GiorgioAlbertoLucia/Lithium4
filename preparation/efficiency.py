@@ -101,11 +101,11 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
         .Define('fSignHe3', 'fPtMCHe3/std::abs(fPtMCHe3)') \
         .Define('fPtLiMC', 'std::abs(fSignedPtMC)') \
       
-      #.Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
       
     rdf_rec = rdf.Define('fSignedPtHad', 'fPtHad') \
       .Define('fSignHe3', 'fPtHe3/std::abs(fPtHe3)') \
       .Redefine('fPtHe3', 'std::abs(fPtHe3)') \
+      .Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
       .Redefine('fPtHad', 'std::abs(fPtHad)') \
       .Define('fSignedPtHe3', 'fPtHe3 * fSignHe3') \
       .Define(f'fEHe3', f'std::sqrt((fPtHe3 * std::cosh(fEtaHe3))*(fPtHe3 * std::cosh(fEtaHe3)) + {ParticleMasses["He"]}*{ParticleMasses["He"]})') \
@@ -113,7 +113,8 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
       .Define('fDeltaEta', 'fEtaHe3 - fEtaHad') \
       .Define('fDeltaPhi', 'fPhiHe3 - fPhiHad') \
       .Redefine('fInnerParamTPCHe3', 'fInnerParamTPCHe3 * 2') \
-      .Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3, true)') \
+      .Redefine('fInnerParamTPCHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fInnerParamTPCHe3 : CorrectPidTrkHe(fInnerParamTPCHe3, false)') \
+      .Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3, true, true)') \
       .Define('fClusterSizeCosLamHe3', 'ComputeAverageClusterSize(fItsClusterSizeHe3) / cosh(fEtaHe3)') \
       .Define('fClusterSizeCosLamHad', 'ComputeAverageClusterSize(fItsClusterSizeHad) / cosh(fEtaHad)') \
       .Define('fExpectedClusterSizeHe3', 'ComputeExpectedClusterSizeCosLambdaHe(fPtHe3 * std::cosh(fEtaHe3))') \
@@ -128,7 +129,7 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
       .Define('fPxLi', 'fPtHe3 * std::cos(fPhiHe3) + fPtHad * std::cos(fPhiHad)') \
       .Define('fPyLi', 'fPtHe3 * std::sin(fPhiHe3) + fPtHad * std::sin(fPhiHad)') \
       .Define('fPtLi', 'sqrt(fPxLi*fPxLi + fPyLi*fPyLi)')
-    
+      
     return rdf_rec, rdf_gen
 
 def visualise(rdf, output_file: TFile, mode:str='rec'):
@@ -160,7 +161,7 @@ def produce_efficiency_histogram(hist_rec, hist_gen, name):
     for ibin in range(1, hist_rec.GetNbinsX() + 1):
         if hist_gen.GetBinContent(ibin) > 0:
             efficiency = hist_rec.GetBinContent(ibin) / hist_gen.GetBinContent(ibin)
-            efficiency_error = np.sqrt( efficiency * (1 - efficiency) / hist_gen.GetBinContent(ibin))
+            efficiency_error = np.sqrt( efficiency * (1 - efficiency) / hist_gen.GetBinContent(ibin)) if efficiency < 1 else 0
             efficiency_hist.SetBinContent(ibin, efficiency)
             efficiency_hist.SetBinError(ibin, efficiency_error)
         else:
@@ -172,7 +173,7 @@ def produce_efficiency_histogram(hist_rec, hist_gen, name):
 
 def efficiency_histograms(rdf_rec, rdf_gen, output_file: TFile):
 
-    pt_bins, pt_min, pt_max = 100, 0, 10
+    pt_bins, pt_min, pt_max = 20, 0, 10
     hPtLiMatter = rdf_rec.Filter('fSignHe3 > 0').Histo1D(("hPtLiMatter", ";#it{p}_{T} (^{4}Li) (GeV/#it{c});", pt_bins, pt_min, pt_max), "fPtLi").GetValue()
     hPtLiAntimatter = rdf_rec.Filter('fSignHe3 < 0').Histo1D(("hPtLiAntimatter", ";#it{p}_{T} (^{4}Li) (GeV/#it{c});", pt_bins, pt_min, pt_max), "fPtLi").GetValue()
     hPtLiMCMatter = rdf_gen.Filter('fSignHe3 > 0').Histo1D(("hPtLiMCMatter", ";#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", pt_bins, pt_min, pt_max), "fPtLiMC").GetValue()
