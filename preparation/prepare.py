@@ -11,10 +11,9 @@ sys.path.append('..')
 from utils.particles import ParticleMasses
 from utils.histogram_registry import HistogramRegistry
 from utils.histogram_archive import register_qa_histograms, register_kstar_histograms, register_kstar_matter_histograms, \
-    register_kstar_antimatter_histograms, register_invmass_histograms
+    register_kstar_antimatter_histograms, register_invmass_histograms, register_invmass_matter_histograms, register_invmass_antimatter_histograms
     
 from include.load_parameters import load_parametrisation
-
 gInterpreter.ProcessLine(f'#include "../include/Common.h"')
 
 ROOT.EnableImplicitMT(30)
@@ -104,7 +103,7 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
       .Redefine('fPtHad', 'std::abs(fPtHad)') \
       .Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
       .Redefine('fInnerParamTPCHe3', 'fInnerParamTPCHe3 * 2') \
-      .Redefine('fInnerParamTPCHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fInnerParamTPCHe3 : CorrectPidTrkHe(fInnerParamTPCHe3, false)') \
+      .Redefine('fInnerParamTPCHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fInnerParamTPCHe3 > 2.4) ? fInnerParamTPCHe3 : CorrectPidTrkHe(fInnerParamTPCHe3, false)') \
       .Define('fSignedPtHe3', 'fPtHe3 * fSignHe3') \
       .Define(f'fEHe3', f'std::sqrt((fPtHe3 * std::cosh(fEtaHe3))*(fPtHe3 * std::cosh(fEtaHe3)) + {ParticleMasses["He"]}*{ParticleMasses["He"]})') \
       .Define(f'fEHad', f'std::sqrt((fPtHad * std::cosh(fEtaHad))*(fPtHad * std::cosh(fEtaHad)) + {ParticleMasses["Pr"]}*{ParticleMasses["Pr"]})') \
@@ -150,6 +149,12 @@ def visualise(rdf, output_file: TFile):
 
     register_invmass_histograms(histogram_registry)
     print(f'\tInvariant mass histograms created!')
+    
+    register_invmass_matter_histograms(histogram_registry)
+    print(f'\tInvariant mass matter histograms created!')
+    
+    register_invmass_antimatter_histograms(histogram_registry)
+    print(f'\tInvariant mass antimatter histograms created!')
 
     register_kstar_histograms(histogram_registry)
     print(f'\t(anti)matter histograms created!')
