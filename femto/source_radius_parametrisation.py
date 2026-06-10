@@ -42,6 +42,7 @@ NCH_RUN3 = {
     '0-10%':  ufloat(1858, 34),
     '10-30%': ufloat(1051, 21),
     '30-50%': ufloat(455, 12),
+    '50-80%': ufloat(123, 5),
 }
 
 MEASURED_POINTS_PT = {
@@ -198,19 +199,19 @@ def draw_source_radius():
     
     canvas_nch = TCanvas('canvas_nch', 'Source Radius Parameterisation Nch', 800, 600)
     gStyle.SetOptStat(0)
-    hframe_nch = canvas.DrawFrame(5, 1.2, 15, 6.5, ';#LTd#it{N}_{ch}/d#it{#eta} #GT^{1/3}_{|#it{#eta}|<0.5} (GeV/#it{c}^{2});#it{R} (fm)')
+    hframe_nch = canvas.DrawFrame(3, 1.2, 15, 6.5, ';#LTd#it{N}_{ch}/d#it{#eta} #GT^{1/3}_{|#it{#eta}|<0.5} (GeV/#it{c}^{2});#it{R} (fm)')
     legend_nch = init_legend(0.54, 0.18, 0.88, 0.34, text_size=0.03, n_columns=2)
-    NCH_CUBEROOT_RANGE = np.linspace(5, 15, 100)
+    NCH_CUBEROOT_RANGE = np.linspace(3, 15, 100)
     
     funcs_nch = {}
-    run3_points = {'Pr': TGraphAsymmErrors(3), 'He': TGraphAsymmErrors(3) }
+    run3_points = {'Pr': TGraphAsymmErrors(4), 'He': TGraphAsymmErrors(4) }
     bands = {'Pr': TGraphAsymmErrors(NCH_CUBEROOT_RANGE.size), 'He': TGraphAsymmErrors(NCH_CUBEROOT_RANGE.size)}
     label = {'Pr': '#it{R}_{p}', 'He': '#it{R}_{^{3}He}'}
     
     for iparticle, particle in enumerate(['Pr', 'He']):
         
         graph = Nch_pr_graph if particle == 'Pr' else Nch_he_graph
-        funcs_nch[particle] = TF1(f'func_nch_{particle}', f'[0] + [1]*x', 5, 15)
+        funcs_nch[particle] = TF1(f'func_nch_{particle}', f'[0] + [1]*x', 3, 15)
         fit_result = graph.Fit(funcs_nch[particle], 'RMS+')
         covariance_matrix = fit_result.GetCovarianceMatrix()
         covariance = covariance_matrix(0,1)
@@ -218,7 +219,7 @@ def draw_source_radius():
         print('Parameterisation for particle', particle)
         covariance_matrix.Print()
         
-        for icentrality, centrality in enumerate(['0-10%', '10-30%', '30-50%']):
+        for icentrality, centrality in enumerate(['0-10%', '10-30%', '30-50%', '50-80%']):
             nch = NCH_RUN3[centrality]
             radius = funcs_nch[particle].Eval(nch.n**(1/3))
             
@@ -235,7 +236,7 @@ def draw_source_radius():
             radius_err = np.sqrt( (funcs_nch[particle].GetParError(0))**2 + (nch.n**(1/3) * funcs_nch[particle].GetParError(1))**2 - 2 * nch.n**(1/3) * covariance )
             run3_points[particle].SetPoint(icentrality, nch.n**(1/3), radius)
             run3_points[particle].SetPointError(icentrality, nch.s * (1/3) * nch.n**(-2/3), nch.s * (1/3) * nch.n**(-2/3), radius_err, radius_err)
-            print(f'Centrality {centrality}: Nch = {nch.n:.0f}, Radius = {radius:.2f} ± {radius_err:.2f} fm')
+            print(f'Centrality {centrality}: Nch = {nch.n:.0f}, (Nch)^{{1/3}} = {nch.n**(1/3):.2f}, Radius = {radius:.2f} ± {radius_err:.2f} fm')
             
         for i, nch_cuberoot in enumerate(NCH_CUBEROOT_RANGE):
             y = funcs_nch[particle].Eval(nch_cuberoot)
