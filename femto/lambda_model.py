@@ -4,54 +4,128 @@
 
 import numpy as np
 
-from alive_progress import alive_bar
+from ROOT import TFile, TDirectory, TCanvas, TLegend, TTree, TF1, \
+                 RooDataSet, RooKeysPdf, RooRealVar, RooFit, RooDataHist
 
-from ROOT import TFile, TDirectory, TCanvas, TLegend, TKDE, TTree, TF1, \
-                 RooDataSet, RooKeysPdf, RooRealVar, RooDataHist, \
-                 kRed, kAzure, kGreen, kOrange, kViolet, kYellow, kCyan, kPink, kSpring, kMagenta, kTeal
-
-from torchic.core.histogram import load_hist
-from torchic.utils.root import set_root_object
+from torchic.core.histogram import load_hist, HistLoadInfo
+from torchic.utils.root import set_root_object, init_legend
 from torchic.utils.colors import get_color
+from torchic.roopdf.roopdf_utils import init_roopdf
 
-COLORS: list[int] = [
-        kRed    + 1,   # bright red
-        kAzure  + 1,   # rich azure-blue
-        kGreen  + 2,   # vivid green
-        kOrange + 1,   # warm orange
-        kViolet + 1,   # purple-violet
-        #kYellow - 7,   # golden yellow (base is pale; -7 gives a richer tone)
-        kCyan   + 1,   # cyan-teal
-        kPink   - 4,   # rose-pink
-        kSpring + 4,   # yellow-green
-        kMagenta+ 2,   # deep magenta
-        kTeal   + 2,   # dark teal
-        kRed    - 7,   # soft coral (lighter red variant)
-    ]
+LAMBDA_MODIFICATION_FACTOR = 0.1  # 10% change in lambda
 
+INPUT_CK_PATH = {
+    '010':  HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=6.11_fm'),
+    '1030': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.15_fm'),
+    '3050': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=4.02_fm'),
+    '5080': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=2.80_fm'),
+    '050':  HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.52_fm'),
+    '080':  HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.50_fm'),
+    '1050': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=4.95_fm'),
+    '1080': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=4.91_fm'),
+}
+INPUT_SIGMA_CK_PATH = {
+    '010':  HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=6.11_fm'),
+    '1030': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.15_fm'),
+    '3050': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.02_fm'),
+    '5080': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=2.80_fm'),
+    '050':  HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.52_fm'),
+    '080':  HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.50_fm'),
+    '1050': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.95_fm'),
+    '1080': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.91_fm'),
+}
+INPUT_CK_VARIATIONS = {
+    '010': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=6.11_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.54_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=6.68_fm'),
+    },
+    '1030': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.15_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=4.55_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.73_fm'),
+    },
+    '3050': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=4.02_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=3.50_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=4.55_fm'),
+    },
+    '5080': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=2.80_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=2.47_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=3.13_fm'),
+    },
+    '050': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.52_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.14_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.90_fm'),
+    },
+    '080': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.50_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.12_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.88_fm'),
+    },
+    '1050': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=4.95_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=4.45_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.45_fm'),
+    },
+    '1080': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=4.91_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=4.42_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_rescaled.root', 'hcats_CF_r=5.40_fm'),
+    },
+}
+INPUT_SIGMA_CK_VARIATIONS = {
+    '010': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=6.11_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.54_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=6.68_fm'),
+    },
+    '1030': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.15_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.55_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.73_fm'),
+    },
+    '3050': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.02_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=3.50_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.55_fm'),
+    },
+    '5080': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=2.80_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=2.47_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=3.13_fm'),
+    },
+    '050': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.52_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.14_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.90_fm'),
+    },
+    '080': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.50_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.12_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.88_fm'),
+    },
+    '1050': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.95_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.45_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.45_fm'),
+    },
+    '1080': {
+        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.91_fm'),
+        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.42_fm'),
+        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.40_fm'),
+    },
+}
+INPUT_LAMBDA_PARAMETER_PATH = '/home/galucia/Lithium4/calibration/output/LHC25_PbPb_pass1_lambda_parameters.root'
+EXPERIMENTAL_CK_PATH = '/home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root'
+EXPERIMENTAL_CK_NAME = 'Correlation/Default/hCorrelation010'
 
-input_Ck_path = {
-    '010': '/home/galucia/Lithium4/femto/models/pHe3_square_well_010_GeV.root',
-    '050': '/home/galucia/Lithium4/femto/models/pHe3_square_well_050_GeV.root',
-    '1050': '/home/galucia/Lithium4/femto/models/pHe3_square_well_1050_GeV.root',
-    #'1030': '/home/galucia/Lithium4/femto/models/CATS_cent10_30_converted.root',
-    #'3050': '/home/galucia/Lithium4/femto/models/CATS_cent30_50_converted.root',
-}
-input_Sigma_Ck_path = {
-    '010': '/home/galucia/Lithium4/femto/models/SigmaHe3_Coulomb_010_GeV.root',
-    '050': '/home/galucia/Lithium4/femto/models/SigmaHe3_Coulomb_050_GeV.root',
-    '1050': '/home/galucia/Lithium4/femto/models/SigmaHe3_Coulomb_1050_GeV.root',
-    #'1030': '/home/galucia/Lithium4/femto/models/CATS_cent10_30_converted.root',
-    #'3050': '/home/galucia/Lithium4/femto/models/CATS_cent30_50_converted.root',
-}
-input_Ck_path_variations = {
-    '010': '/home/galucia/Lithium4/femto/models/pHe3_square_well_variations_ready.root',
-}
-input_Sigma_Ck_path_variations = {
-    '010': '/home/galucia/Lithium4/femto/models/he3_Sigma_plus_Coulomb_variations_ready.root',
-}
-experimental_Ck_path = '/home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root'
-experimental_Ck_name = 'Correlation/Default/hCorrelation010'
+INPUT_RESOLUTION_PATH = '/data/galucia/lithium/MC/AnalysisResults_LHC25g11.root'
+INPUT_MIXED_EVENT_REFERENCE_PATH = '/home/galucia/Lithium4/preparation/output/PbPb/LHC25_PbPb_pass1_hadronpid_event_mixing.root'
+
+OUTPUT_LAMBDA_MODEL_PATH = '/home/galucia/Lithium4/femto/models/LHC25_PbPb_pass1_lambda_models.root'
 
 def match_bin_width_correlation_function(h_source, h_target, kstar_threshold:float=0.4):
     """
@@ -125,7 +199,9 @@ def smoothen_histogram(hist, outfile, n_events:int=100_000, xmin:float=0.02, xma
     # Create weighted dataset
     weight_var = RooRealVar('weight', 'weight', 0, 1e6)
     dataset = RooDataSet(hist.GetName()+'_roodata', hist.GetName()+'_roodata', 
-                         tree, [kstar, weight_var], '', 'weight')
+                         [kstar, weight_var], 
+                         RooFit.Import(tree), 
+                         RooFit.WeightVar('weight'))
     
     # Create RooKeysPdf with the weighted data
     keys_pdf = RooKeysPdf(f'{hist.GetName()}_keys', f'{hist.GetName()}_keys', 
@@ -146,6 +222,16 @@ def smoothen_histogram(hist, outfile, n_events:int=100_000, xmin:float=0.02, xma
     
     return keys_pdf
 
+def apply_lambda_correction(h_out, h_ck, h_sigma_ck, lambda_param_hist, lambda_sigma_hist, scale: float = 1.0):
+    for ibin in range(1, h_out.GetNbinsX() + 1):
+        kstar = h_out.GetBinCenter(ibin)
+        lam = lambda_param_hist.GetBinContent(lambda_param_hist.FindBin(kstar)) * scale
+        lam = min(max(lam, 0.), 1.)  # Ensure lambda is between 0 and 1
+        lam_s = lambda_sigma_hist.GetBinContent(lambda_sigma_hist.FindBin(kstar))
+        ck = h_ck.GetBinContent(ibin)
+        sig = h_sigma_ck.GetBinContent(h_sigma_ck.FindBin(kstar))
+        h_out.SetBinContent(ibin, lam * ck + lam_s * sig + (1 - lam - lam_s))
+        
 def produce_lambda_with_modified_values(sign:str, centrality:str, h_theoretical_Ck, h_theoretical_Sigma_Ck,
                                         outdir:TDirectory, modification_factor:float):
     '''
@@ -154,56 +240,84 @@ def produce_lambda_with_modified_values(sign:str, centrality:str, h_theoretical_
         The lambda is changed both in lambda + x% and lambda - x% to understand the effect in both directions.
     '''
 
-    h_lambda_parameter = load_hist('/home/galucia/Lithium4/calibration/output/lambda_parameters_smaller_tolerance_pr.root',
-                                        f'{sign}/hLambdaParameters')
-
-    h_lambda_Sigma_parameter = load_hist('/home/galucia/Lithium4/calibration/output/lambda_parameters_smaller_tolerance_pr.root',
-                                        f'{sign}/hLambdaSigmaParameters')
+    h_lambda_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaParameters')
+    h_lambda_Sigma_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaSigmaParameters')
     
     h_lambda_parameter_higher_lambda = h_lambda_parameter.Clone(f'hLambdaParameter_HigherLambda')
     h_lambda_parameter_lower_lambda = h_lambda_parameter.Clone(f'hLambdaParameter_LowerLambda')
 
     h_lambda_corrected_Ck_higher_lambda = h_theoretical_Ck.Clone(f'hLambdaCorrectedCk_Higher')
+    apply_lambda_correction(h_lambda_corrected_Ck_higher_lambda, h_theoretical_Ck, h_theoretical_Sigma_Ck,
+                            h_lambda_parameter, h_lambda_Sigma_parameter, scale=1 + modification_factor)
     h_lambda_corrected_Ck_lower_lambda = h_theoretical_Ck.Clone(f'hLambdaCorrectedCk_Lower')
+    apply_lambda_correction(h_lambda_corrected_Ck_lower_lambda, h_theoretical_Ck, h_theoretical_Sigma_Ck,
+                            h_lambda_parameter, h_lambda_Sigma_parameter, scale=1 - modification_factor)
 
     h_lambda_Sigma_corrected_Ck_higher_lambda = h_theoretical_Ck.Clone(f'hLambdaSigmaCorrectedCk_Higher')
+    apply_lambda_correction(h_lambda_Sigma_corrected_Ck_higher_lambda, h_theoretical_Ck, h_theoretical_Sigma_Ck,
+                            h_lambda_parameter, h_lambda_Sigma_parameter, scale=1 + modification_factor)
     h_lambda_Sigma_corrected_Ck_lower_lambda = h_theoretical_Ck.Clone(f'hLambdaSigmaCorrectedCk_Lower')
+    apply_lambda_correction(h_lambda_Sigma_corrected_Ck_lower_lambda, h_theoretical_Ck, h_theoretical_Sigma_Ck,
+                            h_lambda_parameter, h_lambda_Sigma_parameter, scale=1 - modification_factor)
 
-    for ibin in range(1, h_lambda_corrected_Ck_higher_lambda.GetNbinsX()+1):
+    return (h_lambda_parameter_higher_lambda, h_lambda_parameter_lower_lambda,
+            h_lambda_corrected_Ck_lower_lambda, h_lambda_corrected_Ck_higher_lambda, 
+            h_lambda_Sigma_corrected_Ck_lower_lambda, h_lambda_Sigma_corrected_Ck_higher_lambda)
 
-        kstar = h_lambda_corrected_Ck_higher_lambda.GetBinCenter(ibin)
-        lambda_param = h_lambda_parameter.GetBinContent(h_lambda_parameter.FindBin(kstar))
-        lambda_Sigma_param = h_lambda_Sigma_parameter.GetBinContent(h_lambda_Sigma_parameter.FindBin(kstar))
-        original_value = h_theoretical_Ck.GetBinContent(ibin)
-        original_Sigma_value = h_theoretical_Sigma_Ck.GetBinContent(h_theoretical_Sigma_Ck.FindBin(kstar))
+def precompute_resolution_fits(outfile: TFile) -> dict:
+    """
+    Fit each kstar slice of the resolution matrix with a RooFit Crystal Ball PDF.
+    Returns a dict mapping kstar bin index (1-based) -> callable(x) using the fitted PDF.
+    Saves all fits to outfile under 'ResolutionFits/'.
+    """
+    h_resolution = load_hist(INPUT_RESOLUTION_PATH, 'he3-hadron-femto/QA/hKstarRecVsKstarGen')
+
+    outdir_fits = outfile.mkdir('ResolutionFits')
+    fits = {}
+
+    x = RooRealVar(f'x', 'x', 0., 0.7)
+    n_bins_x = h_resolution.GetNbinsX()
+    for ibin in range(1, n_bins_x + 1):
+        h_slice = h_resolution.ProjectionY(f'hResSlice_bin{ibin}', ibin, ibin)
+
+        if h_slice.GetEntries() < 10:
+            continue
+
+        peak  = h_slice.GetBinCenter(h_slice.GetMaximumBin())
+        sigma_est = max(h_slice.GetRMS(), 1e-4)
         
-        modified_lambda_higher = lambda_param * (1 + modification_factor)
-        modified_lambda_lower = lambda_param * (1 - modification_factor)
+        crystal_ball, pars = init_roopdf('crystal_ball', x, 
+                                   mean=RooRealVar(f'mean_{ibin}', 'mean', peak),
+                                   sigma=RooRealVar(f'sigma_{ibin}', 'sigma', sigma_est, 0.00001, 0.1),
+                                   aL=RooRealVar(f'alpha_{ibin}', 'alpha', 1.5, 0.5, 5.0),
+                                   nL=RooRealVar(f'n_{ibin}', 'n', 25.0, 20., 100.0),
+                                   aR=RooRealVar(f'alphaR_{ibin}', 'alphaR', 1.5, 0.5, 5.0),
+                                   nR=RooRealVar(f'nR_{ibin}', 'nR', 25.0, 20., 100.0),)    
+
+        dataset = RooDataHist(f'ds_{ibin}', f'ds_{ibin}', x, Import=h_slice)
+        crystal_ball.fitTo(dataset, RooFit.PrintLevel(-1))
+        for par in pars.values():
+            par.setConstant(True)
+
+        fits[ibin] = (x, crystal_ball, pars)
+
+        frame = x.frame()
+        frame.SetTitle(f'#it{{kstar}} = {h_resolution.GetXaxis().GetBinCenter(ibin):.3f} GeV/#it{{c}}')
+        dataset.plotOn(frame, MarkerStyle=20, MarkerSize=0.8, LineColor=1)
+        crystal_ball.plotOn(frame, LineColor=2, LineWidth=2)
+        crystal_ball.paramOn(frame, Layout=(0.55, 0.9, 0.9))
+        canvas = TCanvas(f'cCrystalBallFit_bin{ibin}', f'cCrystalBallFit_bin{ibin}', 800, 600)
+        frame.Draw()
         
-        corrected_value_higher = 1.0 + modified_lambda_higher * (original_value - 1.0)
-        corrected_value_lower = 1.0 + modified_lambda_lower * (original_value - 1.0)
+        outdir_fits.cd()
+        canvas.Write(f'cCrystalBallFit_bin{ibin}')
 
-        corrected_Sigma_value_higher = modified_lambda_higher * original_value + lambda_Sigma_param * original_Sigma_value + (1 - modified_lambda_higher - lambda_Sigma_param) * 1.0
-        corrected_Sigma_value_lower = modified_lambda_lower * original_value + lambda_Sigma_param * original_Sigma_value + (1 - modified_lambda_lower - lambda_Sigma_param) * 1.0
+    return fits
 
-        h_lambda_parameter_higher_lambda.SetBinContent(h_lambda_parameter_higher_lambda.FindBin(kstar), modified_lambda_higher)
-        h_lambda_parameter_lower_lambda.SetBinContent(h_lambda_parameter_lower_lambda.FindBin(kstar), modified_lambda_lower)
-        
-        h_lambda_corrected_Ck_higher_lambda.SetBinContent(ibin, corrected_value_higher)
-        h_lambda_corrected_Ck_lower_lambda.SetBinContent(ibin, corrected_value_lower)
+def apply_resolution_smearing(h_correlation_function, outdir:TDirectory, resolution_fits:dict):
 
-        h_lambda_Sigma_corrected_Ck_higher_lambda.SetBinContent(ibin, corrected_Sigma_value_higher)
-        h_lambda_Sigma_corrected_Ck_lower_lambda.SetBinContent(ibin, corrected_Sigma_value_lower)
-
-    return (h_lambda_parameter_higher_lambda, h_lambda_corrected_Ck_lower_lambda, h_lambda_corrected_Ck_higher_lambda, h_lambda_corrected_Ck_lower_lambda,
-            h_lambda_Sigma_corrected_Ck_higher_lambda, h_lambda_Sigma_corrected_Ck_lower_lambda)
-
-def apply_resolution_smearing(h_correlation_function, outdir:TDirectory):
-
-    h_resolution = load_hist('/data/galucia/lithium_local/MC/AnalysisResults_LHC24i5.root',
-                            'he3-hadron-femto/QA/hKstarRecVsKstarGen')
-    h_mixed_event = load_hist('/home/galucia/Lithium4/preparation/checks/mixed_event_hadronpid_pass1_pass4_reject_multiples.root',
-                            'QA/hKstar')
+    h_resolution = load_hist(INPUT_RESOLUTION_PATH, 'he3-hadron-femto/QA/hKstarRecVsKstarGen')
+    h_mixed_event = load_hist(INPUT_MIXED_EVENT_REFERENCE_PATH, 'QA/hKstar')
     mixed_fit = TF1('mixed_fit', 'pol3', 0.01, 0.4)
     h_mixed_event.Fit(mixed_fit, 'RMS+')
     
@@ -236,10 +350,23 @@ def apply_resolution_smearing(h_correlation_function, outdir:TDirectory):
         #h_resolution_slice.Write()
         
         for jbin in range(1, h_resolution_slice.GetNbinsX()+1):
+            
             kstar_gen = h_resolution_slice.GetBinCenter(jbin)
             #mixed_weight = h_mixed_event.GetBinContent(h_mixed_event.FindBin(kstar_gen))
             mixed_weight = mixed_fit.Eval(kstar_gen)
-            weight = h_resolution_slice.GetBinContent(jbin) * mixed_weight if 0.01 < kstar_gen < 0.7 else 0.  
+            
+            fit_entry = resolution_fits.get(resolution_bin)
+            slice_val = 0.
+            if fit_entry is not None:
+                x_var, crystal_ball_pdf, __ = fit_entry
+                x_var.setVal(kstar_gen)
+                slice_val = crystal_ball_pdf.getVal()
+            else:
+                slice_val = h_resolution_slice.GetBinContent(jbin)
+            weight = slice_val * mixed_weight if 0.01 < kstar_gen < 0.7 else 0.
+            
+            #weight = h_resolution_slice.GetBinContent(jbin) * mixed_weight if 0.01 < kstar_gen < 0.7 else 0.  
+            
             # skip the region where the corrected correlation function is not defined
             correlation_value = h_correlation_function_matched.GetBinContent(jbin)
             
@@ -254,14 +381,12 @@ def apply_resolution_smearing(h_correlation_function, outdir:TDirectory):
     return h_smeared_correlation_function
 
 
-def produce_lambda_models(sign:str, centrality:str, outdir:TDirectory):
+def produce_lambda_models(sign:str, centrality:str, outdir:TDirectory, resolution_fits:dict):
     
-    h_lambda_parameter = load_hist('/home/galucia/Lithium4/calibration/output/lambda_parameters_smaller_tolerance_pr.root',
-                                        f'{sign}/hLambdaParameters')
-    h_lambda_Sigma_parameter = load_hist('/home/galucia/Lithium4/calibration/output/lambda_parameters_smaller_tolerance_pr.root',
-                                        f'{sign}/hLambdaSigmaParameters')
-    h_theoretical_Ck = load_hist(input_Ck_path[centrality], 'hHe3_p_Coul_CF')
-    h_theoretical_Sigma_Ck = load_hist(input_Sigma_Ck_path[centrality], 'hhe3_Sigma_plus_CF')
+    h_lambda_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaParameters')
+    h_lambda_Sigma_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaSigmaParameters')
+    h_theoretical_Ck = load_hist(INPUT_CK_PATH[centrality])
+    h_theoretical_Sigma_Ck = load_hist(INPUT_SIGMA_CK_PATH[centrality])
     
     h_lambda_corrected_Ck = h_theoretical_Ck.Clone(f'hLambdaCorrectedCk')
     h_lambda_Sigma_corrected_Ck = h_theoretical_Ck.Clone(f'hLambdaSigmaCorrectedCk')
@@ -282,18 +407,19 @@ def produce_lambda_models(sign:str, centrality:str, outdir:TDirectory):
         h_lambda_Sigma_corrected_Ck.SetBinContent(ibin, lambda_Sigma_corrected_value)
 
     modification_factor = 0.1  # 10% change in lambda
-    h_lambda_parameter_higher_lambda, h_lambda_parameter_lower_lambda, \
-        h_lambda_corrected_Ck_higher_lambda, h_lambda_corrected_Ck_lower_lambda, \
-        h_lambda_Sigma_corrected_Ck_higher_lambda, h_lambda_Sigma_corrected_Ck_lower_lambda = \
-        produce_lambda_with_modified_values(sign, centrality, outdir=outdir,
+    (h_lambda_parameter_higher_lambda, h_lambda_parameter_lower_lambda,
+    h_lambda_corrected_Ck_lower_lambda, h_lambda_corrected_Ck_higher_lambda,
+    h_lambda_Sigma_corrected_Ck_higher_lambda, h_lambda_Sigma_corrected_Ck_lower_lambda) \
+        = produce_lambda_with_modified_values(sign, centrality, outdir=outdir,
                                             h_theoretical_Ck=h_theoretical_Ck, h_theoretical_Sigma_Ck=h_theoretical_Sigma_Ck,
-                                             modification_factor=modification_factor)
+                                             modification_factor=LAMBDA_MODIFICATION_FACTOR)
     
-    h_correlation_reference = load_hist(experimental_Ck_path, experimental_Ck_name)
-    h_lambda_corrected_Ck_matched = match_bin_width_correlation_function(h_correlation_reference, h_lambda_corrected_Ck)
-    h_lambda_Sigma_corrected_Ck_matched = match_bin_width_correlation_function(h_correlation_reference, h_lambda_Sigma_corrected_Ck)
+    #h_correlation_reference = load_hist(EXPERIMENTAL_CK_PATH, EXPERIMENTAL_CK_NAME)
+    #h_lambda_corrected_Ck_matched = match_bin_width_correlation_function(h_correlation_reference, h_lambda_corrected_Ck)
+    #h_lambda_Sigma_corrected_Ck_matched = match_bin_width_correlation_function(h_correlation_reference, h_lambda_Sigma_corrected_Ck)
     
-    h_lambda_Sigma_smeared_Ck = apply_resolution_smearing(h_lambda_Sigma_corrected_Ck, outdir)
+    
+    h_lambda_Sigma_smeared_Ck = apply_resolution_smearing(h_lambda_Sigma_corrected_Ck, outdir, resolution_fits)
     
     smoothen_histogram(h_lambda_corrected_Ck, outdir)
     smoothen_histogram(h_lambda_Sigma_corrected_Ck, outdir)
@@ -312,8 +438,8 @@ def produce_lambda_models(sign:str, centrality:str, outdir:TDirectory):
     h_lambda_corrected_Ck.Write()
     h_lambda_Sigma_corrected_Ck.Write('hLambdaSigmaCorrectedCk')
 
-    h_lambda_corrected_Ck_matched.Write('hLambdaCorrectedCk_Matched')
-    h_lambda_Sigma_corrected_Ck_matched.Write('hLambdaSigmaCorrectedCk_Matched')
+    #h_lambda_corrected_Ck_matched.Write('hLambdaCorrectedCk_Matched')
+    #h_lambda_Sigma_corrected_Ck_matched.Write('hLambdaSigmaCorrectedCk_Matched')
 
     h_lambda_parameter_higher_lambda.Write('hLambdaParameter_HigherLambda')
     h_lambda_parameter_lower_lambda.Write('hLambdaParameter_LowerLambda')
@@ -351,10 +477,7 @@ def produce_lambda_models(sign:str, centrality:str, outdir:TDirectory):
     h_lambda_corrected_Ck.Draw('HIST SAME')
     h_lambda_corrected_Ck_lower_lambda.Draw('HIST SAME')
 
-    legend = TLegend(0.6, 0.2, 0.88, 0.4)
-    legend.SetBorderSize(0)
-    legend.SetFillStyle(0)
-
+    legend = init_legend(0.6, 0.2, 0.88, 0.4, border_size=0, fill_style=0)
     legend.AddEntry(h_lambda_corrected_Ck_higher_lambda, f'#lambda_{{nominal}} + {modification_factor*100.:.0f}%', 'l')
     legend.AddEntry(h_lambda_corrected_Ck, '#lambda_{nominal}', 'l')
     legend.AddEntry(h_lambda_corrected_Ck_lower_lambda, f'#lambda_{{nominal}} - {modification_factor*100.:.0f}%', 'l')
@@ -370,10 +493,7 @@ def produce_lambda_models(sign:str, centrality:str, outdir:TDirectory):
     h_lambda_Sigma_corrected_Ck.Draw('HIST SAME')
     h_lambda_Sigma_corrected_Ck_lower_lambda.Draw('HIST SAME')
 
-    legend = TLegend(0.6, 0.2, 0.88, 0.4)
-    legend.SetBorderSize(0)
-    legend.SetFillStyle(0)
-
+    legend = init_legend(0.6, 0.2, 0.88, 0.4, border_size=0, fill_style=0)
     legend.AddEntry(h_lambda_Sigma_corrected_Ck_higher_lambda, f'#lambda_{{nominal}} + {modification_factor*100.:.0f}%', 'l')
     legend.AddEntry(h_lambda_Sigma_corrected_Ck, '#lambda_{nominal}', 'l')
     legend.AddEntry(h_lambda_Sigma_corrected_Ck_lower_lambda, f'#lambda_{{nominal}} - {modification_factor*100.:.0f}%', 'l')
@@ -383,58 +503,43 @@ def produce_lambda_models(sign:str, centrality:str, outdir:TDirectory):
 
     del canvas
 
-def produce_lambda_models_with_variations(sign:str, centrality:str, outdir:TDirectory):
+def produce_lambda_models_with_variations(sign: str, centrality: str, outdir: TDirectory, resolution_fits: dict):
 
-    variation_dict = {'nominal': '7.12',
-                      'upper': '7.16',
-                      'lower': '7.06'}
-    
-    h_lambda_parameter = load_hist('/home/galucia/Lithium4/calibration/output/lambda_parameters_smaller_tolerance_pr.root',
-                                        f'{sign}/hLambdaParameters')
-    h_lambda_Sigma_parameter = load_hist('/home/galucia/Lithium4/calibration/output/lambda_parameters_smaller_tolerance_pr.root',
-                                        f'{sign}/hLambdaSigmaParameters')
-    
-    for variation_name, variation_value in variation_dict.items():  
+    h_lambda_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaParameters')
+    h_lambda_Sigma_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaSigmaParameters')
+
+    for variation_name in INPUT_CK_VARIATIONS[centrality]:
 
         variation_dir = outdir.mkdir(variation_name)
-        input_variation_dir = f'r={variation_value}_fm'
 
-        h_theoretical_Ck = load_hist(input_Ck_path_variations[centrality], f'{input_variation_dir}/hHe3_p_Coul_CF')
-        h_theoretical_Sigma_Ck = load_hist(input_Sigma_Ck_path_variations[centrality], f'{input_variation_dir}/hhe3_Sigma_plus_CF')
-    
-        h_lambda_corrected_Ck = h_theoretical_Ck.Clone(f'hLambdaCorrectedCk')
-        h_lambda_Sigma_corrected_Ck = h_theoretical_Ck.Clone(f'hLambdaSigmaCorrectedCk')
+        h_theoretical_Ck       = load_hist(INPUT_CK_VARIATIONS[centrality][variation_name])
+        h_theoretical_Sigma_Ck = load_hist(INPUT_SIGMA_CK_VARIATIONS[centrality][variation_name])
 
-        for ibin in range(1, h_lambda_corrected_Ck.GetNbinsX()+1):
-            
-            kstar = h_lambda_corrected_Ck.GetBinCenter(ibin)
-            lambda_param = h_lambda_parameter.GetBinContent(h_lambda_parameter.FindBin(kstar))
-            original_value = h_theoretical_Ck.GetBinContent(ibin)
+        h_lambda_Sigma_corrected_Ck = h_theoretical_Ck.Clone('hLambdaSigmaCorrectedCk')
+        apply_lambda_correction(h_lambda_Sigma_corrected_Ck, h_theoretical_Ck, h_theoretical_Sigma_Ck,
+                                h_lambda_parameter, h_lambda_Sigma_parameter)
 
-            lambda_Sigma_param = h_lambda_Sigma_parameter.GetBinContent(h_lambda_Sigma_parameter.FindBin(kstar))
-            Sigma_value = h_theoretical_Sigma_Ck.GetBinContent(h_theoretical_Sigma_Ck.FindBin(kstar))
+        *_, h_higher, h_lower = produce_lambda_with_modified_values(
+            sign, centrality, outdir=variation_dir,
+            h_theoretical_Ck=h_theoretical_Ck, h_theoretical_Sigma_Ck=h_theoretical_Sigma_Ck,
+            modification_factor=LAMBDA_MODIFICATION_FACTOR
+        )
 
-            lambda_Sigma_corrected_value = lambda_param * original_value + lambda_Sigma_param * Sigma_value + (1 - lambda_param - lambda_Sigma_param) * 1.0
-            h_lambda_Sigma_corrected_Ck.SetBinContent(ibin, lambda_Sigma_corrected_value)
+        smeared = {
+            f'hLambdaSigmaCorrectedCk_Smeared_{variation_name}':        apply_resolution_smearing(h_lambda_Sigma_corrected_Ck, outdir, resolution_fits),
+            f'hLambdaSigmaCorrectedCk_Smeared_{variation_name}_higher': apply_resolution_smearing(h_higher, outdir, resolution_fits),
+            f'hLambdaSigmaCorrectedCk_Smeared_{variation_name}_lower':  apply_resolution_smearing(h_lower, outdir, resolution_fits),
+        }
 
-        modification_factor = 0.1  # 10% change in lambda
-        __, __, __, __, h_lambda_Sigma_corrected_Ck_higher_lambda, h_lambda_Sigma_corrected_Ck_lower_lambda = \
-            produce_lambda_with_modified_values(sign, centrality, outdir=variation_dir,
-                                                h_theoretical_Ck=h_theoretical_Ck, h_theoretical_Sigma_Ck=h_theoretical_Sigma_Ck,
-                                                modification_factor=modification_factor)
-    
-        h_lambda_Sigma_smeared_Ck = apply_resolution_smearing(h_lambda_Sigma_corrected_Ck, outdir)
-        h_lambda_Sigma_smeared_Ck_higher_lambda = apply_resolution_smearing(h_lambda_Sigma_corrected_Ck_higher_lambda, outdir)
-        h_lambda_Sigma_smeared_Ck_lower_lambda = apply_resolution_smearing(h_lambda_Sigma_corrected_Ck_lower_lambda, outdir)
-    
         variation_dir.cd()
-        for hist in [h_lambda_Sigma_smeared_Ck, h_lambda_Sigma_smeared_Ck_higher_lambda, h_lambda_Sigma_smeared_Ck_lower_lambda]:
-            set_root_object(hist, title='; #it{k}* (MeV/c); C(#it{k}*)', line_width=2) 
-            hist.Write(hist.GetName())
+        for name, hist in smeared.items():
+            set_root_object(hist, title='; #it{k}* (MeV/c); C(#it{k}*)', line_width=2)
+            hist.Write(name)
 
 if __name__ == '__main__':
 
-    outfile = TFile.Open('models/lambda_models.root', 'recreate')
+    outfile = TFile.Open(OUTPUT_LAMBDA_MODEL_PATH, 'recreate')
+    resolution_fits = precompute_resolution_fits(outfile)
 
     for sign in ['Both', 'Matter', 'Antimatter']:
         print(f"\n{'='*60}")
@@ -442,17 +547,14 @@ if __name__ == '__main__':
 
         outdir_sign = outfile.mkdir(sign)
 
-        for centrality in ['050', '010', '1050']: #, '1030', '3050']:
+        for centrality in ['010', '1030', '3050', '5080', '050', '080', '1050', '1080']:
+        #for centrality in ['010', '1030', '3050']:
             print(f"\n{'-'*40}")
             print(f"Processing centrality {centrality}")
 
             outdir = outdir_sign.mkdir(f'{centrality}')
-            produce_lambda_models(sign, centrality, outdir)
+            produce_lambda_models(sign, centrality, outdir, resolution_fits)
 
-            if sign == 'Both':
-                continue
-
-            if centrality == '010': 
-                produce_lambda_models_with_variations(sign, centrality, outdir)
+            produce_lambda_models_with_variations(sign, centrality, outdir, resolution_fits)
             
     outfile.Close()
