@@ -1,154 +1,214 @@
-
-from ROOT import TFile, TH1F, TDirectory, TCanvas, TDirectory, TF1, TPad, gStyle, TLine
-from torchic.core.histogram import load_hist
+from ROOT import TFile, TH1F, TDirectory, TCanvas, TF1
 from torchic.utils.root import set_root_object
 
-NORM_LOW_MASS = 3.8 # 
-NORM_HIGH_MASS = 3.9 #
+# Invariant mass ranges (GeV/c^2)
+# Proton + He3 -> alpha (or other): adjust these to your signal region
+NORM_LOW_INVMASS  = 3.78   # right sideband start
+NORM_HIGH_INVMASS = 3.88   # right sideband end
 
-def normalise_histograms_and_compute_subtraction(outdir:TDirectory, mode:str, rebin:int=1, suffix:str=''):
+PEAK_LOW_INVMASS  = 3.74   # signal region start (excluded from normalisation)
+PEAK_HIGH_INVMASS = 3.78   # signal region end   (excluded from normalisation)
 
-    h_same = file_same.Get(f'invmass/hInvariantMass{mode}{suffix}')
-    h_same.SetDirectory(0)  # Detach from file to avoid issues with deletion
-    h_same.SetName(f'hSameEvent{suffix}')
+
+def normalise_and_subtract_no_centrality(infile_sames, infile_mixeds, outdir: TDirectory,
+                                         mode: str, rebin: int = 1, suffix: str = ''):
+
+    h_same = infile_sames[0].Get(f'invmass{mode}/hInvariantMass{mode}').Clone(f'hSameEventInvMass{suffix}')
+    h_same.SetDirectory(0)
+    for infile_same in infile_sames[1:]:
+        h_same.Add(infile_same.Get(f'invmass{mode}/hInvariantMass{mode}'))
     if rebin > 1:
         h_same.Rebin(rebin)
 
-    h_mixed = file_mixed.Get(f'invmass/hInvariantMass{mode}{suffix}')
-    h_mixed.SetDirectory(0)  # Detach from file to avoid issues with deletion
-    h_mixed.SetName(f'hMixedEvent{suffix}')
+    h_mixed = infile_mixeds[0].Get(f'invmass{mode}/hInvariantMass{mode}').Clone(f'hMixedEventInvMass{suffix}')
+    h_mixed.SetDirectory(0)
+    for infile_mixed in infile_mixeds[1:]:
+        h_mixed.Add(infile_mixed.Get(f'invmass{mode}/hInvariantMass{mode}'))
     if rebin > 1:
         h_mixed.Rebin(rebin)
+    h_normalised_mixed = h_mixed.Clone(f'hNormalisedMixedEventInvMass{suffix}')
 
+    # Normalise using the right sideband only
+    low_bin  = h_same.FindBin(NORM_LOW_INVMASS)
+    high_bin = h_same.FindBin(NORM_HIGH_INVMASS)
+    normalization_factor = h_same.Integral(low_bin, high_bin) / h_normalised_mixed.Integral(low_bin, high_bin)
+    h_normalised_mixed.Scale(normalization_factor)
 
-    low_bin = h_same.FindBin(NORM_LOW_MASS)
-    high_bin = h_same.FindBin(NORM_HIGH_MASS)
-    normalization_factor = h_same.Integral(low_bin, high_bin) / h_mixed.Integral(low_bin, high_bin)
-    h_mixed.Scale(normalization_factor)
-
-    h_subtracted = h_same.Clone(f'hInvariantMassSubtracted{suffix}')
-    h_subtracted.Add(h_mixed, -1.)
+    h_signal = h_same.Clone(f'hSignalInvMass{suffix}')
+    h_signal.Add(h_normalised_mixed, -1.)
 
     if suffix != '':
-        return h_same, h_mixed, h_subtracted
-        
+        return h_same, h_mixed, h_normalised_mixed, h_signal
+
     outdir.cd()
-    for hist in [h_same, h_mixed, h_subtracted]:
-        hist.SetTitle(';#it{m}_{p - ^{3}He} (GeV/#it{c}^{2}); Counts (a.u.)')
+    for hist in [h_same, h_mixed, h_normalised_mixed, h_signal]:
+        hist.SetTitle(';#it{M} (GeV/#it{c}^{2});')
         hist.Write()
 
-    return h_same, h_mixed, h_subtracted
+    return h_same, h_mixed, h_normalised_mixed, h_signal
 
-def invariant_mass_subtraction_corrected(h_same, h_mixed, h_correction, outdir:TDirectory, mode:str, suffix:str=''):
-    """
-    Compute the correlation function for the centrality integrated histograms.
-    """
+
+def normalise_and_subtract(infile_sames, infile_mixeds, outdir: TDirectory,
+                           mode: str, centrality: str, rebin: int = 1, suffix: str = ''):
+
+    print(f'Same event histogram: invmass{mode}/hInvariantMass{centrality}{suffix}{mode}')
+    print(f'Mixed event histogram: invmass{mode}/hInvariantMass{centrality}{suffix}{mode}')
     
-    h_mixed_corrected = h_mixed.Clone(f'hMixedEventCorrected{suffix}')
-    for ibin in range(1, h_mixed_corrected.GetNbinsX()+1):
-        
-        invmass_value = h_mixed.GetBinCenter(ibin)
-        mixed_value = h_mixed.GetBinContent(ibin)
-        correction_value = h_correction.GetBinContent(h_correction.FindBin(invmass_value))
+    h_same = infile_sames[0].Get(f'invmass{mode}/hInvariantMass{centrality}{suffix}{mode}').Clone(f'hSameEventInvMass{centrality}{suffix}')
+    h_same.SetDirectory(0)
+    for infile_same in infile_sames[1:]:
+        h_same.Add(infile_same.Get(f'invmass{mode}/hInvariantMass{centrality}{suffix}{mode}'))
+    if rebin > 1:
+        h_same.Rebin(rebin)
 
-        h_mixed_corrected.SetBinContent(ibin, mixed_value*correction_value)
+    h_mixed = infile_mixeds[0].Get(f'invmass{mode}/hInvariantMass{centrality}{suffix}{mode}').Clone(f'hMixedEventInvMass{centrality}{suffix}')
+    h_mixed.SetDirectory(0)
+    for infile_mixed in infile_mixeds[1:]:
+        h_mixed.Add(infile_mixed.Get(f'invmass{mode}/hInvariantMass{centrality}{suffix}{mode}'))
+    if rebin > 1:
+        h_mixed.Rebin(rebin)
+    h_normalised_mixed = h_mixed.Clone(f'hNormalisedMixedEventInvMass{centrality}{suffix}')
 
-    h_subtracted_corrected = h_same.Clone(f'hInvariantMassSubtractedCorrected{suffix}')
-    h_subtracted_corrected.Add(h_mixed_corrected, -1.)
+    # Normalise using the right sideband only
+    low_bin  = h_same.FindBin(NORM_LOW_INVMASS)
+    high_bin = h_same.FindBin(NORM_HIGH_INVMASS)
+    normalization_factor = h_same.Integral(low_bin, high_bin) / h_normalised_mixed.Integral(low_bin, high_bin)
+    h_normalised_mixed.Scale(normalization_factor)
+
+    h_signal = h_same.Clone(f'hSignalInvMass{centrality}{suffix}')
+    h_signal.Add(h_normalised_mixed, -1.)
+
+    if suffix != '':
+        return h_same, h_mixed, h_normalised_mixed, h_signal
 
     outdir.cd()
-    for hist in [h_mixed_corrected, h_subtracted_corrected]:
-        hist.SetTitle(';#it{m}_{p - ^{3}He} (GeV/#it{c}^{2}); Counts (a.u.)')
+    for hist in [h_same, h_mixed, h_normalised_mixed, h_signal]:
+        hist.SetTitle(';#it{M} (GeV/#it{c}^{2});')
         hist.Write()
-    h_correction.Write(f'hCorrection{suffix}')
 
-    return h_mixed_corrected, h_subtracted_corrected
+    return h_same, h_mixed, h_normalised_mixed, h_signal
 
-def nsigma_plot(h_subtracted, outdir:TDirectory, mode:str, suffix:str=''):
 
-    h_nsigma = h_subtracted.Clone(f'hNsigma{suffix}')
-    for ibin in range(1, h_nsigma.GetNbinsX()+1):
-        value = h_subtracted.GetBinContent(ibin)
-        error = h_subtracted.GetBinError(ibin)
-        h_nsigma.SetBinContent(ibin, value/error if error > 0. else 0.)
-        h_nsigma.SetBinError(ibin, 0)
-    
+def plot_invariant_mass(h_same: TH1F, h_normalised_mixed: TH1F, h_signal: TH1F,
+                        outdir: TDirectory, centrality: str, suffix: str = ''):
+
+    canvas = TCanvas(f'cInvMass{centrality}{suffix}', '', 800, 600)
+    set_root_object(h_same, marker_style=20)
+    set_root_object(h_normalised_mixed, marker_style=24)
+    set_root_object(h_signal, marker_style=20)
+
+    h_same.Draw('hist pe1')
+    h_normalised_mixed.Draw('hist pe1 same')
+
     outdir.cd()
-    h_nsigma.SetTitle(';#it{m}_{p - ^{3}He} (GeV/#it{c}^{2}); n#sigma')
-    h_nsigma.Write()
+    canvas.Write()
 
-    return h_nsigma
+    canvas_signal = TCanvas(f'cSignalInvMass{centrality}{suffix}', '', 800, 600)
+    h_signal.Draw('hist pe1')
+    canvas_signal.Write()
 
-def plot_invmass_over_nsigma(h_invmass, h_nsigma, pdf_path:str, x_limits:list):
 
-    gStyle.SetOptStat(0)
-    y_portion = 0.3
-    canvas = TCanvas('cInvMassOverNsigma', '', 800, 800)
-    
-    canvas.cd()
-    upper_pad = TPad('upper_pad', '', 0, y_portion, 1, 1.)
-    upper_pad.Draw()
+def direct_computation_signal_centrality_integrated(h_sames, h_mixeds, outdir: TDirectory,
+                                                    mode: str, centrality: str = '050', suffix: str = ''):
+    """
+    Sum same-event and mixed-event histograms across centrality classes,
+    then normalise and subtract to obtain the signal.
+    """
+    h_same  = h_sames[0].Clone(f'hSameEventInvMassDirectComputation{centrality}{suffix}')
+    h_mixed = h_mixeds[0].Clone(f'hMixedEventInvMassDirectComputation{centrality}{suffix}')
 
-    h_invmass.GetXaxis().SetRangeUser(*x_limits)
-    set_root_object(h_invmass, marker_color=418, marker_style=20, line_color=418)
-    upper_pad.cd()
-    h_invmass.Draw('e0')
+    for h_same_cent, h_mixed_cent in zip(h_sames[1:], h_mixeds[1:]):
+        h_same.Add(h_same_cent)
+        h_mixed.Add(h_mixed_cent)
 
-    upper_pad.Update()
-    line_upper = TLine(3.751, upper_pad.GetUymin(), 3.751, upper_pad.GetUymax())
-    set_root_object(line_upper, line_color=2, line_style=2)
-    line_upper.Draw('same')
+    for hist in [h_same, h_mixed]:
+        hist.Sumw2()
 
-    canvas.cd()
-    lower_pad = TPad('lower_pad', '', 0, 0.05, 1, y_portion)
-    lower_pad.SetBottomMargin(0.22)
-    lower_pad.Draw()
+    h_normalised_mixed = h_mixed.Clone(f'hNormalisedMixedEventInvMassDirectComputation{centrality}{suffix}')
 
-    h_nsigma.GetXaxis().SetRangeUser(*x_limits)
-    set_root_object(h_nsigma, marker_color=797, marker_style=20, x_title_size=0.1, y_title_size=0.1,
-                    x_title_offset=1, y_title_offset=0.3, x_label_size=0.1, y_label_size=0.1)
-    lower_pad.cd()
-    h_nsigma.Draw('p0')
+    low_bin  = h_same.FindBin(NORM_LOW_INVMASS)
+    high_bin = h_same.FindBin(NORM_HIGH_INVMASS)
+    normalization_factor = h_same.Integral(low_bin, high_bin) / h_normalised_mixed.Integral(low_bin, high_bin)
+    h_normalised_mixed.Scale(normalization_factor)
 
-    lower_pad.Update()
-    line_lower = TLine(3.751, lower_pad.GetUymin(), 3.751, lower_pad.GetUymax())
-    set_root_object(line_lower, line_color=2, line_style=2)
-    line_lower.Draw('same')
+    h_signal = h_same.Clone(f'hSignalInvMassDirectComputation{centrality}{suffix}')
+    h_signal.Add(h_normalised_mixed, -1.)
 
-    canvas.SaveAs(pdf_path)
-    del canvas
-        
+    outdir.cd()
+    for hist in [h_same, h_mixed, h_normalised_mixed, h_signal]:
+        hist.SetTitle(';#it{M} (GeV/#it{c}^{2});')
+        if hist == h_signal:
+            hist.SetTitle(';#it{M} (GeV/#it{c}^{2}); Counts')
+        hist.Write()
+
+    return h_same, h_mixed, h_signal
+
 
 if __name__ == '__main__':
-    
-    #infile_same = 'output/same_event.root'
-    #infile_mixed = 'output/mixed_event.root'
-    #_outfile = 'output/correlation.root'
 
-    infile_same = 'checks/same_event_hadronpid_pass1_pass4_nohe3pcut.root'
-    infile_mixed = 'checks/rotation_mixing_hadronpid_pass1_pass4_nohe3pcut.root'
-    _outfile = 'checks/invmass_hadronpid_pass1_pass4_nohe3pcut.root'
+    infile_same_paths = [
+        'output/PbPb/LHC23_PbPb_pass5_hadronpid_same.root',
+        'output/PbPb/LHC24ar_pass3_hadronpid_same.root',
+        'output/PbPb/LHC25_PbPb_pass1_hadronpid_same.root',
+    ]
+    infile_mixed_paths = [
+        'output/PbPb/LHC23_PbPb_pass5_hadronpid_event_mixing.root',
+        'output/PbPb/LHC24ar_pass3_hadronpid_event_mixing.root',
+        'output/PbPb/LHC25_PbPb_pass1_hadronpid_event_mixing.root',
+    ]
+    outfile_path = (
+        #'output/PbPb/invmass_LHC23_PbPb_pass5_hadronpid.root'
+        #'output/PbPb/invmass_LHC24ar_pass3_hadronpid.root' 
+        #'output/PbPb/invmass_LHC25_PbPb_pass1_hadronpid.root'
+        'output/PbPb/invmass_PbPb_hadronpid.root'
+        #'output/PbPb/invmass_LHC23_PbPb_pass5_LHC24ar_pass3_hadronpid.root'
+        )
 
-    file_same = TFile.Open(infile_same)
-    file_mixed = TFile.Open(infile_mixed)
-    outfile = TFile.Open(_outfile, 'RECREATE')   
+    infile_sames  = [TFile.Open(p) for p in infile_same_paths]
+    infile_mixeds = [TFile.Open(p) for p in infile_mixed_paths]
+    outfile = TFile.Open(outfile_path, 'RECREATE')
 
     for mode in ['Matter', 'Antimatter']:
-    
-        outdir = outfile.mkdir(f'InvariantMass{mode}')
 
-        h_sames, h_mixeds = [], []
+        outdir = outfile.mkdir(f'InvMass{mode}')
 
-        for suffix in ['', 'PtHadronUnder1p0', 'PtHadronUnder1p1', 'PtHadronUnder1p2',
-                       'PLiUnder2', 'PLiUnder3', 'PLiUnder4', 'PLiUnder5',
-                       'PLi2', 'PLi3', 'PLi4', 'PLi5']:
-            
-            pdf_path = f'checks/invmass_hadronpid_pass1_pass4_nclstpc{mode}{suffix}.pdf'
-            h_same, h_mixed, h_subtracted = normalise_histograms_and_compute_subtraction(outdir, mode, rebin=4, suffix=suffix)
-            h_correction = load_hist('/home/galucia/Lithium4/femto/models/CATS_converted.root', 'hHe3_p_Coul_InvMass')
-            __, h_subtracted_corrected = invariant_mass_subtraction_corrected(h_same, h_mixed, h_correction, outdir, mode, suffix)
-            h_nsigma = nsigma_plot(h_subtracted_corrected, outdir, mode, suffix)
-            if suffix == '':
-                plot_invmass_over_nsigma(h_subtracted_corrected, h_nsigma, pdf_path, [3.747, 3.777])
+        h_sames, h_mixeds, h_normalised_mixeds, h_signals = [], [], [], []
+
+        # Centrality-integrated, no centrality suffix
+        #normalise_and_subtract_no_centrality(infile_sames, infile_mixeds, outdir, mode, rebin=2)
+
+        for suffix in ['']:
+
+            outdir_suffix = outdir.mkdir(f'{suffix}' if suffix != '' else 'Default')
+
+            for centrality in ['010', '1030', '3050', '5080']:
+
+                h_same, h_mixed, h_normalised_mixed, h_signal = normalise_and_subtract(
+                    infile_sames, infile_mixeds, outdir_suffix,
+                    mode, centrality, #rebin=2, 
+                    suffix=suffix)
+
+                plot_invariant_mass(h_same, h_normalised_mixed, h_signal,
+                                    outdir_suffix, centrality, suffix)
+
+                h_sames.append(h_same)
+                h_mixeds.append(h_mixed)
+                h_normalised_mixeds.append(h_normalised_mixed)
+                h_signals.append(h_signal)
+
+            # Centrality-integrated signal via direct sum
+            direct_computation_signal_centrality_integrated(
+                h_sames[:3], h_mixeds[:3], outdir_suffix, mode, '050', suffix)
+            direct_computation_signal_centrality_integrated(
+                h_sames[1:3], h_mixeds[1:3], outdir_suffix, mode, '1050', suffix)
+            direct_computation_signal_centrality_integrated(
+                h_sames, h_mixeds, outdir_suffix, mode, '080', suffix)
+            direct_computation_signal_centrality_integrated(
+                h_sames[1:], h_mixeds[1:], outdir_suffix, mode, '1080', suffix)
+
+            h_sames.clear()
+            h_mixeds.clear()
+            h_normalised_mixeds.clear()
+            h_signals.clear()
 
     outfile.Close()
