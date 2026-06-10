@@ -84,21 +84,15 @@ def visualise(rdf: RDataFrame, outfile:TDirectory, particle:str = 'He3'):
 
 def main():
     
-    input_files = {'Pr': [#'/data/galucia/lithium_local/MC/nucleiqc/LHC25a4_protons.root'
-                            #'/data/galucia/lithium_local/MC/nucleiqc/LHC24e2d_protons.root'
-                            '/data/galucia/lithium_local/MC/alimonitor/nucleiQC/protons/train_LHC24g3/AO2D.root'],
-                    'Pr_as_He': [#'/data/galucia/lithium_local/MC/nucleiqc/LHC25a4_protons.root'
-                            #'/data/galucia/lithium_local/MC/nucleiqc/LHC24e2d_protons.root'
-                            '/data/galucia/lithium_local/MC/alimonitor/nucleiQC/protons/train_LHC24g3/AO2D.root'],
-                   'De_as_He': ['/data/galucia/lithium_local/MC/alimonitor/nucleiQC/deuterons/train_LHC24g3/AO2D.root'],
-                   'He': ['/data/galucia/lithium_local/MC/nucleiqc/LHC25a4_he3.root',
-                          '/data/galucia/lithium_local/MC/nucleiqc/LHC24i5_he3.root',]}
-    #input_files = {'Pr': '/home/galucia/Lithium4/task/nucleiQC/local_test.root',
-    #               'He': '/home/galucia/Lithium4/task/nucleiQC/local_test.root',}
+    input_files = {'Pr': ['/data/galucia/lithium/primaries/LHC25f3.root',],
+                   'Pr_as_He': ['/data/galucia/lithium/primaries/LHC25f3.root',],
+                   #'De_as_He': ['/data/galucia/lithium_local/MC/alimonitor/nucleiQC/deuterons/train_LHC24g3/AO2D.root'],
+                   'He': ['/data/galucia/lithium/primaries/LHC25g11_he3.root',],
+                   }
     tree_name = 'O2nucleitablered'
 
     chain_data = {'Pr': TChain('tchainPr'),
-                    'Pr_as_He': TChain('tchainPr_as_He'),
+                  'Pr_as_He': TChain('tchainPr_as_He'),
                   'De_as_He': TChain('tchainDe'),
                   'He': TChain('tchainHe')}
     
@@ -132,7 +126,7 @@ def main():
     # TMCProcess:
     # kPPrimary = 0
     # kPDecay = 4
-    for particle in ['Pr', 'Pr_as_He', 'De_as_He', 'He']:
+    for particle in ['Pr', 'Pr_as_He', 'He']: #, 'De_as_He', 'He']:
         rdfs[particle] = RDataFrame(chain_data[particle]) \
                            .Filter(f'std::abs(fPDGcode) == {PDGcode[particle]}') \
                            .Define('fPidForTracking', 'ReadPidTrkFromFlags(fFlags)') \
@@ -168,9 +162,9 @@ def main():
                 #for uniqueVal, nUniqueVal in zip(uniqueCol1Vals, evtsPerCol1ValsRP):
                 #    print(f'{particle} fMotherPDGCode: {uniqueVal}, n entries: {nUniqueVal}.')
     
-    outfile = TFile.Open('output/dca_mc_template_check.root', 'RECREATE')
+    outfile = TFile.Open('output/dca/dca_mc_template.root', 'RECREATE')
     
-    for particle in ['Pr', 'Pr_as_He', 'De_as_He', 'He']:
+    for particle in ['Pr', 'Pr_as_He', 'He']: #, 'De_as_He', 'He']:
         outdir = outfile.mkdir(f'{particle}')
         visualise(rdfs[particle], outdir, particle)
         

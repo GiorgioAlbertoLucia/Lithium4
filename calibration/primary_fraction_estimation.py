@@ -151,8 +151,11 @@ def main(config: AnalysisConfig = None):
             # Load MC templates
             h2_mc = {}
             for flag_name, flag_suffix in particle_config.mc_flags.items():
-                    
+                
+                print(tc.BLUE + f"Loading MC template for {particle} {flag_name}..." + tc.RESET)
                 if flag_name == 'material' and particle == 'He':
+                    
+                    print(config.fits[particle])
                     if config.fits[particle].use_material_template:
                         
                         # Subtraction method to prepare material template
@@ -173,16 +176,22 @@ def main(config: AnalysisConfig = None):
                         h2_material = load_hist(config.paths.mc_input_file, f'Pr_as_He/h2DCA{direction}PtPr_as_He{flag_suffix}')
                         
                         h2_mc[flag_name] = h2_material
+                        print(f"Using material template for {particle} from MC histogram {h2_material.GetName()}")
+                        print(type(h2_mc[flag_name]))
 
                     elif config.fits[particle].use_material_template_from_mc:
                         hist_path = f'{particle}/h2DCA{direction}Pt{particle}{flag_suffix}'
                         h2_mc[flag_name] = load_hist(config.paths.mc_input_file, hist_path)
+                        print(f"Using material template for {particle} from MC histogram")
+                        print(type(h2_mc[flag_name]))
 
                     # If not using template, will be created as Gaussian/pol0 in fitting
                                     
                 else:
                     hist_path = f'{particle}/h2DCA{direction}Pt{particle}{flag_suffix}'
                     h2_mc[flag_name] = load_hist(config.paths.mc_input_file, hist_path)
+                    print(f"Using template for {particle} {flag_name} from MC histogram")
+                    print(type(h2_mc[flag_name]))
 
                 outdir.cd()
                 h2_mc[flag_name].Write(f'h2DCA{direction}Pt{particle}_{flag_name}_mc')
@@ -233,9 +242,9 @@ if __name__ == '__main__':
 
     #config.fits['He'].max_pt_material_template = 2.0
 
-    config.paths.data_input_file = 'output/dca/dca_data_template_smaller_tolerance.root'
+    config.paths.data_input_file = 'output/dca/dca_data_template.root'
     
-    config.paths.output_file = 'output/dca/primary_fraction_results_new_smaller_tolerance_pr.root'
+    config.paths.output_file = 'output/dca/primary_fraction_results.root'
     #config.paths.output_file = 'output/primary_fraction_results_mc.root'
     #config.fits['He'].material_background_type = 'pol0'
     config.fits['He'].use_material_template = True
@@ -244,5 +253,7 @@ if __name__ == '__main__':
                                        'weak_decay': '_IsSecondaryFromWeakDecay',
                                        'material': '_IsSecondaryFromMaterial',
                                        }
+    
+    print(config.fits['He'])
     
     main(config=config)

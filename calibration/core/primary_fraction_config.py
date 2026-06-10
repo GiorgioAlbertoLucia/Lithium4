@@ -70,7 +70,7 @@ class AnalysisConfig:
     def __init__(self):
         self.particles = {
             'He': ParticleConfig(
-                pt_range=(1.2, 5.0),
+                pt_range=(1.3, 5.0),
                 dca_range=(-0.05, 0.05),
                 dca_core_range=(-0.004, 0.006),
                 mc_flags={
@@ -100,9 +100,9 @@ class AnalysisConfig:
         }
         
         self.paths = PathConfig(
-            data_input_file='output/dca/dca_data_template_smaller_tolerance.root',
+            data_input_file='output/dca/dca_data_template.root',
             #data_input_file='output/dca/dca_mc_template_check.root',
-            mc_input_file='output/dca/dca_mc_template_check.root',
+            mc_input_file='output/dca/dca_mc_template.root',
             output_file='output/dca/primary_fraction_estimation.root',
             output_pdf='output/dca/primary_fraction_estimation.pdf',
             efficiency_file='/home/galucia/Lithium4/phase_space_studies/output/single_track_efficiency.root',

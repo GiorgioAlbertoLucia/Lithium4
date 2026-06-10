@@ -11,12 +11,13 @@ from ROOT import TFile, TChain, RDataFrame, TDirectory, \
 
 from torchic.utils.terminal_colors import TerminalColors as tc
 
-gInterpreter.ProcessLine(f'#include "../include/Common.h"')
 
 EnableImplicitMT(1)
 gROOT.SetBatch(True)
 
 sys.path.append('..')
+from include.load_parameters import load_parametrisation
+gInterpreter.ProcessLine(f'#include "../include/Common.h"')
 from utils.particles import ParticlePDG, ParticleMasses
 
 class Flags(Enum):
@@ -166,10 +167,12 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
       .Define(f'fEHe3', f'std::sqrt((fPtHe3 * std::cosh(fEtaHe3))*(fPtHe3 * std::cosh(fEtaHe3)) + {ParticleMasses["He"]}*{ParticleMasses["He"]})') \
       .Define(f'fEHad', f'std::sqrt((fPtHad * std::cosh(fEtaHad))*(fPtHad * std::cosh(fEtaHad)) + {ParticleMasses["Pr"]}*{ParticleMasses["Pr"]})') \
       .Redefine('fInnerParamTPCHe3', 'fInnerParamTPCHe3 * 2') \
+      .Redefine('fInnerParamTPCHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fInnerParamTPCHe3 > 2.4) ? fInnerParamTPCHe3 : CorrectPidTrkHe(fInnerParamTPCHe3, false)') \
       .Define('fClusterSizeCosLamHe3', 'ComputeAverageClusterSize(fItsClusterSizeHe3) / cosh(fEtaHe3)') \
       .Define('fClusterSizeCosLamHad', 'ComputeAverageClusterSize(fItsClusterSizeHad) / cosh(fEtaHad)') \
       .Define('fNSigmaITSHe3', 'ComputeNsigmaITSHe(fPtHe3 * std::cosh(fEtaHe3), fClusterSizeCosLamHe3)') \
       .Define('fNSigmaITSHad', 'ComputeNsigmaITSPr(fPtHad * std::cosh(fEtaHad), fClusterSizeCosLamHad)') \
+      .Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3, false, true)') \
       .Filter(base_selection).Filter(selection)
     
     return rdf
@@ -177,19 +180,52 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
 def main():
     
     config = {
-                'input_data': [ '/data/galucia/lithium_local/same_merged/LHC23_PbPb_pass4_all_same.root',
-                                '/data/galucia/lithium_local/same_merged/LHC24ar_pass1_all_same.root',
-                                '/data/galucia/lithium_local/same_merged/LHC24as_pass1_all_same.root',
+                'input_data': [ #'/data/galucia/lithium/same/LHC23_PbPb_pass5_hadronpid_same.root',
+                                '/data/galucia/lithium/same/LHC24ar_pass3_hadronpid_same.root',
+                                #'/data/galucia/lithium/same/LHC25_PbPb_pass1_hadronpid_same.root',
                                 ],
                 'tree_name': 'O2he3hadtable',
                 'mode': 'DF',
+                
+                'parameterisation': {
+
+                    # PbPb 23 pass5
+                    ### 'kHeTPCParams': [-335.570, 0.7066, 1.5731, 0.5202, 2.8735],
+                    ### 'kHeTPCResolution': 0.060,
+                    ### 'kHeTPCParamsResiduals': [31.8927, 0.6830, 0.0750, -8.3483, 0.9692, 0.1287],
+
+                    # 24_pass3
+                    'kHeTPCParams': [-200.84, 0.3000, 1.6669, 1.1523, 2.8760],
+                    'kHeTPCResolution': 0.059,
+                    'kHeTPCResidualType': 'exp',
+                    'kHeTPCParamsResiduals': [-162.97, 11.118, 0.4094, 0., 0., 0.],
+
+                    # 25_pass1
+                    ### 'kHeTPCParams': [-444.875, 1.03555, 1.79299, 1.49951, 2.26467],
+                    ### 'kHeTPCResolution': 0.055,
+                    ### 'kHeTPCResidualType': 'double_gaus',
+                    ### 'kHeTPCParamsResiduals': [417.113, 0.532354, 0.0620908, -43.7363, 0.710629, 0.286426],
+
+                    # PbPb 23 pass5
+                    'kITSParams_Pr': [1.0228, 1.9634, 2.2081], # Pr from Ka fitting
+                    'kITSParams_He': [2.5734, 1.3620, 5.1383],  # He 
+
+                    'kITSResolutionParams_Pr': [0.1575, 0., 0.],
+                    'kITSResolutionParams_He': [0.1124, -0.0100, 0.],
+
+                    'kHePidTrkParamsPt': [0.3101, -0.1759, 0.0262],
+                    
+                    # from LHC25g11
+                    'kHePidTrkParamsP': [0.0514009, -0.245084, 0.120208],
+                    ####'kHePidTrkParamsP': [0., 0., 0.],
+                }
              }
 
     chain_data = prepare_input_tchain(config)
     selections_dict = {'selections': [
                 # quality cuts
                  #'((fDeltaPhi/0.006)*(fDeltaPhi/0.006) + (fDeltaEta/0.012)*(fDeltaEta/0.012) > 1)',
-                 '(((fChi2TPCHe3 > 0.5) || (fIs23 == false)) && (fChi2TPCHe3 < 4))', # the cut on chi2tpc should be only applied to 2023
+                 #'(((fChi2TPCHe3 > 0.5) || (fIs23 == false)) && (fChi2TPCHe3 < 4))', # the cut on chi2tpc should be only applied to 2023
                  '((fChi2TPCHad < 4))',
                  '(std::abs(fEtaHe3) < 0.9)',
                  '(std::abs(fEtaHad) < 0.9)',
@@ -198,9 +234,9 @@ def main():
                  '((fPtHe3 < 2.5) || (fPIDtrkHe3 == 7))',
                  '((fPIDtrkHe3 == 6) || (fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8))',
                  #'((fPIDtrkHe3 == 7))',
-                 '((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 2.))',
+                 '((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 3.))',
                  #'(fClusterSizeCosLamHe3 > 4)',
-                 '(fNSigmaITSHe3 > -1.5)',
+                 '(fNSigmaITSHe3 > -2.)',
                  #'(fMassTOFHe3 > 2 || fMassTOFHe3 < 0)',
 
                  '(std::abs(fNSigmaTPCHad) < 2)',
@@ -209,10 +245,12 @@ def main():
                  #'((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2) || (fNSigmaTOFHad < -9.9))', # TOF veto
                  '(fNSigmaITSHad > -2.)',
                 ]}
+    
+    load_parametrisation(config)  # Load parametrisation into Common.h
     base_selections, selections = prepare_selections(selections_dict)
     rdf = prepare_rdataframe(chain_data, base_selections, selections)
 
-    outfile = TFile.Open('output/dca_data_template_smaller_tolerance.root', 'RECREATE')
+    outfile = TFile.Open('output/dca_data_template.root', 'RECREATE')
     
     for particle_name, particle in zip(['Had', 'He3'], ['Pr', 'He']):
 
