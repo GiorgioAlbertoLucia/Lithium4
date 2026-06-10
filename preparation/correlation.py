@@ -9,27 +9,27 @@ NBINS_KSTAR = 40 # 20
 def normalise_histograms_and_compute_correlation_no_centrality(infile_sames, infile_mixeds, outdir:TDirectory,
                                                  mode:str, rebin:int=1, suffix:str=''):
 
-    h_same = infile_sames[0].Get(f'QA/hKstar{mode}').Clone(f'hSameEvent{suffix}')
+    h_same = infile_sames[0].Get(f'QA/hKstar{mode}').Clone(f'hSameEvent')
     h_same.SetDirectory(0)  # Detach from file to avoid issues with deletion
     for infile_same in infile_sames[1:]:
         h_same.Add(infile_same.Get(f'QA/hKstar{mode}'))
     if rebin > 1:
         h_same.Rebin(rebin)
 
-    h_mixed = infile_mixeds[0].Get(f'QA/hKstar{mode}').Clone(f'hMixedEvent{suffix}')
+    h_mixed = infile_mixeds[0].Get(f'QA/hKstar{mode}').Clone(f'hMixedEvent')
     h_mixed.SetDirectory(0)  # Detach from file to avoid issues with deletion
     for infile_mixed in infile_mixeds[1:]:
         h_mixed.Add(infile_mixed.Get(f'QA/hKstar{mode}'))
     if rebin > 1:
         h_mixed.Rebin(rebin)
-    h_normalised_mixed = h_mixed.Clone(f'hNormalisedMixedEvent{suffix}')
+    h_normalised_mixed = h_mixed.Clone(f'hNormalisedMixedEvent')
 
     low_bin = h_same.FindBin(NORM_LOW_KSTAR)
     high_bin = h_same.FindBin(NORM_HIGH_KSTAR)
     normalization_factor = h_same.Integral(low_bin, high_bin) / h_normalised_mixed.Integral(low_bin, high_bin) 
     h_normalised_mixed.Scale(normalization_factor)
 
-    h_corr = h_same.Clone(f'hCorrelation{suffix}')
+    h_corr = h_same.Clone(f'hCorrelation')
     h_corr.Divide(h_normalised_mixed)
 
     if suffix != '':
@@ -45,31 +45,31 @@ def normalise_histograms_and_compute_correlation_no_centrality(infile_sames, inf
 def normalise_histograms_and_compute_correlation(infile_sames, infile_mixeds, outdir:TDirectory,
                                                  mode:str, centrality:str, rebin:int=1, suffix:str=''):
 
-    h_same = infile_sames[0].Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}').Clone(f'hSameEvent{centrality}{suffix}')
+    h_same = infile_sames[0].Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}').Clone(f'hSameEvent{centrality}')
     h_same.SetDirectory(0)  # Detach from file to avoid issues with deletion
     for infile_same in infile_sames[1:]:
         h_same.Add(infile_same.Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}'))
     if rebin > 1:
         h_same.Rebin(rebin)
 
-    h_mixed = infile_mixeds[0].Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}').Clone(f'hMixedEvent{centrality}{suffix}')
+    h_mixed = infile_mixeds[0].Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}').Clone(f'hMixedEvent{centrality}')
     h_mixed.SetDirectory(0)  # Detach from file to avoid issues with deletion
     for infile_mixed in infile_mixeds[1:]:
         h_mixed.Add(infile_mixed.Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}'))
     if rebin > 1:
         h_mixed.Rebin(rebin)
-    h_normalised_mixed = h_mixed.Clone(f'hNormalisedMixedEvent{centrality}{suffix}')
+    h_normalised_mixed = h_mixed.Clone(f'hNormalisedMixedEvent{centrality}')
 
     low_bin = h_same.FindBin(NORM_LOW_KSTAR)
     high_bin = h_same.FindBin(NORM_HIGH_KSTAR)
     normalization_factor = h_same.Integral(low_bin, high_bin) / h_normalised_mixed.Integral(low_bin, high_bin)
     h_normalised_mixed.Scale(normalization_factor)
 
-    h_corr = h_same.Clone(f'hCorrelation{centrality}{suffix}')
+    h_corr = h_same.Clone(f'hCorrelation{centrality}')
     h_corr.Divide(h_normalised_mixed)
 
-    if suffix != '':
-        return h_same, h_mixed, h_normalised_mixed, h_corr
+    #if suffix != '':
+    #    return h_same, h_mixed, h_normalised_mixed, h_corr
         
     outdir.cd()
     for hist in [h_same, h_mixed, h_normalised_mixed, h_corr]:
@@ -83,7 +83,7 @@ def fit_normalisation_region(h_corr:TH1F, outdir:TDirectory, mode:str, centralit
     constant = TF1(f'func{centrality}', 'pol0', NORM_LOW_KSTAR, NORM_HIGH_KSTAR)
     h_corr.Fit(constant, 'RMS+')
 
-    canvas = TCanvas(f'cCorrelation{centrality}{suffix}')
+    canvas = TCanvas(f'cCorrelation{centrality}')
     set_root_object(h_corr, marker_style=20)
     h_corr.Draw('hist pe1')
     constant.Draw('same')
@@ -96,14 +96,14 @@ def correlation_function_centrality_integrated(h_sames, h_normalised_mixeds, out
     """
     Compute the correlation function for the centrality integrated histograms.
     """
-    h_same = h_sames[0].Clone(f'hSameEvent{centrality}{suffix}')
-    h_mixed = h_normalised_mixeds[0].Clone(f'hNormalisedMixedEvent{centrality}{suffix}')
+    h_same = h_sames[0].Clone(f'hSameEvent{centrality}')
+    h_mixed = h_normalised_mixeds[0].Clone(f'hNormalisedMixedEvent{centrality}')
 
     for h_same_centrality, h_mixed_centrality in zip(h_sames[1:], h_normalised_mixeds[1:]):
         h_same.Add(h_same_centrality)
         h_mixed.Add(h_mixed_centrality)
 
-    h_corr = h_same.Clone(f'hCorrelation{centrality}{suffix}')
+    h_corr = h_same.Clone(f'hCorrelation{centrality}')
     h_corr.Divide(h_mixed)
 
     outdir.cd()
@@ -119,8 +119,8 @@ def direct_computation_correlation_function_centrality_integrated(h_sames, h_mix
     """
     Compute the correlation function for the centrality integrated histograms.
     """
-    h_same = h_sames[0].Clone(f'hSameEventDirectComputation{centrality}{suffix}')
-    h_mixed = h_mixeds[0].Clone(f'hMixedEventDirectComputation{centrality}{suffix}')
+    h_same = h_sames[0].Clone(f'hSameEventDirectComputation{centrality}')
+    h_mixed = h_mixeds[0].Clone(f'hMixedEventDirectComputation{centrality}')
 
     for h_same_centrality, h_mixed_centrality in zip(h_sames[1:], h_mixeds[1:]):
         h_same.Add(h_same_centrality)
@@ -129,14 +129,14 @@ def direct_computation_correlation_function_centrality_integrated(h_sames, h_mix
     for hist in [h_same, h_mixed]:
         hist.Sumw2()  # Ensure proper error calculation
 
-    h_normalised_mixed = h_mixed.Clone(f'hNormalisedMixedEventDirectComputation{centrality}{suffix}')
+    h_normalised_mixed = h_mixed.Clone(f'hNormalisedMixedEventDirectComputation{centrality}')
 
     low_bin = h_same.FindBin(NORM_LOW_KSTAR)
     high_bin = h_same.FindBin(NORM_HIGH_KSTAR)
     normalization_factor = h_same.Integral(low_bin, high_bin) / h_normalised_mixed.Integral(low_bin, high_bin)
     h_normalised_mixed.Scale(normalization_factor)
 
-    h_corr = h_same.Clone(f'hCorrelationDirectComputation{centrality}{suffix}')
+    h_corr = h_same.Clone(f'hCorrelationDirectComputation{centrality}')
     h_corr.Divide(h_normalised_mixed)
 
     outdir.cd()
@@ -153,7 +153,7 @@ def wighted_sum_correlation_function_centrality_integrated(h_correlations, outdi
     Compute the correlation function for the centrality integrated histograms.
     """
 
-    h_correlation_weighted = h_correlations[0].Clone(f'hCorrelationWeightedSum{centrality}{suffix}')
+    h_correlation_weighted = h_correlations[0].Clone(f'hCorrelationWeightedSum{centrality}')
 
     for ibin in range(1, h_correlation_weighted.GetNbinsX()+1):
 
@@ -223,14 +223,16 @@ if __name__ == '__main__':
         if False:
             continue
             
-        for suffix in ['', 'SharedUnder50', 'SharedUnder40', 'SharedUnder30', 'PLi2', 'PLi3', 'PLi4', 'PLi5',
+        for suffix in ['', 'PLiGreaterThan3',
+                       #'SharedUnder50', 'SharedUnder40', 'SharedUnder30', 'PLi2', 'PLi3', 'PLi4', 'PLi5',
                        #'PLiUnder2', 
-                       'PLiUnder3', 'PLiUnder4', 'PLiUnder5', 'PtHadronUnder1p0', 'PtHadronUnder1p1', 'PtHadronUnder1p2']:
+                       #'PLiUnder3', 'PLiUnder4', 'PLiUnder5', 'PtHadronUnder1p0', 'PtHadronUnder1p1', 'PtHadronUnder1p2'
+                       ]:
             
             outdir_suffix = outdir.mkdir(f'{suffix}' if suffix != '' else 'Default')
             
             
-            for centrality in ['010', '1030', '3050']:
+            for centrality in ['010', '1030', '3050', '5080']:
 
                 h_same, h_mixed, h_normalised_mixed, h_corr = normalise_histograms_and_compute_correlation(
                                                                     infile_sames, infile_mixeds, outdir_suffix, 
@@ -242,11 +244,13 @@ if __name__ == '__main__':
                 h_normalised_mixeds.append(h_normalised_mixed)
                 h_corrs.append(h_corr)
 
-            __, __, h_corr = correlation_function_centrality_integrated(h_sames, h_normalised_mixeds, outdir_suffix, mode, '050', suffix)
+            __, __, h_corr = correlation_function_centrality_integrated(h_sames[:3], h_normalised_mixeds[:3], outdir_suffix, mode, '050', suffix)
             fit_normalisation_region(h_corr, outdir_suffix, mode, '050', suffix)
 
-            __, __, h_corr = direct_computation_correlation_function_centrality_integrated(h_sames, h_mixeds, outdir_suffix, mode, '050', suffix)
-            __, __, h_corr = direct_computation_correlation_function_centrality_integrated(h_sames[1:], h_mixeds[1:], outdir_suffix, mode, '1050', suffix)
+            __, __, h_corr = direct_computation_correlation_function_centrality_integrated(h_sames[:3], h_mixeds[:3], outdir_suffix, mode, '050', suffix)
+            __, __, h_corr = direct_computation_correlation_function_centrality_integrated(h_sames[1:3], h_mixeds[1:3], outdir_suffix, mode, '1050', suffix)
+            __, __, h_corr = direct_computation_correlation_function_centrality_integrated(h_sames, h_mixeds, outdir_suffix, mode, '080', suffix)
+            __, __, h_corr = direct_computation_correlation_function_centrality_integrated(h_sames[1:], h_mixeds[1:], outdir_suffix, mode, '1080', suffix)
 
             h_corr = wighted_sum_correlation_function_centrality_integrated(h_corrs, outdir_suffix, mode, '050', suffix)
             
