@@ -104,7 +104,9 @@ class BkgFitter(Fitter):
         
         weight_var = RooRealVar('weight', 'weight', 0, 1e6)
         self._bkg_dataset = RooDataSet(h_bkg.GetName()+'_roodata', h_bkg.GetName()+'_roodata', 
-                            tree, [xvar, weight_var], '', 'weight')
+                            [xvar, weight_var],
+                            RooFit.Import(tree),
+                            RooFit.WeightVar(weight_var)) #, '', 'weight')
         getattr(self._roo_workspace, 'import')(self._bkg_dataset)
         
         self._bkg_pdf = RooKeysPdf(name, name, xvar, self._bkg_dataset, RooKeysPdf.NoMirror, rho)

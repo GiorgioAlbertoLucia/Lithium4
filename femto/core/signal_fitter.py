@@ -86,7 +86,9 @@ class SignalFitter(Fitter):
         
         weight_var = RooRealVar('weight', 'weight', 0, 1e6)
         self._signal_dataset = RooDataSet(h_signal.GetName()+'_roodata', h_signal.GetName()+'_roodata', 
-                            tree, [xvar, weight_var], '', 'weight')
+                                          [xvar, weight_var],
+                                          RooFit.Import(tree),
+                                          RooFit.WeightVar(weight_var)) #, '', 'weight')
         getattr(self._roo_workspace, 'import')(self._signal_dataset)
         
         self._signal_pdf = RooKeysPdf(name, name, xvar, self._signal_dataset, RooKeysPdf.NoMirror, rho)

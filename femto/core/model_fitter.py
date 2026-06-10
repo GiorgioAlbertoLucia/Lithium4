@@ -245,6 +245,8 @@ class ModelFitter(Fitter):
         for ibin in range(1, h_data.GetNbinsX()+1):
             
             kstar_value = h_data.GetBinCenter(ibin)
+            if kstar_value < xvar.getMin() or kstar_value > xvar.getMax():
+                continue
             data_value = h_data.GetBinContent(ibin)
             data_error = h_data.GetBinError(ibin)
 
@@ -274,6 +276,8 @@ class ModelFitter(Fitter):
         for ibin in range(1, h_data.GetNbinsX()+1):
             
             kstar_value = h_data.GetBinCenter(ibin)
+            if kstar_value < xvar.getMin() or kstar_value > xvar.getMax():
+                continue
             data_value = h_data.GetBinContent(ibin)
             data_error = h_data.GetBinError(ibin)
 
