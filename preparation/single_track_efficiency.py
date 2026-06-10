@@ -62,29 +62,43 @@ def prepare_selections(config):
 
     return base_selection, selection
 
-def prepare_input_tchain(config):
+def prepare_input_tchain(config:dict):
 
     input_data = config['input_data']
-    tree_name = config['tree_name']
+    tree_names = config['tree_names']
     mode = config['mode']
 
     file_data_list = input_data if isinstance(input_data, list) else [input_data]
+    tree_name = tree_names if isinstance(tree_names, str) else tree_names[0]
     chain_data = TChain('tchain')
 
-    for file_name in file_data_list:
-      fileData = TFile(file_name)
+    additional_chains = []
+    if isinstance(tree_names, list) and len(tree_names) > 1:
+        for idx, tname in enumerate(tree_names[1:]):
+            additional_chain = TChain(f'tchain_friend_{idx}')
+            additional_chains.append(additional_chain)
 
-      if mode == 'DF':
-        for key in fileData.GetListOfKeys():
-          key_name = key.GetName()
-          if 'DF_' in key_name :
-              print(f'Adding {tc.CYAN+tc.UNDERLINE}{file_name}/{key_name}/{tree_name}{tc.RESET} to the chain')
-              chain_data.Add(f'{file_name}/{key_name}/{tree_name}')
-      elif mode == 'tree':
-        print(f'Adding {tc.CYAN+tc.UNDERLINE}{file_name}/{tree_name}{tc.RESET} to the chain')
-        chain_data.Add(f'{file_name}/{tree_name}')
-    
-    return chain_data
+    for file_name in file_data_list:
+        fileData = TFile(file_name)
+
+        if mode == 'DF':
+            for key in fileData.GetListOfKeys():
+                key_name = key.GetName()
+                if 'DF_' in key_name :
+                    chain_data.Add(f'{file_name}/{key_name}/{tree_name}')
+                    for idx, additional_chain in enumerate(additional_chains):
+                        additional_chain.Add(f'{file_name}/{key_name}/{tree_names[idx+1]}')
+            
+        elif mode == 'tree':
+            print(f'Adding {tc.CYAN+tc.UNDERLINE}{file_name}/{tree_name}{tc.RESET} to the chain')
+            chain_data.Add(f'{file_name}/{tree_name}')
+            for idx, additional_chain in enumerate(additional_chains):
+                additional_chain.Add(f'{file_name}/{tree_names[idx+1]}')
+
+    for idx, additional_chain in enumerate(additional_chains):
+        chain_data.AddFriend(additional_chain)
+
+    return chain_data, additional_chains
 
 def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
    
@@ -99,9 +113,9 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
         rdf = rdf.Define('fNSigmaTPCHadPr', 'fNSigmaTPCHad')
     
     # TOF
-    if 'fNSigmaTOFHadPr' not in rdf.GetColumnNames():
+    if 'fNSigmaTOFHad' not in rdf.GetColumnNames() and 'fNSigmaTOFHadPr' not in rdf.GetColumnNames():
         rdf = rdf.Define('fNSigmaTOFHad', 'ComputeNsigmaTOFPr(std::abs(fPtHad), fMassTOFHad)')
-    else:
+    elif 'fNSigmaTOFHad' not in rdf.GetColumnNames() and 'fNSigmaTOFHadPr' in rdf.GetColumnNames():
        rdf = rdf.Define('fNSigmaTOFHad', 'fNSigmaTOFHadPr')
     
       # Recalibration
@@ -119,17 +133,20 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
     rdf_rec = rdf.Define('fSignedPtHad', 'fPtHad') \
       .Define('fSignHe3', 'fPtHe3/std::abs(fPtHe3)') \
       .Redefine('fPtHe3', 'std::abs(fPtHe3)') \
-      .Redefine('fPtHad', 'std::abs(fPtHad)') \
-      .Redefine('fPtMCHe3', 'std::abs(fPtMCHe3)') \
-      .Redefine('fPtMCHad', 'std::abs(fPtMCHad)') \
       .Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
+      .Redefine('fPtHad', 'std::abs(fPtHad)') \
       .Define('fSignedPtHe3', 'fPtHe3 * fSignHe3') \
       .Define(f'fEHe3', f'std::sqrt((fPtHe3 * std::cosh(fEtaHe3))*(fPtHe3 * std::cosh(fEtaHe3)) + {ParticleMasses["He"]}*{ParticleMasses["He"]})') \
       .Define(f'fEHad', f'std::sqrt((fPtHad * std::cosh(fEtaHad))*(fPtHad * std::cosh(fEtaHad)) + {ParticleMasses["Pr"]}*{ParticleMasses["Pr"]})') \
+      .Define('fDeltaEta', 'fEtaHe3 - fEtaHad') \
+      .Define('fDeltaPhi', 'fPhiHe3 - fPhiHad') \
       .Redefine('fInnerParamTPCHe3', 'fInnerParamTPCHe3 * 2') \
-      .Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3, true)') \
+      .Redefine('fInnerParamTPCHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fInnerParamTPCHe3 : CorrectPidTrkHe(fInnerParamTPCHe3, false)') \
+      .Redefine('fNSigmaTPCHe3', 'ComputeNsigmaTPCHe(std::abs(fInnerParamTPCHe3), fSignalTPCHe3, true, true)') \
       .Define('fClusterSizeCosLamHe3', 'ComputeAverageClusterSize(fItsClusterSizeHe3) / cosh(fEtaHe3)') \
       .Define('fClusterSizeCosLamHad', 'ComputeAverageClusterSize(fItsClusterSizeHad) / cosh(fEtaHad)') \
+      .Define('fExpectedClusterSizeHe3', 'ComputeExpectedClusterSizeCosLambdaHe(fPtHe3 * std::cosh(fEtaHe3))') \
+      .Define('fExpectedClusterSizeHad', 'ComputeExpectedClusterSizeCosLambdaPr(fPtHad * std::cosh(fEtaHad))') \
       .Define('fNSigmaITSHe3', 'ComputeNsigmaITSHe(fPtHe3 * std::cosh(fEtaHe3), fClusterSizeCosLamHe3, true)') \
       .Define('fNSigmaITSHad', 'ComputeNsigmaITSPr(fPtHad * std::cosh(fEtaHad), fClusterSizeCosLamHad, true)') \
       .Define('fNSigmaDCAxyHe3', 'ComputeNsigmaDCAxyHe(fPtHe3, fDCAxyHe3, true)') \
@@ -204,7 +221,7 @@ if __name__ == '__main__':
     config = yaml.safe_load(open(config_file, 'r'))
 
     base_selection, selection = prepare_selections(config)
-    chain_data = prepare_input_tchain(config)
+    chain_data, additional_chain_data = prepare_input_tchain(config)
     rdf_rec, rdf_gen = prepare_rdataframe(chain_data, base_selection, selection)
 
     declare_duplicate_filter('Had')
@@ -215,7 +232,7 @@ if __name__ == '__main__':
     rdf_rec_he3 = rdf_rec.Filter('FilterDuplicates_He3(fPtMCHe3, fEtaMCHe3, fPhiMCHe3)')
     rdf_gen_he3 = rdf_gen.Filter('FilterDuplicates_He3(fPtMCHe3, fEtaMCHe3, fPhiMCHe3)')
 
-    output_file_path = 'output/single_track_efficiency_tof_hit.root'
+    output_file_path = 'output/single_track_efficiency.root'
     output_file = ROOT.TFile(output_file_path, "RECREATE")
     output_dir_rec = output_file.mkdir('Reconstructed')
     output_dir_gen = output_file.mkdir('Generated')
