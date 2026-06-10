@@ -1,25 +1,27 @@
 # Same event
 same_event:
   input_data:   [ 
-                  '/data/galucia/lithium_local/same/LHC23_PbPb_pass5_hadronpid_same.root',
-                  #'/data/galucia/lithium_local/same/LHC24ar_pass3_hadronpid_same.root',
-                  #'/data/galucia/lithium_local/same/LHC24ar_pass1_hadronpid_same.root',
-                  #'/data/galucia/lithium_local/same/LHC24as_pass1_hadronpid_same.root',
+                  #'/data/galucia/lithium/same/LHC23_PbPb_pass5_hadronpid_same.root',
+                  '/data/galucia/lithium/same/LHC24ar_pass3_hadronpid_same.root',
 
-                  #'/data/galucia/lithium_local/same/LHC24_pass1_skimmed_hadronpid_same.root',
-                  #'/data/galucia/lithium_local/same/LHC25_pass1_skimmed_hadronpid_same.root',
+                  #'/data/galucia/lithium/same/LHC24ar_pass1_hadronpid_same.root',
+                  #'/data/galucia/lithium/same/LHC24as_pass1_hadronpid_same.root',
 
-                  #'/data/galucia/lithium_local/same/LHC25an_pass1_hadronpid_same.root',
-                  #'/data/galucia/lithium_local/same/LHC25ap_pass1_hadronpid_same.root',
-                  #'/data/galucia/lithium_local/same/LHC25aq_pass1_hadronpid_same.root',
-                  #'/data/galucia/lithium_local/same/LHC25ar_pass1_hadronpid_same.root',
-                  #'/data/galucia/lithium_local/same/LHC25as_pass1_hadronpid_same.root',
+                  #'/data/galucia/lithium/same/LHC24_pass1_skimmed_hadronpid_same.root',
+                  #'/data/galucia/lithium/same/LHC25_pass1_skimmed_hadronpid_same.root',
+
+                  #'/data/galucia/lithium/same/LHC25an_pass1_hadronpid_same.root',
+                  #'/data/galucia/lithium/same/LHC25ap_pass1_hadronpid_same.root',
+                  #'/data/galucia/lithium/same/LHC25aq_pass1_hadronpid_same.root',
+                  #'/data/galucia/lithium/same/LHC25ar_pass1_hadronpid_same.root',
+                  #'/data/galucia/lithium/same/LHC25as_pass1_hadronpid_same.root',
+                  #'/data/galucia/lithium/same/LHC25_PbPb_pass1_hadronpid_same.root',
                 ]
   tree_names:    ['O2he3hadtable', 'O2he3hadmult']
   mode:         'DF'
   #output_file:  'output/same_event.root'
-  output_file:  'output/PbPb/LHC23_PbPb_pass5_hadronpid_same.root'
-  #output_file:  'output/PbPb/LHC24ar_pass3_hadronpid_same.root'
+  #output_file:  'output/PbPb/LHC23_PbPb_pass5_hadronpid_same.root'
+  output_file:  'output/PbPb/LHC24ar_pass3_hadronpid_same.root'
   #output_file:  'output/PbPb/LHC24ar_pass1_hadronpid_same.root'
   #output_file:  'output/PbPb/LHC25_PbPb_pass1_hadronpid_same.root'
 
@@ -27,15 +29,16 @@ same_event:
 mixed_event:
   input_data:   [
                   # PbPb
-                  #'/data/galucia/lithium_local/mixing/LHC25an_pass1_hadronpid_event_mixing_batch256.root',
-                  #'/data/galucia/lithium_local/mixing/LHC25ap_pass1_hadronpid_event_mixing_batch256.root',
-                  #'/data/galucia/lithium_local/mixing/LHC25aq_pass1_hadronpid_event_mixing_batch256.root',
-                  #'/data/galucia/lithium_local/mixing/LHC25ar_pass1_hadronpid_event_mixing_batch256.root',
-                  #'/data/galucia/lithium_local/mixing/LHC25as_pass1_hadronpid_event_mixing_batch256.root',
+                  #'/data/galucia/lithium/mixing/LHC25an_pass1_hadronpid_event_mixing_batch256.root',
+                  #'/data/galucia/lithium/mixing/LHC25ap_pass1_hadronpid_event_mixing_batch256.root',
+                  #'/data/galucia/lithium/mixing/LHC25aq_pass1_hadronpid_event_mixing_batch256.root',
+                  #'/data/galucia/lithium/mixing/LHC25ar_pass1_hadronpid_event_mixing_batch256.root',
+                  #'/data/galucia/lithium/mixing/LHC25as_pass1_hadronpid_event_mixing_batch256.root',
+                  #'/data/galucia/lithium/mixing/LHC25_PbPb_pass1_hadronpid_event_mixing_batch256.root',
 
-                  #'/data/galucia/lithium_local/mixing/LHC23_PbPb_pass5_hadronpid_event_mixing_batch256.root',
-                  #'/data/galucia/lithium_local/mixing/LHC24ar_pass3_hadronpid_event_mixing_batch256.root',
-                  '/data/galucia/lithium_local/mixing/LHC24ar_pass1_hadronpid_event_mixing_batch256.root',
+                  #'/data/galucia/lithium/mixing/LHC23_PbPb_pass5_hadronpid_event_mixing_batch256.root',
+                  '/data/galucia/lithium/mixing/LHC24ar_pass3_hadronpid_event_mixing_batch256.root',
+                  #'/data/galucia/lithium/mixing/LHC24ar_pass1_hadronpid_event_mixing_batch256.root',
                 ]
   tree_names:   ['MixedTree']
   mode:         'tree'
@@ -47,8 +50,8 @@ mixed_event:
   #output_file:  'output/mixed_event_grid.root'
   #output_file:  'output/mixed_rotation.root'
   #output_file:  'output/PbPb/LHC23_PbPb_pass5_hadronpid_event_mixing.root'
-  #output_file:  'output/PbPb/LHC24ar_pass3_hadronpid_event_mixing.root'
-  output_file:  'output/PbPb/LHC24ar_pass1_hadronpid_event_mixing.root'
+  output_file:  'output/PbPb/LHC24ar_pass3_hadronpid_event_mixing.root'
+  #output_file:  'output/PbPb/LHC24ar_pass1_hadronpid_event_mixing.root'
   #output_file:  'output/PbPb/LHC25_PbPb_pass1_hadronpid_event_mixing.root'
 
 ## MC
@@ -73,13 +76,13 @@ selections:     [
                  #'((fPIDtrkHe3 == 7))',
                  #'((fPIDtrkHe3 == 6))',
                  
-                 '((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 2.))',
-                 #'((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 3.))',
-                 #'(fNSigmaTPCHe3 > (50 * std::exp( - 2.05 * std::abs(fPtHe3)) - 2.1) )',
-                 '(std::abs(fNSigmaDCAxyHe3) < 3)',
-                 '(std::abs(fNSigmaDCAzHe3) < 3)',
+                 #'((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 2.))',
+                 '((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 3.))',
+                 #'(fNSigmaTPCHe3 > (50 * std::exp( - 2.05 * std::abs(fPtHe3)) - 2.1) )', 
+                 '(std::abs(fNSigmaDCAxyHe3) < 5)',
+                 '(std::abs(fNSigmaDCAzHe3) < 5)',
                  #'(fClusterSizeCosLamHe3 > 4)',
-                 '(fNSigmaITSHe3 > -1.5)',
+                 '(fNSigmaITSHe3 > -2.)',
                  #'(fMassTOFHe3 > 2 || fMassTOFHe3 < 0)',
 
                  '(std::abs(fNSigmaTPCHad) < 2)',
@@ -91,9 +94,9 @@ selections:     [
 
                  #'((std::abs(fPtHad) < 0.9) || (std::abs(fNSigmaTOFHad) < 2))',  # TOF hard cut at higher pt
                  #'((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2) || (fNSigmaTOFHad < -9.9))', # TOF veto
-                 '(fNSigmaITSHad > -2.)',
-                 '(std::abs(fNSigmaDCAxyHad) < 3)',
-                 '(std::abs(fNSigmaDCAzHad) < 3)',
+                 '(fNSigmaITSHad > -2.)', # --> eliminate
+                 '(std::abs(fNSigmaDCAxyHad) < 5)',
+                 '(std::abs(fNSigmaDCAzHad) < 5)',
                 ]
 
 parameterisation: {
@@ -111,14 +114,23 @@ parameterisation: {
     kDCAzResolutionParamsMC_He: [-2.06e-5, 0.0018, 0.0080, 1.6000],
     
     # PbPb 23 pass5
-    ### kHeTPCParams: [-335.570, 0.7066, 1.5731, 0.5202, 2.8735],
-    ### kHeTPCResolution: 0.060,
-    ### kHeTPCParamsResiduals: [31.8927, 0.6830, 0.0750, -8.3483, 0.9692, 0.1287],
+    ### kHeTPCParams: [-244.627, 0.100002, 1.14056, 0.365353, 3.26339],
+    ### kHeTPCResolution: 0.061,
+    ### kHeTPCResidualType: 'double_gaus',
+    ### kHeTPCParamsResiduals: [87.1178, 0.438363, 0.0814248, -16.9173, 0.754105, 0.285692],
     
     # 24_pass3
-    kHeTPCParams: [-372.210, 0.8966, 1.7426, 0.5313, 2.9516],
+    kHeTPCParams: [-190.723, 0.100000, 1.45622, 0.944291, 2.96807],
     kHeTPCResolution: 0.059,
-    kHeTPCParamsResiduals: [29.733, 0.6556, 0.0807, -11.574, 0.9746, 0.1368],
+    kHeTPCResidualType: 'exp',
+    kHeTPCParamsResiduals: [-19.1089, 5.27807, 0.698301, 0, 0, 0],
+
+    # 25_pass1
+    ### kHeTPCParams: [-208.928, 0.100000, 1.29761, 0.756458, 3.04256],
+    ### kHeTPCResolution: 0.059,
+    ### kHeTPCResidualType: 'double_gaus',
+    ### kHeTPCParamsResiduals: [200.000, 0.362588, 0.0235587, -32.5300, 0.400000, 0.247265],
+
 
     kHeTPCParamsMC: [-283.35, 0.2261, 1.2371, 0.6793, 2.6862],
     kHeTPCResolutionMC: 0.050,
@@ -147,5 +159,8 @@ parameterisation: {
     kPrTOFResolutionParams: [-0.0069, 0.0289],
 
     kHePidTrkParamsPt: [0.3101, -0.1759, 0.0262],
-    kHePidTrkParamsP: [1.1157, -0.9171, 0.1987],
+    
+    # from LHC25g11
+    ### kHePidTrkParamsP: [0.0514009, -0.245084, 0.120208],
+    kHePidTrkParamsP: [0., 0., 0.],
 }

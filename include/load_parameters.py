@@ -42,13 +42,22 @@ def load_parametrisation(config: dict):
         'kHeTPCParamsResiduals':('SetHeTPCParamsResiduals',6),
         'kHeTPCParamsMC':       ('SetHeTPCParamsMC',       5),
         'kHeTPCResolutionMC':   ('SetHeTPCResolutionMC',   1),
+        'kHeTPCParamsResidualsMC':('SetHeTPCParamsResidualsMC',6),
         'kPrTPCParams':         ('SetPrTPCParams',         5),
         'kPrTPCResolution':     ('SetPrTPCResolution',     1),
         'kPrTOFParams':         ('SetPrTOFParams',         3),
         'kPrTOFResolutionParams':('SetPrTOFResolutionParams',2),
-        'kHePidTrkParams':      ('SetHePidTrkParams',      3),
+        'kHePidTrkParamsPt':    ('SetHePidTrkParamsPt',    3),
+        'kHePidTrkParamsP':     ('SetHePidTrkParamsP',     3),
     }
     for key, (setter, _) in scalar_setters.items():
         if key in params:
             val = params[key]
             call(setter, *val) if isinstance(val, list) else call(setter, val)
+            
+    residual_type_map = {'exp': 0, 'double_gaus': 1}
+    if 'kHeTPCResidualType' in params:
+        rt = params['kHeTPCResidualType']
+        rt_int = residual_type_map.get(rt, 0) if isinstance(rt, str) else int(rt)
+        gInterpreter.ProcessLine(f'parametrisation::SetResidualType({rt_int});')
+        

@@ -24,6 +24,8 @@ using std::vector;
 namespace constant
 {
   const float kMass[static_cast<int>(species::kNspecies)] = {0.938272, 2.8089, 0.13957}; // GeV
+  bool kPrintDebug = false;
+  bool kPrintDebugPidTrkHe = false;
 }
 
 
@@ -91,10 +93,36 @@ float BetheBlochHe(const float momentum, const bool isMC=false, const bool apply
 
   double dEdxExpected = BetheBlochParametrisation(betagamma, params[0], params[1], params[2], params[3], params[4]);
 
-  if (applyResiduals) {
-    double residualCorrection = (parametrisation::kHeTPCParamsResiduals[0] * std::exp(- (betagamma - parametrisation::kHeTPCParamsResiduals[1]) * (betagamma - parametrisation::kHeTPCParamsResiduals[1]) / (2 * parametrisation::kHeTPCParamsResiduals[2] * parametrisation::kHeTPCParamsResiduals[2]))
-                           + parametrisation::kHeTPCParamsResiduals[3] * std::exp(- (betagamma - parametrisation::kHeTPCParamsResiduals[4]) * (betagamma - parametrisation::kHeTPCParamsResiduals[4]) / (2 * parametrisation::kHeTPCParamsResiduals[5] * parametrisation::kHeTPCParamsResiduals[5])));
-    dEdxExpected += residualCorrection;
+  if (!applyResiduals) {
+    return dEdxExpected;
+  }
+
+  double residualCorrection = 0.;
+  std::array<float, 6> residualParams = isMC ? parametrisation::kHeTPCParamsResidualsMC : parametrisation::kHeTPCParamsResiduals;
+  switch (parametrisation::kResidualType) {
+    case residualType::kDoubleGaus:
+      residualCorrection = (residualParams[0] * std::exp(- (betagamma - residualParams[1]) * (betagamma - residualParams[1]) / (2 * residualParams[2] * residualParams[2]))
+                        + residualParams[3] * std::exp(- (betagamma - residualParams[4]) * (betagamma - residualParams[4]) / (2 * residualParams[5] * residualParams[5])));
+      break;
+    case residualType::kExp:
+      residualCorrection = residualParams[0] * std::exp(- residualParams[1] * (betagamma - residualParams[2]));
+      break;
+    default:
+      residualCorrection = residualParams[0] * std::exp(- residualParams[1] * (betagamma - residualParams[2]));
+      break;
+  }
+  dEdxExpected += residualCorrection;
+
+  if (constant::kPrintDebug) {
+    std::cout << "BetheBlochHe: momentum = " << momentum << ", betagamma = " << betagamma << ", dEdxExpected = " << dEdxExpected << std::endl;
+    std::cout << "Parameters: " << params[0] << ", " << params[1] << ", " << params[2] << ", " << params[3] << ", " << params[4] << std::endl;
+    if (applyResiduals) {
+      std::array<float, 6> residualParams = isMC ? parametrisation::kHeTPCParamsResidualsMC : parametrisation::kHeTPCParamsResiduals;
+      std::cout << "Residual type: " << (parametrisation::kResidualType == residualType::kDoubleGaus ? "Double Gaussian" : "Exponential") << std::endl;
+      std::cout << "Residual correction: " << residualCorrection << std::endl;
+      std::cout << "Residual parameters: " << residualParams[0] << ", " << residualParams[1] << ", " << residualParams[2] << ", " << residualParams[3] << ", " << residualParams[4] << ", " << residualParams[5] << std::endl;
+    }
+    constant::kPrintDebug = false; // only print for the first call
   }
 
   return dEdxExpected;
@@ -218,8 +246,20 @@ float ComputeNsigmaTOFPr(const float pt, const float tofMass) {
 // -------------------------------------- PID in Tracking ----------------------------------------------
 
 float CorrectPidTrkHe(const float momentum, const bool isPt = true) {
-    const auto& params = isPt ? parametrisation::kHePidTrkParamsPt : parametrisation::kHePidTrkParamsP;
+  
+  const auto& params = isPt ? parametrisation::kHePidTrkParamsPt : parametrisation::kHePidTrkParamsP;
+  if (constant::kPrintDebugPidTrkHe && !isPt) {
+    std::cout << "CorrectPidTrkHe: momentum = " << momentum << ", isPt = " << isPt << std::endl;
+    std::cout << "Parameters: " << params[0] << ", " << params[1] << ", " << params[2] << std::endl;
+    std::cout << "Before correction: " << momentum << std::endl;
+    std::cout << "After correction: " << momentum * (1. - params[0] - params[1] / momentum - params[2] / (momentum * momentum) ) << std::endl;
+    constant::kPrintDebugPidTrkHe = false; // only print for the first call
+  }
+  if (isPt) {
     return momentum * (1. - params[0] - params[1] * momentum - params[2] * momentum * momentum);
+  } else {
+    return momentum * (1. - params[0] - params[1] / momentum - params[2] / (momentum * momentum) );
+  }
 }
 
 // ------------------------------------------- Femto ---------------------------------------------------

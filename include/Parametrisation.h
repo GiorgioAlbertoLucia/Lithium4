@@ -20,6 +20,8 @@ enum class species {
   kNspecies
 };
 
+enum class residualType { kExp = 0, kDoubleGaus = 1 };
+
 namespace parametrisation
 {
     /// Default values
@@ -48,10 +50,12 @@ namespace parametrisation
     // pp 24 and 25 pass1
     std::array<float, 5> kHeTPCParams = {-261.62, 0.1859, 1.1907, 0.5000, 3.0748};
     float kHeTPCResolution = 0.045;
+    residualType kResidualType = residualType::kExp; // default
     std::array<float, 6> kHeTPCParamsResiduals = {44.784, 0.6374, 0.0715, -13.329, 0.8686, 0.1638};
 
-    std::array<float, 5> kHeTPCParamsMC = {-283.35, 0.2261, 1.2371, 0.6793, 2.6862};
+    std::array<float, 5> kHeTPCParamsMC = {-306.36, 0.4117, 1.3515, 1.1662, 2.4429};
     float kHeTPCResolutionMC = 0.050;
+    std::array<float, 6> kHeTPCParamsResidualsMC = {120.00, 0.5299, 0.0824, -11.825, 0.8000, 0.2156};
 
     std::array<float, 5> kPrTPCParams = {-13.9261, -2.4156, 0.9469, 1.2628, 3.4574};
     float kPrTPCResolution = 0.076;
@@ -107,10 +111,17 @@ namespace parametrisation
     void SetHeTPCParamsResiduals(const float p0, const float p1, const float p2, const float p3, const float p4, const float p5) {
         kHeTPCParamsResiduals = {p0, p1, p2, p3, p4, p5};
     }
+    void SetResidualType(const int type) {
+        kResidualType = static_cast<residualType>(type);
+    }
+    
     void SetHeTPCParamsMC(const float p0, const float p1, const float p2, const float p3, const float p4) {
         kHeTPCParamsMC = {p0, p1, p2, p3, p4};
     }
     void SetHeTPCResolutionMC(const float res) { kHeTPCResolutionMC = res; }
+    void SetHeTPCParamsResidualsMC(const float p0, const float p1, const float p2, const float p3, const float p4, const float p5) {
+        kHeTPCParamsResidualsMC = {p0, p1, p2, p3, p4, p5};
+    }
     void SetPrTPCParams(const float p0, const float p1, const float p2, const float p3, const float p4) {
         kPrTPCParams = {p0, p1, p2, p3, p4};
     }
