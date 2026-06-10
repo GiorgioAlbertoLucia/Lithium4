@@ -13,40 +13,47 @@
 #include <TMath.h>
 
 namespace InputData {
-    //const char * inputMixedFile = "/home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root";
-    const char * inputMixedFile = "/home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root";
-    //const char * inputMixedNameMatter = "CorrelationMatter/Default/hMixedEventDirectComputation050";
-    //const char * inputMixedNameAntimatter = "CorrelationAntimatter/Default/hMixedEventDirectComputation050";
-    //const char * inputMixedNameBoth = "Correlation/Default/hMixedEventDirectComputation050";
-    const char * inputMixedNameMatter = "CorrelationMatter/Default/hMixedEvent010";
-    const char * inputMixedNameAntimatter = "CorrelationAntimatter/Default/hMixedEvent010";
-    const char * inputMixedNameBoth = "Correlation/Default/hMixedEvent010";
-    
-    const char * inputCorrectionFile = "models/lambda_models.root";
-    const char * inputCorrectionNameMatter = "Matter/010/hLambdaSigmaCorrectedCk";
-    const char * inputCorrectionNameAntimatter = "Antimatter/010/hLambdaSigmaCorrectedCk";
-    const char * inputCorrectionNameBoth = "Both/010/hLambdaSigmaCorrectedCk";
-    
-    //const char * inputChi2File = "/home/galucia/Lithium4/femto/output/fit_correlation_function_hadronpid_pass1_pass4_nohe3pcut_offlinetpc_lambda_parameters_strong_interaction.root";
-    //const char * inputChi2File = "/home/galucia/Lithium4/femto/output/fit_correlation_function_hadronpid_pass1_pass4_refined_dca_lambda_parameters_strong_interaction.root";
-    const char * inputChi2File = "/home/galucia/Lithium4/femto/output/fit_correlation_function_hadronpid_pass1_pass4_refined_dca_consider_sigma_smoothened.root";
-    const char * inputChi2NameMatter = "Matter010/model/chi2";
-    const char * inputChi2NameAntimatter = "Antimatter010/model/chi2";
-    const char * inputChi2NameBoth = "010/model/chi2";
-
-    const char * OutputFile = "/home/galucia/Lithium4/femto/output/significance_010.root";
+    const char * inputMixedFile = "/home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root";
+    const char * inputCorrectionFile = "models/LHC25_PbPb_pass1_lambda_models.root";
+    const char * inputChi2File = "/home/galucia/Lithium4/femto/output/PbPb_fit_correlation_function_hadronpid__smoothened_finer_binning_smeared_lambda.root";
+    const char * OutputFile = "/home/galucia/Lithium4/femto/output/significance.root";
 };
 
-void loadSameMixed(TH1F *& hSame, TH1F *& hMixed, const bool isMatter = false) {
+namespace {
+    const float kstarMin = 0.02;
+    const float kstarMax = 0.4;
+};
+
+enum class MatterMode { Matter, Antimatter, Both };
+
+struct CentralityConfig {
+    const char* name;
+    bool directComputation;
+};
+
+const std::vector<CentralityConfig> kCentralities = {
+    {"010",  false},
+    {"1030", false},
+    {"3050", false},
+    {"5080", false},    
+    {"050",  true },
+    {"080",  true },
+    {"1050", true },
+    {"1080", true },
+};
+
+void loadSameMixedSingle(TH1F *& hSame, TH1F *& hMixed, const char* centrality, const bool directComputation, const bool isMatter = false) {
 
     TFile *fileMixed = TFile::Open(InputData::inputMixedFile);
-    const char * mixedName = isMatter ? InputData::inputMixedNameMatter : InputData::inputMixedNameAntimatter;
-    hMixed = (TH1F*)fileMixed->Get(isMatter ? InputData::inputMixedNameMatter : InputData::inputMixedNameAntimatter);
-    hMixed->SetDirectory(0);
-    fileMixed->Close();
-
+    std::string mixedHistName = std::string(isMatter ? "CorrelationMatter/Default/hMixedEvent" 
+                                                     : "CorrelationAntimatter/Default/hMixedEvent");
+    if (directComputation) mixedHistName += "DirectComputation";
+    mixedHistName += centrality;
+    hMixed = (TH1F*)fileMixed->Get(mixedHistName.c_str());
+    
     TFile *fileCorrection = TFile::Open(InputData::inputCorrectionFile);
-    auto hCorrection = (TH1F*)fileCorrection->Get(isMatter ? InputData::inputCorrectionNameMatter : InputData::inputCorrectionNameAntimatter);
+    std::string corrName = std::string(isMatter ? "Matter/" : "Antimatter/") + centrality + "/hLambdaSigmaCorrectedCk";
+    auto hCorrection = (TH1F*)fileCorrection->Get(corrName.c_str());
     hCorrection->SetDirectory(0);
     fileCorrection->Close();
 
@@ -61,6 +68,33 @@ void loadSameMixed(TH1F *& hSame, TH1F *& hMixed, const bool isMatter = false) {
     }
 
     delete hCorrection;
+}
+
+void loadSameMixed(TH1F *& hSame, TH1F *& hMixed, const char* centrality, const bool directComputation, const MatterMode matterMode) {
+
+    TH1F *hSameMatter = nullptr, *hMixedMatter = nullptr;
+    TH1F *hSameAnti  = nullptr, *hMixedAnti  = nullptr;
+
+    if (matterMode == MatterMode::Matter || matterMode == MatterMode::Both) {
+        loadSameMixedSingle(hSameMatter, hMixedMatter, centrality, directComputation, true);
+    }
+    if (matterMode == MatterMode::Antimatter || matterMode == MatterMode::Both) {
+        loadSameMixedSingle(hSameAnti, hMixedAnti, centrality, directComputation, false);
+    }
+
+    if (matterMode == MatterMode::Both) {
+        hSame  = (TH1F*)hSameMatter->Clone("hSame");
+        hMixed = (TH1F*)hMixedMatter->Clone("hMixed");
+        hSame->Add(hSameAnti);
+        hMixed->Add(hMixedAnti);
+        hSame->SetDirectory(0);
+        hMixed->SetDirectory(0);
+        delete hSameMatter; delete hMixedMatter;
+        delete hSameAnti;   delete hMixedAnti;
+    } else {
+        hSame  = (matterMode == MatterMode::Matter) ? hSameMatter  : hSameAnti;
+        hMixed = (matterMode == MatterMode::Matter) ? hMixedMatter : hMixedAnti;
+    }
 }
 
 void computeCorrelationFunction(TH1F *hSame, TH1F *hMixed, TH1F* hCorrelation) {
@@ -88,10 +122,12 @@ void runMcChi2(TH1F *& hChi2, TH1F *& hChi2FarFromSignal,
                TDirectory * outfile,
                const int N_BINS = 40 /* 40 bins */,
                const int N_ITERATIONS = 1000000 /* 1 mln */,
-               const bool isMatter = false) {
+               const char* centrality = "010",
+               const bool directComputation = false,
+               const MatterMode matterMode = MatterMode::Antimatter) {
 
     TH1F* hSame, * hMixed;
-    loadSameMixed(hSame, hMixed, isMatter);
+    loadSameMixed(hSame, hMixed, centrality, directComputation, matterMode);
     auto hCorrelation = (TH1F*)hSame->Clone("hCorrelation");
     std::cout << "Cloned histogram for correlation function." << std::endl;
     computeCorrelationFunction(hSame, hMixed, hCorrelation);
@@ -125,7 +161,7 @@ void runMcChi2(TH1F *& hChi2, TH1F *& hChi2FarFromSignal,
         double chi2Limited = 0;
         double chi2FarFromSignal = 0;
         //const int FIRST_BIN = hCorrelation->FindBin(0.01);
-        const int FIRST_BIN = hCorrelation->FindBin(0.0);
+        const int FIRST_BIN = hCorrelation->FindBin(kstarMin);
 
         for (int ibin = FIRST_BIN; ibin <= N_BINS; ++ibin) {
             kstar = hSameIter->GetBinCenter(ibin);
@@ -182,14 +218,17 @@ void runMcChi2(TH1F *& hChi2, TH1F *& hChi2FarFromSignal,
 
 void displayRunningResult(TH1F *& hChi2, std::vector<TH1F *> & runningChi2Histograms,
                           TDirectory * outfile, float kstarBinCenters[],
-                          const char * inputChi2Name,
+                          const char * centrality,
+                          const MatterMode matterMode,
                           const char * suffix = "",
                           const int N_BINS = 40 /* 40 bins */,
                           const int N_ITERATIONS = 1000000 /* 1 mln */) {
 
 
     auto infile = TFile::Open(InputData::inputChi2File);
-    auto hChi2Data = (TH1F*)infile->Get(inputChi2Name);
+    std::string matterLabel = (matterMode == MatterMode::Matter) ? "Matter" : (matterMode == MatterMode::Antimatter) ? "Antimatter" : "";
+    std::string chi2Name = std::string(matterLabel) + "" + centrality + "/model/chi2";
+    auto hChi2Data = (TH1F*)infile->Get(chi2Name.c_str());
     
     std::vector<double> runningChi2(hChi2Data->GetNbinsX());
     for (size_t ichi2 = 0; ichi2 < runningChi2.size(); ichi2++) {
@@ -238,12 +277,10 @@ void computeSignificance() {
     const int NBINS_CHI2 = 1600;
     const float CHI2_MAX_VALUE = 160;
 
-    //auto outfile = TFile::Open("output/significance.root", "RECREATE");
     auto outfile = TFile::Open(InputData::OutputFile, "RECREATE");
-    
     auto hChi2 = new TH1F("hChi2", "Chi2 Distribution;#chi^{2};Counts", NBINS_CHI2, 0, CHI2_MAX_VALUE);
     auto hChi2FarFromSignal = new TH1F("hChi2FarFromSignal", "Chi2 Distribution (far from signal);#chi^{2};Counts", NBINS_CHI2, 0, CHI2_MAX_VALUE);
-
+    
     std::vector<TH1F*> runningChi2Histograms, windowChi2Histograms;
     runningChi2Histograms.reserve(N_BINS);
     windowChi2Histograms.reserve(N_BINS - N_BINS_WINDOW);
@@ -258,45 +295,29 @@ void computeSignificance() {
             windowChi2Histograms.emplace_back(hWindowChi2);
         }
     }
-
     float kstarBinCenters[N_BINS];
 
-    auto outdirAntimatter = outfile->mkdir("Antimatter");
-    runMcChi2(hChi2, hChi2FarFromSignal, runningChi2Histograms, windowChi2Histograms,
-                kstarBinCenters, outdirAntimatter, N_BINS, N_ITERATIONS, false /*isMatter*/);
-    displayRunningResult(hChi2, runningChi2Histograms, outdirAntimatter, kstarBinCenters,
-                        InputData::inputChi2NameAntimatter, "Antimatter",
-                        N_BINS, N_ITERATIONS);
+    for (const auto& cent : kCentralities) {
+        auto runForMode = [&](MatterMode mode) {
+            const char* label = (mode == MatterMode::Matter) ? "Matter" 
+                            : (mode == MatterMode::Antimatter) ? "Antimatter" 
+                            : "Both";
+            hChi2->Reset();
+            hChi2FarFromSignal->Reset();
+            for (auto& h : runningChi2Histograms) h->Reset();
+            for (auto& h : windowChi2Histograms)  h->Reset();
 
-    // Reset histograms for matter
-    hChi2->Reset();
-    for (auto& hist : runningChi2Histograms) {
-        hist->Reset();
-    }
-    for (auto& hist : windowChi2Histograms) {
-        hist->Reset();
-    }
-    auto outdirMatter = outfile->mkdir("Matter");
-    runMcChi2(hChi2, hChi2FarFromSignal, runningChi2Histograms, windowChi2Histograms,
-                kstarBinCenters, outdirMatter, N_BINS, N_ITERATIONS, true /*isMatter*/);
-    displayRunningResult(hChi2, runningChi2Histograms, outdirMatter, kstarBinCenters,
-                        InputData::inputChi2NameMatter, "Matter",
-                        N_BINS, N_ITERATIONS);
+            auto outdir = outfile->mkdir(Form("%s%s", label, cent.name));
+            runMcChi2(hChi2, hChi2FarFromSignal, runningChi2Histograms, windowChi2Histograms,
+                    kstarBinCenters, outdir, N_BINS, N_ITERATIONS, cent.name, cent.directComputation, mode);
+            displayRunningResult(hChi2, runningChi2Histograms, outdir, kstarBinCenters,
+                                cent.name, mode, Form("%s%s", label, cent.name), N_BINS, N_ITERATIONS);
+        };
 
-    // Reset histograms for both
-    hChi2->Reset();
-    for (auto& hist : runningChi2Histograms) {
-        hist->Reset();
+        runForMode(MatterMode::Antimatter);
+        runForMode(MatterMode::Matter);
+        runForMode(MatterMode::Both);
     }
-    for (auto& hist : windowChi2Histograms) {
-        hist->Reset();
-    }
-    auto outdirBoth = outfile->mkdir("Both");
-    runMcChi2(hChi2, hChi2FarFromSignal, runningChi2Histograms, windowChi2Histograms,
-                kstarBinCenters, outdirBoth, N_BINS, N_ITERATIONS, true /*isMatter*/);
-    displayRunningResult(hChi2, runningChi2Histograms, outdirBoth, kstarBinCenters,
-                        InputData::inputChi2NameMatter, "Both",
-                        N_BINS, N_ITERATIONS);
 
     outfile->Close();
 
