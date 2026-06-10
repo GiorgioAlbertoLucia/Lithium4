@@ -3,8 +3,6 @@ from ROOT import TF1, TH1F, TFile, TCanvas, gInterpreter
 from torchic.physics.simulations import RunTwoBodyDecaySimulation
 from torchic.core.histogram import load_hist
 
-from particle import Particle
-
 import sys
 sys.path.append('..')
 from utils.particles import ParticleMasses
@@ -47,8 +45,8 @@ def sample_blast_wave(mass:float, outfile:TFile, n_samples:int = 1_000_000):
 
 def compute_weighted_efficiency(h_dNdpt:TH1F, outfile:TFile):
 
-    h_efficiency_matter = load_hist('/home/galucia/Lithium4/preparation/output/efficiency.root', 'hEfficiencyMatter')
-    h_efficiency_antimatter = load_hist('/home/galucia/Lithium4/preparation/output/efficiency.root', 'hEfficiencyAntimatter')
+    h_efficiency_matter = load_hist('/home/galucia/Lithium4/preparation/output/PbPb/LHC25g11_efficiency.root', 'hEfficiencyMatter')
+    h_efficiency_antimatter = load_hist('/home/galucia/Lithium4/preparation/output/PbPb/LHC25g11_efficiency.root', 'hEfficiencyAntimatter')
 
     efficiency_matter, efficiency_antimatter = 0., 0.
     total_weight_matter, total_weight_antimatter = 0., 0.
