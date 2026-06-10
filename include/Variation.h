@@ -9,24 +9,26 @@
 
 namespace VariationRanges 
 {
-    std::array<float, 2> nSigmaItsHe3Min = {-1.5, -1.};
-    std::array<float, 2> absNsigmaTpcHe3Max = {1.5, 2.5};
+    std::array<float, 2> nSigmaItsHe3Min = {-2.5, -1.5};
+    std::array<float, 2> nSigmaTpcHe3Max = {2.5, 3.5};
+    std::array<float, 2> nSigmaTpcHe3Min = {-2.5, -1.5};
     std::array<float, 2> absNsigmaDcaXyHe3Max = {2., 4.};
     std::array<float, 2> absNsigmaDcaZHe3Max = {2., 4.};
     std::array<float, 2> nClsTpcHe3Min = {100., 120.};
     std::array<float, 2> chi2TpcHe3Max = {2., 4.};
     
-    std::array<float, 2> nSigmaItsPrMin = {-2., -1.5};
+    std::array<float, 2> nSigmaItsPrMin = {-2.5, -1.5};
     std::array<float, 2> absNsigmaTpcPrMax = {1.5, 2.5};
     std::array<float, 2> absNsigmaTofPrMax = {1.5, 2.5};
-    std::array<float, 2> absNsigmaDcaXyPrMax = {2., 4.};
-    std::array<float, 2> absNsigmaDcaZPrMax = {2., 4.};
-    std::array<float, 2> chi2TpcPrMax = {2., 4.}; 
+    std::array<float, 2> absNsigmaDcaXyPrMax = {3., 7.};
+    std::array<float, 2> absNsigmaDcaZPrMax = {3., 7.};
+    std::array<float, 2> chi2TpcPrMax = {3., 5.}; 
     
     std::array<float, 2> absZVertexMax = {8., 10.};
 
     const float nominalNsigmaItsHe3 = -1.5;
-    const float nominalAbsNsigmaTpcHe3 = 2.;
+    const float nominalNsigmaTpcMinHe3 = -2.;
+    const float nominalNsigmaTpcMaxHe3 = 3.;
     const float nominalAbsNsigmaDcaXyHe3 = 3;
     const float nominalAbsNsigmaDcaZHe3 = 3;
     const float nominalNclsTpcHe3 = 110;
@@ -45,7 +47,7 @@ namespace VariationRanges
     std::array<float, 2> absAmax = {-2., 2};
 };
 
-ROOT::RVec<ROOT::RVecF> systematicCuts(const int nCuts, const float nSigmaItsHe3, const float absNsigmaTpcHe3, 
+ROOT::RVec<ROOT::RVecF> systematicCuts(const int nCuts, const float nSigmaItsHe3, const float nSigmaTpcMinHe3, const float nSigmaTpcMaxHe3,
                                        const float absNsigmaDcaXyHe3, const float absNsigmaDcaZHe3,
                                        const float nClsTpcHe3, const float chi2TpcHe3,
                                        const float nSigmaItsPr, const float absNsigmaTpcPr, const float absNsigmaTofPr,
@@ -54,32 +56,33 @@ ROOT::RVec<ROOT::RVecF> systematicCuts(const int nCuts, const float nSigmaItsHe3
 {
     thread_local TRandom3 rng;
     
-    ROOT::RVec<ROOT::RVecF> variationsVectors(13);
+    ROOT::RVec<ROOT::RVecF> variationsVectors(14);
     for (auto& variableVector : variationsVectors)
         variableVector.reserve(nCuts);
 
     // random variation
     for (int icut = 0; icut < nCuts; ++icut) {
         variationsVectors[0].push_back(nSigmaItsHe3 - rng.Uniform(VariationRanges::nSigmaItsHe3Min[0], VariationRanges::nSigmaItsHe3Min[1]));
-        variationsVectors[1].push_back(absNsigmaTpcHe3 - rng.Uniform(VariationRanges::absNsigmaTpcHe3Max[0], VariationRanges::absNsigmaTpcHe3Max[1]));
-        variationsVectors[2].push_back(absNsigmaDcaXyHe3 - rng.Uniform(VariationRanges::absNsigmaDcaXyHe3Max[0], VariationRanges::absNsigmaDcaXyHe3Max[1]));
-        variationsVectors[3].push_back(absNsigmaDcaZHe3 - rng.Uniform(VariationRanges::absNsigmaDcaZHe3Max[0], VariationRanges::absNsigmaDcaZHe3Max[1]));
-        variationsVectors[4].push_back(nClsTpcHe3 - rng.Uniform(VariationRanges::nClsTpcHe3Min[0], VariationRanges::nClsTpcHe3Min[1]));
-        variationsVectors[5].push_back(chi2TpcHe3 - rng.Uniform(VariationRanges::chi2TpcHe3Max[0], VariationRanges::chi2TpcHe3Max[1]));
-        variationsVectors[6].push_back(nSigmaItsPr - rng.Uniform(VariationRanges::nSigmaItsPrMin[0], VariationRanges::nSigmaItsPrMin[1]));
-        variationsVectors[7].push_back(absNsigmaTpcPr - rng.Uniform(VariationRanges::absNsigmaTpcPrMax[0], VariationRanges::absNsigmaTpcPrMax[1]));
-        variationsVectors[8].push_back(absNsigmaTofPr - rng.Uniform(VariationRanges::absNsigmaTofPrMax[0], VariationRanges::absNsigmaTofPrMax[1]));
-        variationsVectors[9].push_back(absNsigmaDcaXyPr - rng.Uniform(VariationRanges::absNsigmaDcaXyPrMax[0], VariationRanges::absNsigmaDcaXyPrMax[1]));
-        variationsVectors[10].push_back(absNsigmaDcaZPr - rng.Uniform(VariationRanges::absNsigmaDcaZPrMax[0], VariationRanges::absNsigmaDcaZPrMax[1]));
-        variationsVectors[11].push_back(chi2TpcPr - rng.Uniform(VariationRanges::chi2TpcPrMax[0], VariationRanges::chi2TpcPrMax[1]));
-        variationsVectors[12].push_back(absZVertex - rng.Uniform(VariationRanges::absZVertexMax[0], VariationRanges::absZVertexMax[1]));
+        variationsVectors[1].push_back(nSigmaTpcMinHe3 - rng.Uniform(VariationRanges::nSigmaTpcHe3Min[0], VariationRanges::nSigmaTpcHe3Min[1]));
+        variationsVectors[2].push_back(nSigmaTpcMaxHe3 - rng.Uniform(VariationRanges::nSigmaTpcHe3Max[0], VariationRanges::nSigmaTpcHe3Max[1]));
+        variationsVectors[3].push_back(absNsigmaDcaXyHe3 - rng.Uniform(VariationRanges::absNsigmaDcaXyHe3Max[0], VariationRanges::absNsigmaDcaXyHe3Max[1]));
+        variationsVectors[4].push_back(absNsigmaDcaZHe3 - rng.Uniform(VariationRanges::absNsigmaDcaZHe3Max[0], VariationRanges::absNsigmaDcaZHe3Max[1]));
+        variationsVectors[5].push_back(nClsTpcHe3 - rng.Uniform(VariationRanges::nClsTpcHe3Min[0], VariationRanges::nClsTpcHe3Min[1]));
+        variationsVectors[6].push_back(chi2TpcHe3 - rng.Uniform(VariationRanges::chi2TpcHe3Max[0], VariationRanges::chi2TpcHe3Max[1]));
+        variationsVectors[7].push_back(nSigmaItsPr - rng.Uniform(VariationRanges::nSigmaItsPrMin[0], VariationRanges::nSigmaItsPrMin[1]));
+        variationsVectors[8].push_back(absNsigmaTpcPr - rng.Uniform(VariationRanges::absNsigmaTpcPrMax[0], VariationRanges::absNsigmaTpcPrMax[1]));
+        variationsVectors[9].push_back(absNsigmaTofPr - rng.Uniform(VariationRanges::absNsigmaTofPrMax[0], VariationRanges::absNsigmaTofPrMax[1]));
+        variationsVectors[10].push_back(absNsigmaDcaXyPr - rng.Uniform(VariationRanges::absNsigmaDcaXyPrMax[0], VariationRanges::absNsigmaDcaXyPrMax[1]));
+        variationsVectors[11].push_back(absNsigmaDcaZPr - rng.Uniform(VariationRanges::absNsigmaDcaZPrMax[0], VariationRanges::absNsigmaDcaZPrMax[1]));
+        variationsVectors[12].push_back(chi2TpcPr - rng.Uniform(VariationRanges::chi2TpcPrMax[0], VariationRanges::chi2TpcPrMax[1]));
+        variationsVectors[13].push_back(absZVertex - rng.Uniform(VariationRanges::absZVertexMax[0], VariationRanges::absZVertexMax[1]));
     }
 
     return variationsVectors;
 }
 
 ROOT::RVec<ROOT::RVecF> systematicCutsSingleVariable(const int nCuts, const char * variable,
-                                            const float nSigmaItsHe3, const float absNsigmaTpcHe3,
+                                            const float nSigmaItsHe3, const float nSigmaTpcHe3,
                                             const float absNsigmaDcaXyHe3, const float absNsigmaDcaZHe3,
                                             const float nClsTpcHe3,  const float chi2TpcHe3,
                                             const float nSigmaItsPr, const float absNsigmaTpcPr, const float absNsigmaTofPr,
@@ -88,7 +91,7 @@ ROOT::RVec<ROOT::RVecF> systematicCutsSingleVariable(const int nCuts, const char
 {
     thread_local TRandom3 rng;
     
-    ROOT::RVec<ROOT::RVecF> variationsVectors(13);
+    ROOT::RVec<ROOT::RVecF> variationsVectors(14);
     for (auto& variableVector : variationsVectors)
         variableVector.reserve(nCuts);
 
@@ -96,7 +99,8 @@ ROOT::RVec<ROOT::RVecF> systematicCutsSingleVariable(const int nCuts, const char
     for (int icut = 0; icut < nCuts; ++icut) {
 
         float offsetNsigmaItsHe3 = VariationRanges::nominalNsigmaItsHe3, 
-            offsetAbsNsigmaTpcHe3 = VariationRanges::nominalAbsNsigmaTpcHe3, 
+            offsetNsigmaTpcMinHe3 = VariationRanges::nominalNsigmaTpcMinHe3,
+            offsetNsigmaTpcMaxHe3 = VariationRanges::nominalNsigmaTpcMaxHe3,
             offsetAbsNsigmaDcaXyHe3 = VariationRanges::nominalAbsNsigmaDcaXyHe3,
             offsetAbsNsigmaDcaZHe3 = VariationRanges::nominalAbsNsigmaDcaZHe3,
             offsetNclsTpcHe3 = VariationRanges::nominalNclsTpcHe3,
@@ -112,7 +116,8 @@ ROOT::RVec<ROOT::RVecF> systematicCutsSingleVariable(const int nCuts, const char
         if (strcmp(variable, "fNSigmaITSHe3") == 0) {
             offsetNsigmaItsHe3 = rng.Uniform(VariationRanges::nSigmaItsHe3Min[0], VariationRanges::nSigmaItsHe3Min[1]);
         } else if (strcmp(variable, "fNSigmaTPCHe3") == 0) {
-            offsetAbsNsigmaTpcHe3 = rng.Uniform(VariationRanges::absNsigmaTpcHe3Max[0], VariationRanges::absNsigmaTpcHe3Max[1]);
+            offsetNsigmaTpcMinHe3 = rng.Uniform(VariationRanges::nSigmaTpcHe3Min[0], VariationRanges::nSigmaTpcHe3Min[1]);
+            offsetNsigmaTpcMaxHe3 = rng.Uniform(VariationRanges::nSigmaTpcHe3Max[0], VariationRanges::nSigmaTpcHe3Max[1]);
         } if (strcmp(variable, "fNSigmaDCAxyHe3") == 0) {
             offsetAbsNsigmaDcaXyHe3 = rng.Uniform(VariationRanges::absNsigmaDcaXyHe3Max[0], VariationRanges::absNsigmaDcaXyHe3Max[1]);
         } else if (strcmp(variable, "fNSigmaDCAzHe3") == 0) {
@@ -140,20 +145,21 @@ ROOT::RVec<ROOT::RVecF> systematicCutsSingleVariable(const int nCuts, const char
         }
 
         variationsVectors[0].push_back(nSigmaItsHe3 - offsetNsigmaItsHe3);
-        variationsVectors[1].push_back(absNsigmaTpcHe3 - offsetAbsNsigmaTpcHe3);
-        variationsVectors[2].push_back(absNsigmaDcaXyHe3 - offsetAbsNsigmaDcaXyHe3);
-        variationsVectors[3].push_back(absNsigmaDcaZHe3 - offsetAbsNsigmaDcaZHe3);
-        variationsVectors[4].push_back(nClsTpcHe3 - offsetNclsTpcHe3);
-        variationsVectors[5].push_back(chi2TpcHe3 - offsetChi2TpcHe3);
+        variationsVectors[1].push_back(nSigmaTpcHe3 - offsetNsigmaTpcMinHe3);
+        variationsVectors[2].push_back(nSigmaTpcHe3 - offsetNsigmaTpcMaxHe3);
+        variationsVectors[3].push_back(absNsigmaDcaXyHe3 - offsetAbsNsigmaDcaXyHe3);
+        variationsVectors[4].push_back(absNsigmaDcaZHe3 - offsetAbsNsigmaDcaZHe3);
+        variationsVectors[5].push_back(nClsTpcHe3 - offsetNclsTpcHe3);
+        variationsVectors[6].push_back(chi2TpcHe3 - offsetChi2TpcHe3);
         
-        variationsVectors[6].push_back(nSigmaItsPr - offsetNsigmaItsPr);
-        variationsVectors[7].push_back(absNsigmaTpcPr - offsetAbsNsigmaTpcPr);
-        variationsVectors[8].push_back(absNsigmaTofPr - offsetAbsNsigmaTofPr);
-        variationsVectors[9].push_back(absNsigmaDcaXyPr - offsetAbsNsigmaDcaXyPr);
-        variationsVectors[10].push_back(absNsigmaDcaZPr - offsetAbsNsigmaDcaZPr);
-        variationsVectors[11].push_back(chi2TpcPr - offsetChi2TpcPr);
+        variationsVectors[7].push_back(nSigmaItsPr - offsetNsigmaItsPr);
+        variationsVectors[8].push_back(absNsigmaTpcPr - offsetAbsNsigmaTpcPr);
+        variationsVectors[9].push_back(absNsigmaTofPr - offsetAbsNsigmaTofPr);
+        variationsVectors[10].push_back(absNsigmaDcaXyPr - offsetAbsNsigmaDcaXyPr);
+        variationsVectors[11].push_back(absNsigmaDcaZPr - offsetAbsNsigmaDcaZPr);
+        variationsVectors[12].push_back(chi2TpcPr - offsetChi2TpcPr);
 
-        variationsVectors[12].push_back(absZVertex - offsetAbsZVertex);
+        variationsVectors[13].push_back(absZVertex - offsetAbsZVertex);
     }
 
     return variationsVectors;
