@@ -8,7 +8,8 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
     h_systematics_name = f'{sign}/hCorrelation{centrality}Syst' if centrality != '1050' else f'{sign}/hCorrelationDirectComputation1050Syst'
     h_systematics = load_hist('/home/galucia/Lithium4/preparation/output/correlation_with_systematics.root',
                               h_systematics_name)
-    set_root_object(h_systematics, marker_color=601, fill_color_alpha=(601, 0.3), line_color=601, marker_style=1, marker_size=0)
+    if h_systematics is not None:
+        set_root_object(h_systematics, marker_color=601, fill_color_alpha=(601, 0.3), line_color=601, marker_style=1, marker_size=0)
 
     y_portion = 0.3
     canvas = TCanvas('cCorrelationOverNsigma', '', 1200, 1400)
@@ -88,9 +89,10 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
     canvas_primitives_dict[correlation_name].Draw('p same')
     
     # Draw systematics as shaded area 
-    h_systematics.SetFillColorAlpha(1, 0.3)
-    h_systematics.SetLineColor(1)
-    h_systematics.SetMarkerColor(1)  
+    if h_systematics is not None:
+        h_systematics.SetFillColorAlpha(1, 0.3)
+        h_systematics.SetLineColor(1)
+        h_systematics.SetMarkerColor(1)  
     #h_systematics.Draw('e2 same')
         
     latex = TLatex()
@@ -110,7 +112,7 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
     lower_pad.Draw()
 
     h_nsigma = file.Get('model/nsigma')
-    set_root_object(h_nsigma, marker_color=get_color(0), marker_style=20, marker_size=1.7)
+    set_root_object(h_nsigma, marker_color=get_color(1), marker_style=20, marker_size=1.7)
     h_nsigma_model = file.Get('model/nsigma_model')
     set_root_object(h_nsigma_model, marker_color=get_color(2), marker_style=20, marker_size=1.7)
 
