@@ -1,16 +1,24 @@
 import yaml
 
+import os
 import sys
 sys.path.append('..')
 from torchic import Plotter
+from torchic.utils.root import set_alice_global_style
 
 import argparse
 
 if __name__ == '__main__':
+    
+    set_alice_global_style()
 
+    #input_file = 'config/lambda_parameters.yml'
+    #input_file = 'config/same_mixed_event_comparisons.yml'
+    #input_file = 'config/purity.yml' 
+    input_file = 'config/correlation_functions.yml' 
     #input_file = 'config/checks_all_vs_cbt.yml'
     #input_file = 'config/check_mixed.yml'
-    input_file = 'config/checks_before_forum.yml'
+    #input_file = 'config/checks_before_forum.yml'
 
     parser = argparse.ArgumentParser(description='Plotting script for ROOT files using YAML configuration.')
     parser.add_argument('--config', type=str, default=input_file, help='Path to the YAML configuration file.')
@@ -34,11 +42,22 @@ if __name__ == '__main__':
 
         if 'graphs' in plot:
             for graph in plot['graphs']:
+                if not os.path.exists(graph['inPath']):
+                    print(f"Error: File {graph['inPath']} does not exist. Skipping graph {graph['graphName']}.")
+                    continue
                 plotter.add_graph(graph['inPath'], graph['graphName'], graph['graphLabel'], **graph['kwargs'])
 
         if 'hists' in plot.keys():
             for hist in plot['hists']:
+                if not os.path.exists(hist['inPath']):
+                    print(f"Error: File {hist['inPath']} does not exist. Skipping histogram {hist['histName']}.")
+                    continue
                 plotter.add_hist(hist['inPath'], hist['histName'], hist['histLabel'], **hist['kwargs'])
+        
+        if len(plotter.graph_dict) == 0 and len(plotter.hist_dict) == 0:
+            print(f"Warning: No graphs or histograms were added for plot with output {plot['outPDF']}. Check the configuration and file paths.")
+            plotter.reset()
+            continue
 
         if 'ROIs' in plot.keys():
             for roi in plot['ROIs']:
