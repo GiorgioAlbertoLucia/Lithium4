@@ -33,47 +33,62 @@ enum class SamplingMethod {
     GAUSSIAN
 };
 
+enum class YieldExtrationMethod {
+    FIT,
+    BIN_COUNTING
+};
+
 struct CentralityConfig {
     const char* name;
     bool directComputation;  // kept for consistency, unused in this script
 };
 
 const std::vector<CentralityConfig> kCentralities = {
-    {"010",  false},
-    {"1030", false},
-    {"3050", false},
-    {"5080", false},
-    {"050",  true},
-    {"080",  true},
+    //{"010",  false},
+    //{"1030", false},
+    //{"3050", false},
+    //{"5080", false},
+    //{"050",  true},
+    //{"080",  true},
     {"1050", true},
-    {"1080", true},
+    //{"1080", true},
+};
+
+const std::vector<const char*> SIGNS = {
+    //"Antimatter",
+    //"Matter",
+    "Both"
 };
 
 namespace Config {
     
     const char* DATA_FILE = "/home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root";
-    const char* CORRELATION_FILE = "/home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root";
-    const char* CORRELATION_OPTION = "compute"; // "load" or "compute"
+    const char* CORRELATION_FILE = "/home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root";
+    const char* CORRELATION_OPTION = "load"; // "load" or "compute"
     
     
     const char* SIGNAL_FILE = "/home/galucia/Lithium4/femto/models/li4_contribution_proper_sill.root";
     const char* BACKGROUND_FILE = "/home/galucia/Lithium4/femto/models/LHC25_PbPb_pass1_lambda_models.root";
 
-    const char* OUTPUT_FILE = "output/yield_upper_limit.root"; 
+    //const char* OUTPUT_FILE = "output/yield_upper_limit.root"; 
+    const char* OUTPUT_FILE = "output/yield_upper_limit_syst.root"; 
     
     const int N_ITERATIONS = 10000;
     const int PRINT_INTERVAL = 100;
     const double HIGH_YIELD_THRESHOLD = 1000.0;
     
-    const double KSTAR_MIN = 0.02;
+    const double KSTAR_MIN = 0.0;
     const double KSTAR_MAX = 0.4;
+    const double KSTAR_MAX_BIN_COUNTING = 0.15;
     const double PREFIT_MIN = 0.2;
     const double PREFIT_MAX = 0.4;
     const double REFERENCE_KSTAR_FOR_BKG_NORMALIZATION = 0.3; // in the flat region
     const double REFERENCE_KSTAR_FOR_SIG_NORMALIZATION = 0.07; // in the flat region
 
-    SamplingMethod SAMPLING_METHOD = SamplingMethod::POISSONIAN;
-    //SamplingMethod SAMPLING_METHOD = SamplingMethod::GAUSSIAN;
+    //SamplingMethod SAMPLING_METHOD = SamplingMethod::POISSONIAN;
+    YieldExtrationMethod YIELD_EXTRACTION_METHOD = YieldExtrationMethod::FIT;
+    
+    SamplingMethod SAMPLING_METHOD = SamplingMethod::GAUSSIAN;
 }
 
 // Iteration result structure
@@ -133,8 +148,8 @@ bool loadSameMixed(TH1F* &h_same, TH1F* &h_mixed, const char* sign, CentralityCo
     const char * sign_suffix = (strcmp(sign, "Both") == 0) ? "" : sign;
     const char * h_same_name = centralityConfig.directComputation ? Form("Correlation%s/Default/hSameEventDirectComputation%s", sign_suffix, centralityConfig.name)
                                                         : Form("Correlation%s/Default/hSameEvent%s", sign_suffix, centralityConfig.name);
-    const char * h_mixed_name = centralityConfig.directComputation ? Form("Correlation%s/Default/hMixedEventDirectComputation%s", sign_suffix, centralityConfig.name)
-                                                        : Form("Correlation%s/Default/hMixedEvent%s", sign_suffix, centralityConfig.name);
+    const char * h_mixed_name = centralityConfig.directComputation ? Form("Correlation%s/Default/hNormalisedMixedEventDirectComputation%s", sign_suffix, centralityConfig.name)
+                                                        : Form("Correlation%s/Default/hNormalisedMixedEvent%s", sign_suffix, centralityConfig.name);
     h_same = (TH1F*)file->Get(h_same_name);
     h_mixed = (TH1F*)file->Get(h_mixed_name);
     
@@ -159,7 +174,9 @@ void prepareCorrelationFunction(const TH1F *h_same, const TH1F *h_mixed, TH1F* &
                                    const char* sign, CentralityConfig centralityConfig) {
     if (strcmp(Config::CORRELATION_OPTION, "load") == 0) {
         
-        std::string histName = "Correlation" + std::string(sign) + "/Default/hCorrelation" + centralityConfig.name;
+        //std::string histName = "Correlation" + std::string(sign) + "/Default/hCorrelation" + centralityConfig.name;
+        std::string sign_str = (strcmp(sign, "Both") == 0) ? "" : sign;
+        std::string histName = "Correlation" + sign_str + "/hCorrelationSyst" + centralityConfig.name;
 
         std::cout << "Loading correlation function from file: " << Config::CORRELATION_FILE << std::endl;
         std::cout << "Histogram name: " << histName << std::endl;
@@ -519,7 +536,7 @@ double fit(RooRealVar &kstar, RooDataHist* &data, RooAddPdf* &model,
     return chi2;
 }
 
-double computeYield(RooAbsPdf* model_pdf, RooRealVar& nsig, RooRealVar& nbkg, RooRealVar& xvar, 
+double computeYieldFit(RooAbsPdf* model_pdf, RooRealVar& nsig, RooRealVar& nbkg, RooRealVar& xvar, 
                     TH1F* h_mixed_event, TDirectory *outfile, 
                     double bkg_normalisation_at_reference, double sig_normalisation_at_reference,
                     const char * yield_name, bool do_drawing) {
@@ -632,6 +649,103 @@ double computeYield(RooAbsPdf* model_pdf, RooRealVar& nsig, RooRealVar& nbkg, Ro
     return yield;
 }
 
+double computeYieldBinCounting(RooAbsPdf* model_pdf, RooRealVar& nsig, RooRealVar& nbkg, RooRealVar& xvar, 
+                    TH1F* h_mixed_event, TH1F* h_correlation, TDirectory *outfile, 
+                    double bkg_normalisation_at_reference,
+                    const char * yield_name, bool do_drawing) {
+    
+    // Store original values
+    const double nsig_stored = nsig.getVal();
+    const double nbkg_stored = nbkg.getVal();
+
+    TH1F* h_signal_correlation = (TH1F*)h_mixed_event->Clone("h_signal_correlation");
+    TH1F* h_same_event_signal = (TH1F*)h_mixed_event->Clone("h_same_event_signal");
+    const int nbins = h_correlation->GetNbinsX();
+    
+    // Get the normalization correction for the background AT THE REFERENCE POINT
+    xvar.setVal(Config::REFERENCE_KSTAR_FOR_BKG_NORMALIZATION);
+    RooArgSet norm_set(xvar);
+    nsig.setVal(0.);
+    nbkg.setVal(nbkg_stored);
+    const double bkg_value_at_reference = model_pdf->getVal(norm_set);
+    const double bkg_correction = bkg_normalisation_at_reference / bkg_value_at_reference;
+
+    for (int ibin = 1; ibin <= nbins; ++ibin) {
+
+        const double x = h_same_event_signal->GetBinCenter(ibin);
+        xvar.setVal(x);
+        
+        // Evaluate background only (signal = 0) 
+        nsig.setVal(0.);
+        nbkg.setVal(nbkg_stored);
+        const double bkg_value = model_pdf->getVal(norm_set) * bkg_correction;
+
+        const double correlation_value = h_correlation->GetBinContent(ibin);
+        const double correlation_signal = correlation_value - bkg_value;
+        h_signal_correlation->SetBinContent(ibin, correlation_signal);
+    }
+
+    const int last_bin = h_same_event_signal->FindBin(Config::KSTAR_MAX_BIN_COUNTING);
+    double yield = h_same_event_signal->Integral(1, last_bin);
+
+    if (do_drawing) {
+        TCanvas canvas_corr("canvas_signal_correlation", "Signal Correlation", 800, 600);
+        canvas_corr.cd();
+        
+        h_signal_correlation->SetLineColor(kGreen+2);
+        h_signal_correlation->SetMarkerColor(kGreen+2);
+        h_signal_correlation->SetMarkerStyle(20);
+        h_signal_correlation->SetLineStyle(kDashed);
+        
+        h_signal_correlation->Draw("hist");
+        
+        TLegend legend(0.6, 0.6, 0.85, 0.85);
+        legend.AddEntry(h_signal_correlation, "Signal", "l");
+        legend.SetBorderSize(0);
+        legend.Draw();
+        
+        outfile->cd("yield_results");
+        canvas_corr.Write(Form("%s_components", yield_name));
+    }
+
+    if (do_drawing) {
+        outfile->cd("yield_results");
+        h_signal_correlation->Write(Form("%s_correlation", yield_name));
+        h_same_event_signal->Write(yield_name);
+    }
+
+    // Restore original values
+    nsig.setVal(nsig_stored);
+    nbkg.setVal(nbkg_stored);
+
+    delete h_signal_correlation;
+    delete h_same_event_signal;
+
+    return yield;
+}
+
+
+double computeYield(RooAbsPdf* model_pdf, RooRealVar& nsig, RooRealVar& nbkg, RooRealVar& xvar, 
+                    TH1F* h_mixed_event, TH1F* h_correlation, TDirectory *outfile, 
+                    double bkg_normalisation_at_reference, double sig_normalisation_at_reference,
+                    const char * yield_name, bool do_drawing) {
+    
+    if (Config::YIELD_EXTRACTION_METHOD == YieldExtrationMethod::FIT) {
+        return computeYieldFit(model_pdf, nsig, nbkg, xvar, h_mixed_event, outfile, 
+                                bkg_normalisation_at_reference, sig_normalisation_at_reference,
+                                yield_name, do_drawing);
+    } 
+    else if (Config::YIELD_EXTRACTION_METHOD == YieldExtrationMethod::BIN_COUNTING) {
+        return computeYieldBinCounting(model_pdf, nsig, nbkg, xvar, h_mixed_event, h_correlation,
+                                        outfile, bkg_normalisation_at_reference,
+                                        yield_name, do_drawing);
+    } 
+    else {
+        std::cerr << "Error: Invalid YIELD_EXTRACTION_METHOD in Config" << std::endl;
+        return 0.0;
+    }
+}
+
 void saveHighYieldFit(RooRealVar& kstar, RooDataHist* &data, RooAddPdf* &model, 
                             int iter, TDirectory* outfile) {
     using namespace RooFit;
@@ -710,7 +824,7 @@ IterationResult processSingleIteration(RooRealVar& kstar, RooAddPdf* model, RooR
     
     double chi2 = fit(kstar, data_iter, model, outfile, sig_normalisation_at_reference,
                         Form("fit_result_%d", iter), do_drawing);
-    double yield = computeYield(model, nsig, nbkg, kstar, h_mixed_iter, outfile, 
+    double yield = computeYield(model, nsig, nbkg, kstar, h_mixed_iter, h_correlation_iter,outfile, 
                             bkg_normalisation_at_reference, sig_normalisation_at_reference,
                             Form("yield_result_%d", iter), do_drawing);
 
@@ -732,7 +846,7 @@ void computeYieldAndUpperLimit() {
     auto outfile = TFile::Open(Config::OUTPUT_FILE, "RECREATE");
 
     for (const auto& cent : kCentralities) {
-        for (const auto& sign : {"Antimatter", "Matter", "Both"}) {
+        for (const auto& sign : SIGNS) {
             
             auto outdir = outfile->mkdir(Form("%s_%s", sign, cent.name));
             outdir->cd();
@@ -777,7 +891,7 @@ void computeYieldAndUpperLimit() {
                                     sign, cent);
             
             auto h_raw_yield = new TH1F("h_raw_yield", "Raw yield distribution;#it{N}_{raw}(^{4}Li);Counts", 
-                                        400, -800, 800);
+                                        400, -200, 1400);
             auto h_chi2_fit = new TH1F("h_chi2_fit", "Chi2 distribution;#chi^{2};Counts", 500, 0, 100);
             
             for (int iter = 0; iter < Config::N_ITERATIONS; ++iter) {
