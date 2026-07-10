@@ -90,6 +90,11 @@ def draw_means_sigmas(fit_results: pd.DataFrame,
 
     fit_mean = TF1('fit_mean', 'pol0', fit_results['pt'].min(), fit_results['pt'].max())
     graph_mean.Fit(fit_mean, 'Q')
+    
+    fit_sigma = TF1('fit_sigma', '[0] + [1]/pow(x,[2])',
+        fit_results['pt'].min(), fit_results['pt'].max())
+    fit_sigma.SetParameters(1.7e-3, 2.5e-3, 1.2)
+    graph_sigma.Fit(fit_sigma, 'Q')
 
     for i in range(graph_sigma.GetN()):
         y  = graph_sigma.GetY()[i]
@@ -97,13 +102,13 @@ def draw_means_sigmas(fit_results: pd.DataFrame,
         graph_log_sigma.SetPoint(i, graph_sigma.GetX()[i], np.log(y) if y > 0. else 0.)
         graph_log_sigma.SetPointError(i, graph_sigma.GetEX()[i], ey / y if y > 0. else 0.)
 
-    fit_sigma = TF1('fit_sigma', 'log([0] + [1]/pow(x,[2]))',
+    fit_log_sigma = TF1('fit_log_sigma', 'log([0] + [1]/pow(x,[2]))',
         fit_results['pt'].min(), fit_results['pt'].max())
 
-    fit_sigma.SetParameters(1.7e-3, 2.5e-3, 1.2)
-    fit_sigma.SetParLimits(2, 0.3, 1.6)
+    fit_log_sigma.SetParameters(1.7e-3, 2.5e-3, 1.2)
+    fit_log_sigma.SetParLimits(2, 0.3, 5)
 
-    graph_log_sigma.Fit(fit_sigma, 'Q')
+    graph_log_sigma.Fit(fit_log_sigma, 'Q')
 
     out_dir.cd()
     graph_mean.Write(f'g_mean_{sign}')
@@ -299,3 +304,29 @@ def matter_antimatter_ratio(particle: str, outdir: TDirectory,
     outdir.cd()
     g_ratio.Write()
     g_ratio_mc.Write()
+    
+def draw_subtraction_results(subtraction_results: pd.DataFrame,
+                              out_dir: TDirectory,
+                              fit_config: FitConfig) -> None:
+    """
+    Draw primary fraction from antimatter subtraction method
+    """
+    graph_pf_subtraction = create_graph(
+        subtraction_results, 'pt', 'primary_fraction_matter_subtraction',
+        'pt_err', 'primary_fraction_matter_subtraction_error',
+        name='g_primary_fraction_matter_subtraction',
+        title=';#it{p}_{T} (GeV/#it{c}); f_{p} (subtraction method)'
+    )
+    graph_material_sub = create_graph(
+        subtraction_results, 'pt', 'n_material_matter',
+        'pt_err', 0.,
+        name='g_material_matter_subtraction',
+        title=';#it{p}_{T} (GeV/#it{c}); #it{N}_{material} (subtraction)'
+    )
+
+    set_root_object(graph_pf_subtraction, marker_style=20)
+    set_root_object(graph_material_sub, marker_style=20)
+
+    out_dir.cd()
+    graph_pf_subtraction.Write()
+    graph_material_sub.Write()

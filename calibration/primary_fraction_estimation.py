@@ -3,7 +3,7 @@ Main workflow for primary fraction estimation
 """
 
 import pandas as pd
-from ROOT import TFile, TCanvas
+from ROOT import TFile, TCanvas, RooMsgService, RooFit
 
 from torchic.core.histogram import load_hist
 from torchic.utils.terminal_colors import TerminalColors as tc
@@ -11,8 +11,8 @@ from torchic.utils.terminal_colors import TerminalColors as tc
 from core.primary_fraction_config import AnalysisConfig
 from core.primary_fraction_models import build_crystal_ball_model, build_core_gaussian
 from core.primary_fraction_templates import prepare_hist_material_template
-from core.primary_fraction_fitting import fit_slice
-from core.primary_fraction_results import draw_results, matter_antimatter_ratio
+from core.primary_fraction_fitting import fit_slice, compute_primary_fraction_subtraction
+from core.primary_fraction_results import draw_results, matter_antimatter_ratio, draw_subtraction_results
 
 
 def template_fitting_routine(h2_data, h2_mc, outdir, outpdf:str, 
@@ -44,7 +44,10 @@ def template_fitting_routine(h2_data, h2_mc, outdir, outpdf:str,
     gaussian_core, gaussian_core_pars = build_core_gaussian(dca)
     dca.setRange('core', *particle_config.dca_core_range)
 
-    for sign in ['matter', 'antimatter']:
+    antimatter_fit_results = None
+    antimatter_pdfs_per_bin = {}      # {pt_bin: (convoluted_pdfs, normalisations)}
+    subtraction_results = None
+    for sign in ['antimatter', 'matter']:
 
         fit_results = None
         canvas.Print(f'{outpdf.split('.')[0]}_{sign}.pdf(')
@@ -81,12 +84,22 @@ def template_fitting_routine(h2_data, h2_mc, outdir, outpdf:str,
 
             # Perform fit
             print(tc.RED+f"\nFitting {particle} {sign} in pT bin {pt:.2f} GeV/c..."+tc.RESET)
-            dca_frame, ifit_results = fit_slice(
+            dca_frame, ifit_results, convoluted_pdfs, normalisations, \
+            pdf_params, gaussian_smearing, gaussian_smearing_pars = fit_slice(
                 h2_data, h2_mc_sign, pdfs, pdf_params,
                 gaussian_core, gaussian_core_pars,
                 dca, pt_bin, particle, bin_outdir, 
                 fit_config, h_fraction_he3
             )
+            if sign == 'antimatter':
+                # store PDFs and normalisations for subtraction later
+                anti_pt = abs(h2_data.GetXaxis().GetBinCenter(pt_bin))
+                antimatter_pdfs_per_bin[anti_pt] = {'pdfs': convoluted_pdfs, 'normalisations': normalisations,
+                                                    'pdf_params': pdf_params, 'gaussian_smearing': gaussian_smearing,
+                                                    'gaussian_smearing_pars': gaussian_smearing_pars}
+            else:
+                pdfs.clear()
+                pdf_params.clear()
             
             if dca_frame is None:
                 continue
@@ -99,6 +112,9 @@ def template_fitting_routine(h2_data, h2_mc, outdir, outpdf:str,
                     [fit_results, pd.DataFrame.from_dict([ifit_results])], 
                     ignore_index=True
                 )
+            
+            if sign == 'antimatter':
+                antimatter_fit_results = fit_results.copy() if fit_results is not None else None
 
             # Draw frame
             dca_frame.Draw()
@@ -109,13 +125,40 @@ def template_fitting_routine(h2_data, h2_mc, outdir, outpdf:str,
             canvas.Print(f'{outpdf.split('.')[0]}_{sign}.pdf')
             canvas.Clear()
 
-            pdfs.clear()
-            pdf_params.clear()
+            #pdfs.clear()
+            #pdf_params.clear()
 
         # Draw and save results
         if fit_results is not None:
             draw_results(h2_data, fit_results, outdir, sign, fit_config)
         
+        if sign == 'matter' and antimatter_fit_results is not None and particle == 'He':
+            h_efficiency = load_hist(config.paths.efficiency_file,   # load once outside if preferred
+                                    f"{particle_config.efficiency_hist_name}")
+            
+            for pt_bin in range(pt_bin_start, pt_bin_end):
+                matter_pt = abs(h2_data.GetXaxis().GetBinCenter(pt_bin))
+                if matter_pt not in antimatter_pdfs_per_bin:
+                    print(f"No antimatter fit results found for pt={matter_pt:.2f}. Skipping.")
+                    continue
+                
+                sub_result = compute_primary_fraction_subtraction(
+                    h2_data, h2_data,   # matter and antimatter from same h2
+                    antimatter_fit_results, antimatter_pdfs_per_bin[matter_pt],
+                    dca, pt_bin, particle, fit_config, h_efficiency, outdir
+                )
+                if sub_result is None:
+                    continue
+                
+                sub_df = pd.DataFrame.from_dict([sub_result])
+                subtraction_results = sub_df if subtraction_results is None \
+                    else pd.concat([subtraction_results, sub_df], ignore_index=True)
+            
+            if subtraction_results is not None:
+                draw_subtraction_results(subtraction_results, outdir, fit_config)
+            outdir.cd()
+            h_efficiency.Write(f'h_efficiency_{particle}')
+         
         canvas.Print(f'{outpdf.split('.')[0]}_{sign}.pdf)')
 
     del canvas
@@ -172,6 +215,7 @@ def main(config: AnalysisConfig = None):
                         #    particle
                         #)
                         
+                        #h2_material = load_hist(config.paths.mc_input_file, f'He/h2DCA{direction}PtHe{flag_suffix}')
                         #h2_material = load_hist(config.paths.mc_input_file, f'De_as_He/h2DCA{direction}PtDe_as_He{flag_suffix}')
                         h2_material = load_hist(config.paths.mc_input_file, f'Pr_as_He/h2DCA{direction}PtPr_as_He{flag_suffix}')
                         
@@ -196,13 +240,18 @@ def main(config: AnalysisConfig = None):
                 outdir.cd()
                 h2_mc[flag_name].Write(f'h2DCA{direction}Pt{particle}_{flag_name}_mc')
 
+            data_input_file = config.paths.data_input_file if particle == 'Pr' else config.paths.data_input_file_he
             # Load data
             h2_data = load_hist(
-                config.paths.data_input_file, 
+                data_input_file, 
                 f'{particle}/h2DCA{direction}Pt{particle}'
             )
             outdir.cd()
             h2_data.Write(f'h2DCA{direction}Pt{particle}_data')
+            
+            for h2 in [h2_data] + list(h2_mc.values()):
+                if config.particles[particle].pt_rebin > 1:
+                    h2.RebinX(config.particles[particle].pt_rebin)
 
             # Run fitting
             h_fraction_he3 = h_fraction_he3_from_h3l if particle == 'He' else None
@@ -212,12 +261,12 @@ def main(config: AnalysisConfig = None):
             )
             
             # Calculate matter/antimatter ratio
-            efficiency_path = f"{particle_config.efficiency_hist_path}/{particle_config.efficiency_primary_hist_name}"
-            matter_antimatter_ratio(
-                particle, outdir,
-                config.paths.efficiency_file,
-                efficiency_path
-            )
+            ### efficiency_path = f"{particle_config.efficiency_hist_path}/{particle_config.efficiency_primary_hist_name}"
+            ### matter_antimatter_ratio(
+            ###     particle, outdir,
+            ###     config.paths.efficiency_file,
+            ###     efficiency_path
+            ### )
 
     outfile.Close()
     print("\n" + "="*60)
@@ -227,18 +276,21 @@ def main(config: AnalysisConfig = None):
 
 if __name__ == '__main__':
     
+    RooMsgService.instance().setGlobalKillBelow(3) # 3 = WARNING, 4 = ERROR, 5 = FATAL
+    RooFit.PrintLevel(-1)
+    
     config = AnalysisConfig()
     #config.fits['He'].use_material_template_from_mc = True
     #config.fits['He'].initialise_from_mc_yields = True
-    #config.fits['He'].use_convolutional_smearing = False
+    config.fits['He'].use_convolutional_smearing = True
     #config.fits['Pr'].initialise_from_mc_yields = True
-    #config.fits['Pr'].use_convolutional_smearing = False
+    config.fits['Pr'].use_convolutional_smearing = True
     #config.fits['He'].is_mc = True
     #config.fits['Pr'].is_mc = True
 
     config.fits['He'].add_pol0_to_mc_template_for_material = True
     config.fits['He'].add_pol0_to_mc_template_for_primaries = False
-    config.fits['Pr'].add_pol0_to_mc_template_for_material = True
+    config.fits['Pr'].add_pol0_to_mc_template_for_material = False
 
     #config.fits['He'].max_pt_material_template = 2.0
 
@@ -253,6 +305,8 @@ if __name__ == '__main__':
                                        'weak_decay': '_IsSecondaryFromWeakDecay',
                                        'material': '_IsSecondaryFromMaterial',
                                        }
+    config.particles['He'].pt_rebin = 5
+    config.particles['He'].pt_range = (1.0, 5.0)
     
     print(config.fits['He'])
     

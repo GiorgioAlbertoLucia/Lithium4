@@ -40,19 +40,36 @@ PT_MIN = -10
 PT_MAX = 10
 PT_BINNING = np.linspace(PT_MIN, PT_MAX, NBINS_PT + 1)
 
-NBINS_DCA = 22
-DCA_BINNING = np.array([-0.05, -0.04, -0.03, -0.025, -0.02, -0.015, -0.0125, -0.01, -0.0075, -0.005, -0.0025, 0,
-                        0.0025, 0.005, 0.0075, 0.01, 0.0125, 0.015, 0.02, 0.025, 0.03, 0.04, 0.05])
+#NBINS_DCA = 26
+#DCA_BINNING = np.array([-0.1, -0.07, -0.05, -0.04, -0.03, -0.025, -0.02, -0.015, -0.0125, -0.01, -0.0075, -0.005, -0.0025, 0,
+#                        0.0025, 0.005, 0.0075, 0.01, 0.0125, 0.015, 0.02, 0.025, 0.03, 0.04, 0.05, 0.07, 0.1])
+
+DCA_BINNING = np.concatenate((np.arange(-0.1, -0.05, 0.005), np.arange(-0.05, -0.025, 0.0025), np.arange(-0.025, 0.025, 0.00125), np.arange(0.025, 0.05, 0.0025), np.arange(0.05, 0.1, 0.005)))
+NBINS_DCA = len(DCA_BINNING) - 1
+
+def adjust_bin_content_for_variable_bin_width(h2d):
+    minimum_bin_width = 0.
+    for ibin in range(1, h2d.GetNbinsY() + 1):
+        bin_width = h2d.GetYaxis().GetBinUpEdge(ibin) - h2d.GetYaxis().GetBinLowEdge(ibin)
+        if minimum_bin_width == 0. or bin_width < minimum_bin_width:
+            minimum_bin_width = bin_width
+        for jbin in range(1, h2d.GetNbinsX() + 1):
+            content = h2d.GetBinContent(jbin, ibin)
+            h2d.SetBinContent(jbin, ibin, content / bin_width)
+    h2d.Scale(minimum_bin_width)
 
 def visualise(rdf: RDataFrame, outfile:TDirectory, particle:str = 'He3'):
 
     h_pt = rdf.Histo1D((f'hPt{particle}', ';#it{p}_{T} (GeV/#it{c})', 200, -10, 10), 'fPt')
     
     h2_dcaxy_pt = rdf.Histo2D((f'h2DCAxyPt{particle}', ';#it{p}_{T} (GeV/#it{c});DCA_{#it{xy}} (cm)', 
-                               100, -5, 5, 120, -0.15, 0.15), 'fPt', 'fDCAxy')
-                               #NBINS_PT, PT_BINNING, NBINS_DCA, DCA_BINNING), 'fPt', 'fDCAxy')
+                               #100, -5, 5, 120, -0.15, 0.15), 'fPt', 'fDCAxy')
+                               NBINS_PT, PT_BINNING, NBINS_DCA, DCA_BINNING), 'fPt', 'fDCAxy')
     h2_dcaz_pt = rdf.Histo2D((f'h2DCAzPt{particle}', ';#it{p}_{T} (GeV/#it{c});DCA_{#it{z}} (cm)', 
-                               100, -5, 5, 120, -0.3, 0.3), 'fPt', 'fDCAz')
+                               #100, -5, 5, 120, -0.3, 0.3), 'fPt', 'fDCAz')
+                               NBINS_PT, PT_BINNING, NBINS_DCA, DCA_BINNING), 'fPt', 'fDCAz')
+    adjust_bin_content_for_variable_bin_width(h2_dcaxy_pt)
+    adjust_bin_content_for_variable_bin_width(h2_dcaz_pt)
     
     histos = []
     histos.append(h2_dcaxy_pt)
@@ -62,11 +79,14 @@ def visualise(rdf: RDataFrame, outfile:TDirectory, particle:str = 'He3'):
     for flag in ['IsPhysicalPrimary', 'IsSecondaryFromMaterial', 'IsSecondaryFromWeakDecay', 'IsFromLi4', 'IsFromSigmaPlus', 'IsFromLambda0']:
         h2_dcaxy_pt = rdf.Filter(f'f{flag} == true') \
                          .Histo2D((f'h2DCAxyPt{particle}_{flag}', ';#it{p}_{T} (GeV/#it{c});DCA_{#it{xy}} (cm)', 
-                                   200, -10, 10, 120, -0.15, 0.15), 'fPt', 'fDCAxy')
-                                   #NBINS_PT, PT_BINNING, NBINS_DCA, DCA_BINNING), 'fPt', 'fDCAxy')
+                                   #200, -10, 10, 120, -0.15, 0.15), 'fPt', 'fDCAxy')
+                                   NBINS_PT, PT_BINNING, NBINS_DCA, DCA_BINNING), 'fPt', 'fDCAxy')
         h2_dcaz_pt = rdf.Filter(f'f{flag} == true') \
                          .Histo2D((f'h2DCAzPt{particle}_{flag}', ';#it{p}_{T} (GeV/#it{c});DCA_{#it{z}} (cm)', 
-                                   200, -10, 10, 120, -0.3, 0.3), 'fPt', 'fDCAz')
+                                   #200, -10, 10, 120, -0.3, 0.3), 'fPt', 'fDCAz')
+                                   NBINS_PT, PT_BINNING, NBINS_DCA, DCA_BINNING), 'fPt', 'fDCAz')
+        adjust_bin_content_for_variable_bin_width(h2_dcaxy_pt)
+        adjust_bin_content_for_variable_bin_width(h2_dcaz_pt)
         
         histos.append(h2_dcaxy_pt)
         histos.append(h2_dcaz_pt)
@@ -86,8 +106,8 @@ def main():
     
     input_files = {'Pr': ['/data/galucia/lithium/primaries/LHC25f3.root',],
                    'Pr_as_He': ['/data/galucia/lithium/primaries/LHC25f3.root',],
-                   #'De_as_He': ['/data/galucia/lithium_local/MC/alimonitor/nucleiQC/deuterons/train_LHC24g3/AO2D.root'],
-                   'He': ['/data/galucia/lithium/primaries/LHC25g11_he3.root',],
+                   'De_as_He': ['/data/galucia/lithium/primaries/LHC25f3_de.root'],
+                   'He': ['/data/galucia/lithium/primaries/LHC25g11_he3_12062026.root',],
                    }
     tree_name = 'O2nucleitablered'
 
@@ -126,7 +146,7 @@ def main():
     # TMCProcess:
     # kPPrimary = 0
     # kPDecay = 4
-    for particle in ['Pr', 'Pr_as_He', 'He']: #, 'De_as_He', 'He']:
+    for particle in ['Pr', 'Pr_as_He', 'De_as_He', 'He']:
         rdfs[particle] = RDataFrame(chain_data[particle]) \
                            .Filter(f'std::abs(fPDGcode) == {PDGcode[particle]}') \
                            .Define('fPidForTracking', 'ReadPidTrkFromFlags(fFlags)') \
@@ -140,7 +160,7 @@ def main():
         if particle == 'He' or particle == 'De_as_He' or particle == 'Pr_as_He':
             rdfs[particle] = rdfs[particle].Redefine('fPt', 'fPt * 2')
 
-        if False:   # check the content - mother pdg code and mc process
+        if True:   # check the content - mother pdg code and mc process
             for boolean_variable in ['fIsSecondaryFromMaterial']:#, 'fIsPhysicalPrimary', 'fIsSecondaryFromWeakDecay']:
 
                 filtered_rdf = rdfs[particle].Filter(f'{boolean_variable} == true')
@@ -164,7 +184,7 @@ def main():
     
     outfile = TFile.Open('output/dca/dca_mc_template.root', 'RECREATE')
     
-    for particle in ['Pr', 'Pr_as_He', 'He']: #, 'De_as_He', 'He']:
+    for particle in ['Pr', 'Pr_as_He', 'De_as_He', 'He']:
         outdir = outfile.mkdir(f'{particle}')
         visualise(rdfs[particle], outdir, particle)
         

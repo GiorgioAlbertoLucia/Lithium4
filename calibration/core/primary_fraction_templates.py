@@ -101,8 +101,17 @@ def prepare_convoluted_template(x, pdf, params, h_mc, gaussian_smearing, gaussia
 
     # use larger range for fitting material templates to better constrain tails
     default_range = (x.getMin(), x.getMax())
-    if flag == 'material' or (flag == 'primaries' and particle == 'He'):
-        x.setRange(default_range[0] - 0.05, default_range[1] + 0.05)
+    # Save original binning
+    original_bins = x.getBins()
+    original_min = x.getMin()
+    original_max = x.getMax()
+
+    n_uniform = 1000  # >= 1000 as RooFit itself suggests
+    x.setBins(n_uniform)
+
+    
+    #if flag == 'material' or (flag == 'primaries' and particle == 'He'):
+    #    x.setRange(default_range[0] - 0.05, default_range[1] + 0.05)
 
     dh = RooDataHist('tmp', '', [x], Import=h_mc)
     pdf.fitTo(dh, PrintLevel=1, Save=True)
@@ -149,6 +158,7 @@ def prepare_convoluted_template(x, pdf, params, h_mc, gaussian_smearing, gaussia
     canvas.Write()
 
     x.setRange(*default_range) # reset to default range
+    x.setBins(original_bins)
 
     del dh
     return pdf_convoluted

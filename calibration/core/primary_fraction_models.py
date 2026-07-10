@@ -20,7 +20,6 @@ def build_crystal_ball_model(x: RooRealVar, suffix: str = '', **kwargs) -> Tuple
     """
 
     nmax = 3. if (kwargs.get('flag', None) == 'primaries' and kwargs.get('rigidity', 0.) > 0.7) else 10.
-    nmax = 30
 
     pars = {
         'mean': kwargs.get('mean', RooRealVar(f'mean{suffix}', f'#mu^{suffix}', 0., -0.015, 0.015)),
@@ -88,7 +87,7 @@ def build_smearing_gaussian(x: RooRealVar, mean_val: float = 0.) -> Tuple[RooGau
     """
     pars = {
         'mean': RooRealVar('mean_smearing', '#mu^{smearing}', mean_val, -0.005, 0.005),
-        'sigma': RooRealVar('sigma_smearing', '#sigma^{smearing}', 0.003, 1.e-5, 0.005),
+        'sigma': RooRealVar('sigma_smearing', '#sigma^{smearing}', 0.003, 1.e-5, 0.01),
     }
     
     pars['mean'].setConstant(True)

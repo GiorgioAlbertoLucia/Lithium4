@@ -19,6 +19,7 @@ class ParticleConfig:
     efficiency_material_hist_name: str
     efficiency_primary_hist_name: str
 
+    pt_rebin: int = 1
 
 @dataclass
 class FitConfig:
@@ -56,6 +57,7 @@ class FitConfig:
 class PathConfig:
     """Configuration for input/output paths"""
     data_input_file: str
+    data_input_file_he: str
     mc_input_file: str
     output_file: str
     output_pdf: str
@@ -70,27 +72,28 @@ class AnalysisConfig:
     def __init__(self):
         self.particles = {
             'He': ParticleConfig(
-                pt_range=(1.3, 5.0),
-                dca_range=(-0.05, 0.05),
+                pt_rebin=4,
+                pt_range=(1., 5.0),
+                dca_range=(-0.1, 0.1),
                 dca_core_range=(-0.004, 0.006),
                 mc_flags={
                     'primaries': '_IsPhysicalPrimary',
-                    'material': '_IsSecondaryFromMaterial',
                     'weak_decay': '_IsSecondaryFromWeakDecay',
+                    'material': '_IsSecondaryFromMaterial',
                 },
                 efficiency_hist_path='He',
-                efficiency_hist_name='h_efficiency_he3',
+                efficiency_hist_name='efficiency',
                 efficiency_material_hist_name='h_efficiency_he3_material',
                 efficiency_primary_hist_name='h_efficiency_he3_prim'
             ),
             'Pr': ParticleConfig(
                 pt_range=(0.4, 4.0),
-                dca_range=(-0.05, 0.05),
+                dca_range=(-0.1, 0.1),
                 dca_core_range=(-0.004, 0.006),
                 mc_flags={
                     'primaries': '_IsPhysicalPrimary',
-                    'material': '_IsSecondaryFromMaterial',
                     'weak_decay': '_IsFromLambda0',
+                    'material': '_IsSecondaryFromMaterial',
                 },
                 efficiency_hist_path='Pr',  # Note: This might need adjustment
                 efficiency_hist_name='h_efficiency_he3',
@@ -101,11 +104,12 @@ class AnalysisConfig:
         
         self.paths = PathConfig(
             data_input_file='output/dca/dca_data_template.root',
+            data_input_file_he='output/dca/dca_data_template_nuclei_spectra.root',
             #data_input_file='output/dca/dca_mc_template_check.root',
             mc_input_file='output/dca/dca_mc_template.root',
             output_file='output/dca/primary_fraction_estimation.root',
             output_pdf='output/dca/primary_fraction_estimation.pdf',
-            efficiency_file='/home/galucia/Lithium4/phase_space_studies/output/single_track_efficiency.root',
+            efficiency_file='/home/galucia/Efficiency/nucleiQC/output/efficiency/He/efficiency_LHC25g11.root',
             he3_fraction_file='/home/galucia/Lithium4/phase_space_studies/output/he3_from_hypertriton.root',
             he3_fraction_histname='h_fraction'
         )
