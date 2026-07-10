@@ -21,6 +21,9 @@ from femto.core.signal_fitter import SignalFitter
 from femto.core.bkg_fitter import BkgFitter
 from femto.core.model_fitter import ModelFitter
 
+from utils.histogram_archive import register_qa_histograms
+from utils.histogram_registry import HistogramRegistry
+
 gInterpreter.ProcessLine(f'#include "../include/Common.h"')
 gInterpreter.ProcessLine(f'#include "../include/Variation.h"')
 gInterpreter.ProcessLine(f'#include "../include/Systematics.h"')
@@ -28,6 +31,9 @@ from ROOT import ComputeAllSystematics
 
 ROOT.EnableImplicitMT(10)
 ROOT.gROOT.SetBatch(True)
+
+SIGNAL_HIST_LOAD_INFO = HistLoadInfo('/home/galucia/Lithium4/femto/models/li4_contribution_proper_sill.root', 'hCkHist')
+H_SIGNAL_CACHED = load_hist(SIGNAL_HIST_LOAD_INFO)
 
 PARAMETRISATIONS = {
     '2023': {
@@ -190,7 +196,6 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
       .Redefine('fPtHad', 'std::abs(fPtHad)') \
       .Redefine('fPtHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fPtHe3 : CorrectPidTrkHe(fPtHe3)') \
       .Redefine('fInnerParamTPCHe3', 'fInnerParamTPCHe3 * 2') \
-      .Redefine('fInnerParamTPCHe3', '(fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8) || (fPtHe3 > 2.5) ? fInnerParamTPCHe3 : CorrectPidTrkHe(fInnerParamTPCHe3, false)') \
       .Define('fSignedPtHe3', 'fPtHe3 * fSignHe3') \
       .Define(f'fEHe3', f'std::sqrt((fPtHe3 * std::cosh(fEtaHe3))*(fPtHe3 * std::cosh(fEtaHe3)) + {ParticleMasses["He"]}*{ParticleMasses["He"]})') \
       .Define(f'fEHad', f'std::sqrt((fPtHad * std::cosh(fEtaHad))*(fPtHad * std::cosh(fEtaHad)) + {ParticleMasses["Pr"]}*{ParticleMasses["Pr"]})') \
@@ -211,7 +216,7 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
     
     return rdf
 
-def load_same():
+def load_same(prepare_years:bool=True):
     
     config_same = {
         '2023': {'input_data':'/data/galucia/lithium/same/LHC23_PbPb_pass5_hadronpid_same.root',},
@@ -219,21 +224,22 @@ def load_same():
         '2025': {'input_data':'/data/galucia/lithium/same/LHC25_PbPb_pass1_hadronpid_same.root',},
     }
     
-    for year in config_same.keys():
-        config_same[year].update({
-            'tree_names':   ['O2he3hadtable', 'O2he3hadmult'],
-            'mode':         'DF',
-            'parameterisation': PARAMETRISATIONS[year],
-        })
-        
-        load_parametrisation(config_same[year])
-        chain_data_same, __ = prepare_input_tchain(config_same[year])
-        rdf_same = prepare_rdataframe(chain_data_same, base_selection, 'true')
-        rdf_same.Snapshot(f'rdf_same', f'/data/galucia/lithium/tmp/rdf_same_{year}.root')
+    if prepare_years:    
+        for year in config_same.keys():
+            config_same[year].update({
+                'tree_names':   ['O2he3hadtable', 'O2he3hadmult'],
+                'mode':         'DF',
+                'parameterisation': PARAMETRISATIONS[year],
+            })
+            
+            load_parametrisation(config_same[year])
+            chain_data_same, __ = prepare_input_tchain(config_same[year])
+            rdf_same = prepare_rdataframe(chain_data_same, base_selection, 'true')
+            rdf_same.Snapshot(f'rdf_same', f'/data/galucia/lithium/tmp/rdf_same_{year}.root')
         
     return RDataFrame('rdf_same', [f'/data/galucia/lithium/tmp/rdf_same_{year}.root' for year in config_same.keys()])
 
-def load_mixed():
+def load_mixed(prepare_years:bool=True):
     
     config_mixed = {
             '2023': {'input_data': '/data/galucia/lithium/mixing/LHC23_PbPb_pass5_hadronpid_event_mixing_batch256.root'},
@@ -241,17 +247,18 @@ def load_mixed():
             '2025': {'input_data': '/data/galucia/lithium/mixing/LHC25_PbPb_pass1_hadronpid_event_mixing_batch256.root'},
     }
     
-    for year in config_mixed.keys():
-        config_mixed[year].update({
-            'tree_names':    'MixedTree',
-            'mode':         'tree',
-            'parameterisation': PARAMETRISATIONS[year],
-        })
+    if prepare_years:
+        for year in config_mixed.keys():
+            config_mixed[year].update({
+                'tree_names':    'MixedTree',
+                'mode':         'tree',
+                'parameterisation': PARAMETRISATIONS[year],
+            })
         
-        load_parametrisation(config_mixed[year])
-        chain_data_mixed, __ = prepare_input_tchain(config_mixed[year])
-        rdf_mixed = prepare_rdataframe(chain_data_mixed, base_selection, 'true')
-        rdf_mixed.Snapshot(f'rdf_mixed', f'/data/galucia/lithium/tmp/rdf_mixed_{year}.root')
+            load_parametrisation(config_mixed[year])
+            chain_data_mixed, __ = prepare_input_tchain(config_mixed[year])
+            rdf_mixed = prepare_rdataframe(chain_data_mixed, base_selection, 'true')
+            rdf_mixed.Snapshot(f'rdf_mixed', f'/data/galucia/lithium/tmp/rdf_mixed_{year}.root')
     
     return RDataFrame('rdf_mixed', [f'/data/galucia/lithium/tmp/rdf_mixed_{year}.root' for year in config_mixed.keys()])
 
@@ -274,8 +281,8 @@ def prepare_systematics_histograms(rdf:RDataFrame, n_variations:int, hist_name_s
     variational_rdf = None
     if variable == 'all':
         variational_rdf = rdf.Define('fNSigmaITSHe3Systematic', 'fNSigmaITSHe3') \
-                         .Define('fNsigmaTpcMinHe3Systematic', 'std::abs(fNSigmaTPCHe3)') \
-                         .Define('fNsigmaTpcMaxHe3Systematic', 'std::abs(fNSigmaTPCHe3)') \
+                         .Define('fNsigmaTpcMinHe3Systematic', 'fNSigmaTPCHe3') \
+                         .Define('fNsigmaTpcMaxHe3Systematic', 'fNSigmaTPCHe3') \
                          .Define('fAbsNSigmaDCAxyHe3Systematic', 'std::abs(fNSigmaDCAxyHe3)') \
                          .Define('fAbsNSigmaDCAzHe3Systematic', 'std::abs(fNSigmaDCAzHe3)') \
                          .Define('fNClsTPCHe3Systematic', 'static_cast<float>(fNClsTPCHe3)') \
@@ -291,7 +298,8 @@ def prepare_systematics_histograms(rdf:RDataFrame, n_variations:int, hist_name_s
                                 'fAbsNSigmaDCAxyHe3Systematic', 'fAbsNSigmaDCAzHe3Systematic',
                                 'fNClsTPCHe3Systematic', 'fChi2TPCHe3Systematic',
                                 'fNSigmaITSHadSystematic', 'fAbsNSigmaTPCHadSystematic', 'fAbsNSigmaTOFHadSystematic',
-                                'fAbsNSigmaDCAxyHadSystematic', 'fAbsNSigmaDCAzHadSystematic', 'fAbsZVertexSystematic'],
+                                'fAbsNSigmaDCAxyHadSystematic', 'fAbsNSigmaDCAzHadSystematic', 'fChi2TPCHadSystematic',
+                                'fAbsZVertexSystematic'],
                                 f'systematicCuts({n_variations}, fNSigmaITSHe3Systematic, fNsigmaTpcMinHe3Systematic, fNsigmaTpcMaxHe3Systematic, \
                                 fAbsNSigmaDCAxyHe3Systematic, fAbsNSigmaDCAzHe3Systematic, fNClsTPCHe3Systematic, fChi2TPCHe3Systematic, \
                                 fNSigmaITSHadSystematic, fAbsNSigmaTPCHadSystematic, fAbsNSigmaTOFHadSystematic, \
@@ -304,14 +312,14 @@ def prepare_systematics_histograms(rdf:RDataFrame, n_variations:int, hist_name_s
                                   (fNSigmaITSHadSystematic > 0) && \
                                   (fAbsNSigmaTPCHadSystematic < 0) && \
                                   ((std::abs(fPtHad) < 0.8) || (fAbsNSigmaTOFHadSystematic < 0)) && \
-                                  (fAbsZVertexSystematic < 0) \
+                                  (fAbsZVertexSystematic < 0) && \
                                   (fAbsNSigmaDCAxyHe3Systematic < 0) && \
                                   (fAbsNSigmaDCAzHe3Systematic < 0) && \
                                   (fAbsNSigmaDCAxyHadSystematic < 0) && \
                                   (fAbsNSigmaDCAzHadSystematic < 0) && \
                                   (fChi2TPCHe3Systematic < 0) && \
                                   (fChi2TPCHadSystematic < 0) && \
-                                  (fNClsTPCHe3Systematic < 0) ) ')
+                                  (fNClsTPCHe3Systematic > 0)')
     else:
         variational_rdf = rdf.Define('fNSigmaITSHe3Systematic', 'fNSigmaITSHe3') \
                             .Define('fNsigmaTpcMinHe3Systematic', 'fNSigmaTPCHe3') \
@@ -339,7 +347,7 @@ def prepare_systematics_histograms(rdf:RDataFrame, n_variations:int, hist_name_s
                                     fAbsZVertexSystematic)',
                                     n_variations, 'systematic') \
                             .Filter('(fNSigmaITSHe3Systematic > 0) && \
-                                  (fNsigmaTpcMinHe3Systematic < 0) && \
+                                  (fNsigmaTpcMinHe3Systematic > 0) && \
                                   (fNsigmaTpcMaxHe3Systematic < 0) && \
                                   (fNSigmaITSHadSystematic > 0) && \
                                   (fAbsNSigmaTPCHadSystematic < 0) && \
@@ -387,16 +395,11 @@ def correlation_function_centrality_integrated(h_sames, h_mixeds, suffix:str):
 
     return h_corr
 
-def fitting_routine(outfile, bkg_input_path:str, h_bkg_name:str,
+def fitting_routine(outfile, workspace: RooWorkspace, bkg_input_path:str, h_bkg_name:str,
                     h_data:TH1F, h_mixed_event:TH1F, 
                     sign:str, centrality:str, use_smoothening:bool=False):
 
-    SIGNAL_HIST_LOAD_INFO = HistLoadInfo('/home/galucia/Lithium4/femto/models/li4_contribution_proper_sill.root', 'hCkHist')
-    
-    workspace = RooWorkspace('roows')
-
     h_bkg = load_hist(bkg_input_path, h_bkg_name)
-    h_signal = load_hist(SIGNAL_HIST_LOAD_INFO)
     h_correlation_function = h_data
 
     KSTAR_MIN, KSTAR_MAX = (0.01, 0.4) if h_correlation_function.GetBinWidth(1) > 1e-5 else (0.02, 0.4)
@@ -404,7 +407,7 @@ def fitting_routine(outfile, bkg_input_path:str, h_bkg_name:str,
     
     signal_fitter = SignalFitter('signal', kstar_spec, outfile, workspace)
     signal_init_mode = 'from_mc' if not use_smoothening else 'from_kde'
-    signal_fitter.init_signal(signal_init_mode, h_signal)
+    signal_fitter.init_signal(signal_init_mode, H_SIGNAL_CACHED)
     signal_fitter.title = '^{4}Li'
     signal_fitter.save_to_workspace()
 
@@ -427,8 +430,19 @@ def fitting_routine(outfile, bkg_input_path:str, h_bkg_name:str,
     xvar = workspace.obj(kstar_spec.name)
     xvar.setRange(KSTAR_MIN, 0.39)
     raw_yield_value = model_fitter.compute_raw_yield(h_mixed_event, 'signal_pdf', 'bkg_pdf')
+    
+    for obj in (h_bkg, h_correlation_function):
+        obj.ResetBit(ROOT.kMustCleanup)
+        del obj
+        
+    #import faulthandler
+    #faulthandler.enable()
 
-    del workspace, signal_fitter, bkg_fitter, model_fitter
+    signal_fitter.cleanup()
+    bkg_fitter.cleanup()
+    model_fitter.cleanup()
+    del signal_fitter, bkg_fitter, model_fitter
+    gc.collect()
 
     return raw_yield_value
 
@@ -436,36 +450,50 @@ def fitting_routine(outfile, bkg_input_path:str, h_bkg_name:str,
 
 def prepare_histograms():
 
-    rdf_same = load_same()
-    rdf_mixed = load_mixed()
+    prepare_years = False
+    rdf_same = load_same(prepare_years)
+    rdf_mixed = load_mixed(prepare_years)
 
     N_ITERATIONS = 100
     outFile = TFile("output/hist_systematics_with_upper_limit.root", "RECREATE")
+    
+    #N_ITERATIONS = 2
+    #outFile = TFile("output/hist_systematics_with_upper_limit_test.root", "RECREATE")
+    
+    check_procedure = False
+    if check_procedure:
+        histogram_registry = HistogramRegistry()
+        register_qa_histograms(histogram_registry)
+        
+        histogram_registry.prepare_directories(outFile)
+        histogram_registry.draw_histogram(rdf_same)
+        histogram_registry.save_histograms(outFile)
 
-    for sign, condition in {'Matter': 'fSignedPtHe3 > 0', 'Antimatter': 'fSignedPtHe3 < 0', 'Both': 'true'}.items():
+    for sign, sign_condition in {'Matter': 'fSignedPtHe3 > 0', 'Antimatter': 'fSignedPtHe3 < 0', 'Both': 'true'}.items():
 
         outDir = outFile.mkdir(sign)
 
-        tmp_rdf_same = rdf_same.Filter(condition)
-        tmp_rdf_mixed = rdf_mixed.Filter(condition)
+        tmp_rdf_same = rdf_same.Filter(sign_condition)
+        tmp_rdf_mixed = rdf_mixed.Filter(sign_condition)
 
-        variational_hists_same = prepare_systematics_histograms(tmp_rdf_same, n_variations=1, hist_name_suffix='Same', variable='')
-        variational_hists_mixed = prepare_systematics_histograms(tmp_rdf_mixed, n_variations=1, hist_name_suffix='Mixed', variable='')
-
-        NORM_LOW_KSTAR, NORM_HIGH_KSTAR = 0.2, 0.4
-        
-        for centrality in ['010']: #, '1030', '3050', '5080']:
+        ### check_procedure = False
+        ### if check_procedure:
+        ### variational_hists_same = prepare_systematics_histograms(tmp_rdf_same, n_variations=1, hist_name_suffix='Same', variable='all')
+        ### variational_hists_mixed = prepare_systematics_histograms(tmp_rdf_mixed, n_variations=1, hist_name_suffix='Mixed', variable='all')
+        ### 
+        ### NORM_LOW_KSTAR, NORM_HIGH_KSTAR = 0.2, 0.4
+        ### 
+        ###     h_same = variational_hists_same['010'][f'systematic:{0}']
+        ###     h_mixed = variational_hists_mixed['010'][f'systematic:{0}']
+        ###     h_mixeds_normalised = normalise_histogram(h_same, h_mixed, NORM_LOW_KSTAR, NORM_HIGH_KSTAR)
+        ###     
+        ###     outDirCentrality.cd()
+        ###     gc.collect()
+                
+        for centrality in ['010', '1030', '3050', '5080']:
             
             outDirCentrality = outDir.mkdir(centrality)
              
-            check_procedure = False
-            if check_procedure:
-                h_same = variational_hists_same[centrality][f'systematic:{0}']
-                h_mixed = variational_hists_mixed[centrality][f'systematic:{0}']
-                h_mixeds_normalised = normalise_histogram(h_same, h_mixed, NORM_LOW_KSTAR, NORM_HIGH_KSTAR)
-                
-                outDirCentrality.cd()
-                gc.collect()
 
             variational_hists_same = prepare_systematics_histograms(tmp_rdf_same, n_variations=N_ITERATIONS, hist_name_suffix='Same', variable='all')
             variational_hists_mixed = prepare_systematics_histograms(tmp_rdf_mixed, n_variations=N_ITERATIONS, hist_name_suffix='Mixed', variable='all')
@@ -480,6 +508,7 @@ def prepare_histograms():
                 same = variational_hists_same[centrality][f'systematic:{iter}']
                 mixed = variational_hists_mixed[centrality][f'systematic:{iter}']
 
+                mixed_normalised = mixed.Clone(f'{mixed.GetName()}_Normalised')
                 mixed_normalised = normalise_histogram(same, mixed, NORM_LOW_KSTAR, NORM_HIGH_KSTAR)
 
                 h_sames.append(same)                        
@@ -497,12 +526,13 @@ def prepare_histograms():
 
 def upper_limit_systematic_routine():
 
-    N_ITERATIONS = 20
+    N_ITERATIONS = 100
     N_UPPER_LIMIT_ITERATIONS = 500
     TH1.AddDirectory(False)
 
-    infile = TFile.Open("output/hist_systematics_with_upper_limit_010.root")
-    outFile = TFile.Open("output/systematics_with_upper_limit_010_v3.root", "RECREATE")
+    infile = TFile.Open("output/hist_systematics_with_upper_limit.root")
+    outFile = TFile.Open("output/systematics_with_upper_limit_Both_1030.root", "RECREATE")
+    workspace = RooWorkspace('roows')
 
     # (nominal, upper, lower): radius variations
     # (-blank-, higher, lower): lambda variations
@@ -510,36 +540,56 @@ def upper_limit_systematic_routine():
         f'nominal/hLambdaSigmaCorrectedCk_Smeared_nominal',
         f'nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_higher',
         f'nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_lower',
-        f'upper/hLambdaSigmaCorrectedCk_Smeared_lower',
-        f'upper/hLambdaSigmaCorrectedCk_Smeared_lower_higher',
-        f'upper/hLambdaSigmaCorrectedCk_Smeared_lower_lower',
-        f'lower/hLambdaSigmaCorrectedCk_Smeared_upper',
-        f'lower/hLambdaSigmaCorrectedCk_Smeared_upper_higher',
-        f'lower/hLambdaSigmaCorrectedCk_Smeared_upper_lower',
+        f'upper/hLambdaSigmaCorrectedCk_Smeared_upper',
+        f'upper/hLambdaSigmaCorrectedCk_Smeared_upper_higher',
+        f'upper/hLambdaSigmaCorrectedCk_Smeared_upper_lower',
+        f'lower/hLambdaSigmaCorrectedCk_Smeared_lower',
+        f'lower/hLambdaSigmaCorrectedCk_Smeared_lower_higher',
+        f'lower/hLambdaSigmaCorrectedCk_Smeared_lower_lower',
         ]
     BKG_PATH = '/home/galucia/Lithium4/femto/models/LHC25_PbPb_pass1_lambda_models.root'
 
-    for sign in ['Matter']:
+    #for sign in ['Matter', 'Antimatter', 'Both']:
+    for sign in ['Both']:
 
         inDir = infile.Get(sign)
         outDir = outFile.mkdir(sign)
 
         # --- new: centrality dict, same pattern as prepare_histograms ---
         h_upper_limits = {}
-        for centrality in ['010']:  # extend as needed: '1030', '3050', '5080'
-            
+        h_raw_yields = {}
+        #for centrality in ['010', '1030', '3050', '5080']:
+        for centrality in ['1030']:
 
-            h_upper_limits[centrality] = TH1F(f'hUpperLimits_{centrality}', ';[#it{N}_{^{4}Li}^{raw}]_{upper limit};', 600, 0, 600)
+            h_upper_limits[centrality] = TH1F(f'hUpperLimits_{centrality}', ';[#it{N}_{^{4}Li}^{raw}]_{upper limit};', 1600, 0, 1600)
+            h_raw_yields[centrality] = TH1F(f'hRawYields_{centrality}', ';#it{N}_{^{4}Li}^{raw};', 1600, -400, 1200)
             inDirCentrality = inDir.Get(centrality)  # assumes subdirs per centrality in infile
             outDirCentrality = outDir.mkdir(centrality)
 
-            for iter in tqdm(range(N_ITERATIONS)):
+            for iter in tqdm(range(N_ITERATIONS), desc=f'Processing {sign} - Centrality {centrality}'):
 
-                outDirIter = outDirCentrality.mkdir(f'{centrality}/iter_{iter}')
-
-                h_same             = inDirCentrality.Get(f'iter_{iter}/hSame')
-                h_mixed            = inDirCentrality.Get(f'iter_{iter}/hMixed')
-                h_mixed_normalised = inDirCentrality.Get(f'iter_{iter}/hMixedNormalised')
+                outDirIter = outDirCentrality.mkdir(f'iter_{iter}')
+                
+                h_same, h_mixed_normalised = None, None
+                
+                if centrality == '1050':
+                    h_same_1030 = infile.Get(f'{sign}/1030/iter_{iter}/hSame')
+                    h_mixed_normalised_1030 = infile.Get(f'{sign}/1030/iter_{iter}/hMixedNormalised')
+                    h_same_3050 = infile.Get(f'{sign}/3050/iter_{iter}/hSame')
+                    h_mixed_normalised_3050 = infile.Get(f'{sign}/3050/iter_{iter}/hMixedNormalised')
+                    
+                    h_same = h_same_1030.Clone(f'hSame_{centrality}_Iter_{iter}')
+                    h_same.Add(h_same_3050)
+                    h_mixed_normalised = h_mixed_normalised_1030.Clone(f'hMixedNormalised_{centrality}_Iter_{iter}')
+                    h_mixed_normalised.Add(h_mixed_normalised_3050)
+                
+                else:
+                    h_same             = inDirCentrality.Get(f'iter_{iter}/hSame')
+                    h_mixed_normalised = inDirCentrality.Get(f'iter_{iter}/hMixedNormalised')
+                    
+                if h_same is None or h_mixed_normalised is None:
+                    print(f"Error: Could not retrieve histograms for {sign} - Centrality {centrality} - Iteration {iter}")
+                    continue
 
                 h_correlation = h_same.Clone(f'hCorrelation_{centrality}_{iter}')
                 h_correlation.Divide(h_mixed_normalised)
@@ -547,13 +597,13 @@ def upper_limit_systematic_routine():
                 outDirNominal = outDirIter.mkdir('nominal')
                 random_bkg_name = np.random.choice(AVAILABLE_BKGS)
 
-                nominal_raw_yield = fitting_routine(outDirNominal,
+                nominal_raw_yield = fitting_routine(outDirNominal, workspace,
                                 bkg_input_path=BKG_PATH,
                                 h_bkg_name=f'{sign}/{centrality}/{random_bkg_name}',
                                 h_data=h_correlation, h_mixed_event=h_mixed_normalised,
                                 sign=sign, centrality=centrality, use_smoothening=True)
 
-                h_raw_yields_iter = TH1F(f'hRawYields_{centrality}_Iter_{iter}', ';Raw yield;', 300, -200, 400)
+                h_raw_yields_iter = TH1F(f'hRawYields_{centrality}_Iter_{iter}', ';Raw yield;', 1600, -400, 1200)
 
                 for iter_upper in range(N_UPPER_LIMIT_ITERATIONS):
 
@@ -567,18 +617,22 @@ def upper_limit_systematic_routine():
                     h_correlation_iter_upper.Divide(h_mixed_normalised_iter_upper)
 
                     outDir_to_pass = outDirIter.mkdir(f'inner_iter_{iter_upper}') if iter_upper == 0 else None
-                    raw_yield = fitting_routine(outDir_to_pass,
+                    raw_yield = fitting_routine(outDir_to_pass, workspace,
                                     bkg_input_path=BKG_PATH,
                                     h_bkg_name=f'{sign}/{centrality}/hLambdaSigmaCorrectedCk',
                                     h_data=h_correlation_iter_upper, h_mixed_event=h_mixed_normalised_iter_upper,
                                     sign=sign, centrality=centrality, use_smoothening=True)
 
                     h_raw_yields_iter.Fill(raw_yield)
-                    del h_same_iter_upper, h_mixed_normalised_iter_upper, h_correlation_iter_upper
+                    h_raw_yields[centrality].Fill(raw_yield)
+                    for obj in (h_same_iter_upper, h_mixed_normalised_iter_upper, h_correlation_iter_upper):
+                        obj.ResetBit(ROOT.kMustCleanup)
+                        del obj
+                        #obj.Delete()
 
-                fit_func = TF1(f'fit_func_{centrality}_{iter}', 'gaus', -200, 400)
+                fit_func = TF1(f'fit_func_{centrality}_{iter}', 'gaus', -400, 1200)
                 fit_func.SetParameters(h_raw_yields_iter.GetMaximum(), h_raw_yields_iter.GetMean(), h_raw_yields_iter.GetRMS())
-                h_raw_yields_iter.Fit('gaus', 'RMS+', '', -200, 400)
+                h_raw_yields_iter.Fit('gaus', 'RMS+', '', -400, 1200)
 
                 outDirIter.cd()
                 h_raw_yields_iter.Write()
@@ -586,15 +640,17 @@ def upper_limit_systematic_routine():
                 upper_limit = nominal_raw_yield + 1.96 * fit_func.GetParameter(2)
                 h_upper_limits[centrality].Fill(upper_limit)
 
+                for obj in (h_same, h_mixed_normalised, h_correlation, h_raw_yields_iter, fit_func):
+                    obj.ResetBit(ROOT.kMustCleanup)
+                    del obj
+                #del h_same, h_mixed, h_mixed_normalised, h_correlation, h_raw_yields_iter, fit_func
                 gc.collect()
-                del h_same, h_mixed, h_mixed_normalised, h_correlation, h_raw_yields_iter, fit_func
 
             outDir.cd()
             h_upper_limits[centrality].Write()
-            del h_upper_limits[centrality]
 
-    infile.Close()
     outFile.Close()
+    infile.Close()
 
 
 
@@ -604,8 +660,8 @@ if __name__ == "__main__":
     RooMsgService.instance().setGlobalKillBelow(5) # 3 = WARNING, 4 = ERROR, 5 = FATAL
     ROOT.RooFit.PrintLevel(-1)
 
-    prepare_histograms()
+    #prepare_histograms()
 
-    #upper_limit_systematic_routine()
+    upper_limit_systematic_routine()
 
     print("Systematics analysis completed successfully.")
