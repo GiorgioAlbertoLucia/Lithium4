@@ -92,20 +92,26 @@ if __name__ == '__main__':
     BR = 0.25
     BR_error = 0.023
 
-    h_pt_he3_gen = load_hist('/home/galucia/Lithium4/phase_space_studies/output/single_track_efficiency.root',
-                             'He/hPtGenPrimaryHe')
-    h_pt_he3_rec = load_hist('/home/galucia/Lithium4/phase_space_studies/output/single_track_efficiency.root',
-                             'He/hPtRecPrimaryHe')
+    ### h_pt_he3_gen = load_hist('/home/galucia/Lithium4/phase_space_studies/output/single_track_efficiency.root',
+    ###                          'He/hPtGenPrimaryHe')
+    ### h_pt_he3_rec = load_hist('/home/galucia/Lithium4/phase_space_studies/output/single_track_efficiency.root',
+    ###                          'He/hPtRecPrimaryHe')
+    ### 
+    ### h_efficiency_he3 = build_efficiency(h_pt_he3_gen, h_pt_he3_rec, name='h_efficiency_he3', ytitle='Efficiency')
     
-    h_efficiency_he3 = build_efficiency(h_pt_he3_gen, h_pt_he3_rec, name='h_efficiency_he3', ytitle='Efficiency')
+    h_efficiency_he3 = load_hist('/home/galucia/Efficiency/nucleiQC/output/efficiency/He/efficiency_LHC25g11.root',
+                                 'efficiency')
 
-    h_pt_he3_from_h3l_gen = load_hist('/home/galucia/Lithium4/phase_space_studies/output/single_track_efficiency.root',
-                             'He/hPtGenFromHypertritonHe')
-    h_pt_he3_from_h3l_rec = load_hist('/home/galucia/Lithium4/phase_space_studies/output/single_track_efficiency.root',
-                             'He/hPtRecFromHypertritonHe')
+    ### h_pt_he3_from_h3l_gen = load_hist('/home/galucia/Lithium4/phase_space_studies/output/single_track_efficiency.root',
+    ###                          'He/hPtGenFromHypertritonHe')
+    ### h_pt_he3_from_h3l_rec = load_hist('/home/galucia/Lithium4/phase_space_studies/output/single_track_efficiency.root',
+    ###                          'He/hPtRecFromHypertritonHe')
+    ### 
+    ### h_efficiency_he3_from_h3l = build_efficiency(h_pt_he3_from_h3l_gen, h_pt_he3_from_h3l_rec,
+    ###                                              name='h_efficiency_he3_from_h3l', ytitle='Efficiency')
     
-    h_efficiency_he3_from_h3l = build_efficiency(h_pt_he3_from_h3l_gen, h_pt_he3_from_h3l_rec,
-                                                 name='h_efficiency_he3_from_h3l', ytitle='Efficiency')
+    h_efficiency_he3_from_h3l = load_hist('/home/galucia/Efficiency/nucleiQC/output/efficiency/He/efficiency_LHC25g11.root',
+                                 'efficiency_from_h3l')
     
     # only for visualisation, will not be used for computation
     h_pt_he3_from_h3l_gen_map = load_hist('/home/galucia/Lithium4/phase_space_studies/input/He3FromHypertritonMap.root',
@@ -116,10 +122,10 @@ if __name__ == '__main__':
     h_correction_factor.Divide(h_pt_h3l_into_he3_gen)
 
     spectrum_file = TFile.Open('output/hypertriton_spectra.root')
-    f_spectrum_he3 = spectrum_file.Get('fBlastWaveHe3')
-    f_spectrum_h3l = spectrum_file.Get('fBlastWaveHypertriton')
-    fit_result_he3 = spectrum_file.Get('resultBlastWaveHe3')
-    fit_result_h3l = spectrum_file.Get('resultBlastWaveHypertriton')
+    f_spectrum_he3 = spectrum_file.Get('Centrality_0_10/fBlastWaveHe3')
+    f_spectrum_h3l = spectrum_file.Get('Centrality_0_10/fBlastWaveHypertriton')
+    fit_result_he3 = spectrum_file.Get('Centrality_0_10/resultBlastWaveHe3')
+    fit_result_h3l = spectrum_file.Get('Centrality_0_10/resultBlastWaveHypertriton')
 
     pt_min, pt_max, pt_step = -8., 8., 0.5
     nbins = int((pt_max - pt_min) / pt_step)
@@ -193,8 +199,8 @@ if __name__ == '__main__':
 
         h3l_into_he3_generated = h_pt_h3l_into_he3_gen.GetBinContent(h_pt_h3l_into_he3_gen.FindBin(pt))
         h3l_into_he3_error = h_pt_h3l_into_he3_gen.GetBinError(h_pt_h3l_into_he3_gen.FindBin(pt))
-        he3_from_h3l_generated = h_pt_he3_from_h3l_gen.GetBinContent(h_pt_he3_from_h3l_gen.FindBin(pt))
-        he3_from_h3l_error = h_pt_he3_from_h3l_gen.GetBinError(h_pt_he3_from_h3l_gen.FindBin(pt))
+        #he3_from_h3l_generated = h_pt_he3_from_h3l_gen.GetBinContent(h_pt_he3_from_h3l_gen.FindBin(pt))
+        #he3_from_h3l_error = h_pt_he3_from_h3l_gen.GetBinError(h_pt_he3_from_h3l_gen.FindBin(pt))
 
         efficiency = h_efficiency_he3.GetBinContent(h_efficiency_he3.FindBin(pt))
         efficiency_error = h_efficiency_he3.GetBinError(h_efficiency_he3.FindBin(pt))
@@ -225,10 +231,10 @@ if __name__ == '__main__':
 
     hypertriton_to_he3_map.Write()
 
-    h_pt_he3_gen.Write()
-    h_pt_he3_from_h3l_gen.Write()
+    #h_pt_he3_gen.Write()
+    #h_pt_he3_from_h3l_gen.Write()
     h_pt_h3l_into_he3_gen.Write()
-    h_pt_he3_from_h3l_rec.Write()
+    #h_pt_he3_from_h3l_rec.Write()
     
     ratio_spectrum.Write()
     fraction_spectrum.Write()
