@@ -5303,7 +5303,7 @@ plots:
       hists:
         [
           {
-            inPath: /home/galucia/Lithium4/calibration/output/lambda_parameters.root,
+            inPath: /home/galucia/Lithium4/calibration/output/LHC25_PbPb_pass1_lambda_parameters.root,
             histName: Antimatter/hLambdaParameters,
             histLabel: '#bar{p} + ^{3}#bar{He}',
             kwargs: {
@@ -5314,7 +5314,7 @@ plots:
                     }
           },
           {
-            inPath: /home/galucia/Lithium4/calibration/output/lambda_parameters_smaller_tolerance_pr.root,
+            inPath: /home/galucia/Lithium4/calibration/output/LHC25_PbPb_pass1_lambda_parameters.root,
             histName: Matter/hLambdaParameters,
             histLabel: 'p + ^{3}He',
             kwargs: {

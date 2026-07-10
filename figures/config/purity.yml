@@ -1,0 +1,415 @@
+#
+# Configuration file for plots
+#
+
+outPath: /home/galucia/Lithium4/figures/root/purity.root
+
+plots:
+  [
+    # 23 pass5 purity
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 5.05,
+            name: 'purity_23_he3',
+            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); #it{P}_{^{3}He}',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.45,
+            xmax: 1.05,
+            name: 'purity_23_he3',
+            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); #it{P}_{^{3}He}',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC23_PbPb_pass5_purity.root,
+            graphName: He3/TPC/g_purity_matter,
+            graphLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC24ar_pass3_purity.root,
+            graphName: He3/TPC/g_purity_matter,
+            graphLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 21, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC25_PbPb_pass1_purity.root,
+            graphName: He3/TPC/g_purity_matter,
+            graphLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/purity_he3.pdf
+    },
+
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 5.05,
+            name: 'purity_23_antihe3',
+            title: '^{3}#bar{He}; #it{p}_{T} (GeV/#it{c}); #it{P}_{^{3}He}',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.45,
+            xmax: 1.05,
+            name: 'purity_23_antihe3',
+            title: '^{3}#bar{He}; #it{p}_{T} (GeV/#it{c}); #it{P}_{^{3}He}',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC23_PbPb_pass5_purity.root,
+            graphName: He3/TPC/g_purity_antimatter,
+            graphLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC24ar_pass3_purity.root,
+            graphName: He3/TPC/g_purity_antimatter,
+            graphLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC25_PbPb_pass1_purity.root,
+            graphName: He3/TPC/g_purity_antimatter,
+            graphLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/purity_antihe3.pdf
+    },
+
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 5.05,
+            name: 'purity_23_p',
+            title: 'p; #it{p}_{T} (GeV/#it{c}); #it{P}_{p}',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.45,
+            xmax: 1.05,
+            name: 'purity_23_p',
+            title: 'p; #it{p}_{T} (GeV/#it{c}); #it{P}_{p}',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC23_PbPb_pass5_purity.root,
+            graphName: Had/TPC/g_purity_matter,
+            graphLabel: '2023 pass5 (TPC)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 24, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 0.85,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC23_PbPb_pass5_purity.root,
+            graphName: Had/TOF/g_purity_matter,
+            graphLabel: '2023 pass5 (TPC+TOF)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmin: 0.70,
+                    },
+            xmin: 0.70,
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC24ar_pass3_purity.root,
+            graphName: Had/TPC/g_purity_matter,
+            graphLabel: '2024 pass3 (TPC)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 24, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 0.85,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC24ar_pass3_purity.root,
+            graphName: Had/TOF/g_purity_matter,
+            graphLabel: '2024 pass3 (TPC+TOF)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmin: 0.70,
+                    },
+            xmin: 0.70,
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC25_PbPb_pass1_purity.root,
+            graphName: Had/TPC/g_purity_matter,
+            graphLabel: '2025 pass1 (TPC)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 24, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 0.85,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC25_PbPb_pass1_purity.root,
+            graphName: Had/TOF/g_purity_matter,
+            graphLabel: '2025 pass1 (TPC+TOF)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmin: 0.70,
+                    },
+            xmin: 0.70,
+          },
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.18, xmax: 0.72,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 2, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/purity_p.pdf
+    },
+
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 5.05,
+            name: 'purity_23_antip',
+            title: '#bar{p}; #it{p}_{T} (GeV/#it{c}); #it{P}_{p}',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.45,
+            xmax: 1.05,
+            name: 'purity_23_antip',
+            title: '#bar{p}; #it{p}_{T} (GeV/#it{c}); #it{P}_{p}',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC23_PbPb_pass5_purity.root,
+            graphName: Had/TPC/g_purity_antimatter,
+            graphLabel: '2023 pass5 (TPC)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 24, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 0.85,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC23_PbPb_pass5_purity.root,
+            graphName: Had/TOF/g_purity_antimatter,
+            graphLabel: '2023 pass5 (TPC+TOF)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmin: 0.70,
+                    },
+            xmin: 0.70,
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC24ar_pass3_purity.root,
+            graphName: Had/TPC/g_purity_antimatter,
+            graphLabel: '2024 pass3 (TPC)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 24, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 0.85,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC24ar_pass3_purity.root,
+            graphName: Had/TOF/g_purity_antimatter,
+            graphLabel: '2024 pass3 (TPC+TOF)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmin: 0.70,
+                    },
+            xmin: 0.70,
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC25_PbPb_pass1_purity.root,
+            graphName: Had/TPC/g_purity_antimatter,
+            graphLabel: '2025 pass1 (TPC)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 24, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 0.85,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/purity/LHC25_PbPb_pass1_purity.root,
+            graphName: Had/TOF/g_purity_antimatter,
+            graphLabel: '2025 pass1 (TPC+TOF)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmin: 0.70,
+                    },
+            xmin: 0.70,
+          },
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.18, xmax: 0.72,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 2, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/purity_antip.pdf
+    },
+
+  ]

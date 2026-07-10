@@ -1,0 +1,269 @@
+outPath: /home/galucia/Lithium4/figures/root/same_mixed_event_comparison.root
+
+plots:
+  [ 
+    # 0-10%
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.40,
+            name: 'same_mixed_event_010',
+            title: '#bar{p} - ^{3}#bar{He}; #it{k}* (GeV/#it{c}); Counts',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 1.,
+            xmax: 100000,
+            name: 'same_mixed_event_010',
+            title: '#bar{p} - ^{3}#bar{He}; #it{k}* (GeV/#it{c}); Counts',
+          },
+        ],
+      canvas:
+        {
+          logy: True,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hSameEvent010,
+            histLabel: 'Same event 0-10%',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hMixedEvent010,
+            histLabel: 'Mixed event 0-10%',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/same_mixed_event_010.pdf
+    },
+    
+    # 10-30%
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.40,
+            name: 'same_mixed_event_1030',
+            title: '#bar{p} - ^{3}#bar{He}; #it{k}* (GeV/#it{c}); Counts',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 1.,
+            xmax: 100000,
+            name: 'same_mixed_event_1030',
+            title: '#bar{p} - ^{3}#bar{He}; #it{k}* (GeV/#it{c}); Counts',
+          },
+        ],
+      canvas:
+        {
+          logy: True,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hSameEvent1030,
+            histLabel: 'Same event 10-30%',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hMixedEvent1030,
+            histLabel: 'Mixed event 10-30%',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/same_mixed_event_1030.pdf
+    },
+
+    # 30-50%
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.40,
+            name: 'same_mixed_event_3050',
+            title: '#bar{p} - ^{3}#bar{He}; #it{k}* (GeV/#it{c}); Counts',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 1.,
+            xmax: 100000,
+            name: 'same_mixed_event_3050',
+            title: '#bar{p} - ^{3}#bar{He}; #it{k}* (GeV/#it{c}); Counts',
+          },
+        ],
+      canvas:
+        {
+          logy: True,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hSameEvent3050,
+            histLabel: 'Same event 30-50%',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hMixedEvent3050,
+            histLabel: 'Mixed event 30-50%',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/same_mixed_event_3050.pdf
+    },
+
+    # 50-80%
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.40,
+            name: 'same_mixed_event_5080',
+            title: '#bar{p} - ^{3}#bar{He}; #it{k}* (GeV/#it{c}); Counts',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 1.,
+            xmax: 5000,
+            name: 'same_mixed_event_5080',
+            title: '#bar{p} - ^{3}#bar{He}; #it{k}* (GeV/#it{c}); Counts',
+          },
+        ],
+      canvas:
+        {
+          logy: True,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hSameEvent5080,
+            histLabel: 'Same event 50-80%',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hMixedEvent5080,
+            histLabel: 'Mixed event 50-80%',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist e1 same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.42, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/same_mixed_event_5080.pdf
+    },
+
+  ]

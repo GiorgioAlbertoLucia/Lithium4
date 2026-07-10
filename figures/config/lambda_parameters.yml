@@ -1,0 +1,179 @@
+outPath: /home/galucia/Lithium4/preparation/checks/lambda_parameters.root
+
+plots:
+  [
+    # Lambda parameters
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.40,
+            name: 'primary_fraction_p',
+            title: '; #it{k}* (GeV/#it{c}); #lambda_{p ^{3}He}',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.45,
+            xmax: 1.05,
+            name: 'primary_fraction_p',
+            title: '; #it{k}* (GeV/#it{c}); #lambda_{p ^{3}He}',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/calibration/output/LHC23_PbPb_pass5_lambda_parameters.root,
+            histName: Antimatter/hLambdaParameters,
+            histLabel: '#bar{p} + ^{3}#bar{He} 2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p hist same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/calibration/output/LHC24ar_pass3_lambda_parameters.root,
+            histName: Antimatter/hLambdaParameters,
+            histLabel: '#bar{p} + ^{3}#bar{He} 2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p hist same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/calibration/output/LHC25_PbPb_pass1_lambda_parameters.root,
+            histName: Antimatter/hLambdaParameters,
+            histLabel: '#bar{p} + ^{3}#bar{He} 2025 pass1',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'p hist same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/calibration/output/LHC23_PbPb_pass5_lambda_parameters.root,
+            histName: Matter/hLambdaParameters,
+            histLabel: 'p + ^{3}He 2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 24, marker_size: 1,
+                      draw_option: 'p hist same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/calibration/output/LHC24ar_pass3_lambda_parameters.root,
+            histName: Matter/hLambdaParameters,
+            histLabel: 'p + ^{3}He 2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 24, marker_size: 1,
+                      draw_option: 'p hist same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/calibration/output/LHC25_PbPb_pass1_lambda_parameters.root,
+            histName: Matter/hLambdaParameters,
+            histLabel: 'p + ^{3}He 2025 pass1',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 24, marker_size: 1,
+                      draw_option: 'p hist same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.32, xmax: 0.82,
+          ymin: 0.17, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 2, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/calibration/figures/lambda_parameters.pdf
+    },
+
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.40,
+            name: 'lambda_parameters_all',
+            title: '; #it{k}* (GeV/#it{c}); #lambda',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.0005,
+            xmax: 1.05,
+            name: 'lambda_parameters_all',
+            title: '; #it{k}* (GeV/#it{c}); #lambda',
+          },
+        ],
+      canvas:
+        {
+          logy: True,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/calibration/output/LHC25_PbPb_pass1_lambda_parameters.root,
+            histName: Antimatter/hLambdaParameters,
+            histLabel: '#lambda_{p - ^{3}He}',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'p hist same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/calibration/output/LHC25_PbPb_pass1_lambda_parameters.root,
+            histName: Antimatter/hLambdaSigmaParameters,
+            histLabel: '#lambda_{p #leftarrow #Sigma - ^{3}He}',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p hist same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.17, ymax: 0.42,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 520,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/calibration/figures/lambda_parameters_all.pdf
+    },
+]
