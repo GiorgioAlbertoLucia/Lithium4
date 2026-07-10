@@ -5,8 +5,11 @@ from torchic.utils.colors import get_color
 
 def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:str, centrality:str):
 
-    h_systematics_name = f'{sign}/hCorrelation{centrality}Syst' if centrality != '1050' else f'{sign}/hCorrelationDirectComputation1050Syst'
-    h_systematics = load_hist('/home/galucia/Lithium4/preparation/output/correlation_with_systematics.root',
+    sign_str = '' if sign == 'Both' else sign
+    h_systematics_name = f'Correlation{sign_str}/{centrality}/hCorrelationSyst{centrality}' # if centrality != '1050' else f'{sign}/hCorrelationDirectComputation1050Syst'
+    #h_systematics = load_hist('/home/galucia/Lithium4/preparation/output/correlation_with_systematics.root',
+    #                          h_systematics_name)
+    h_systematics = load_hist('/home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root',
                               h_systematics_name)
     if h_systematics is not None:
         set_root_object(h_systematics, marker_color=601, fill_color_alpha=(601, 0.3), line_color=601, marker_style=1, marker_size=0)
@@ -34,8 +37,13 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
     ymax = 0.
 
     for primitive in canvas_primitives:
-        if 'frame' in primitive.GetName():          
-            ymax = primitive.GetMaximum()
+        #if 'frame' in primitive.GetName():          
+        #    ymax = primitive.GetMaximum()
+        
+        if 'hCorrelation' in primitive.GetName():
+            for ibin in range(1, primitive.GetN()):
+                if primitive.GetPointY(ibin) > ymax:
+                    ymax = primitive.GetPointY(ibin)
 
         if primitive.GetName() not in canvas_primitives_dict:
             canvas_primitives_dict[primitive.GetName()] = primitive
@@ -46,7 +54,7 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
                     n_priors += 1
             canvas_primitives_dict[f'{primitive.GetName()};{n_priors}'] = primitive
         
-    hframe_upper = upper_canvas.DrawFrame(x_limits[0], 0., x_limits[1], ymax*1.3, f';;#it{{C}}(#it{{k}}*)')
+    hframe_upper = upper_canvas.DrawFrame(x_limits[0], 0., x_limits[1], ymax*1.5, f';;#it{{C}}(#it{{k}}*)')
     hframe_upper.GetYaxis().SetTitleSize(0.05)
     #hframe_upper.GetXaxis().SetLabelSize(0.045)
     hframe_upper.GetYaxis().SetLabelSize(0.045)
@@ -55,7 +63,8 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
     hframe_upper.GetXaxis().SetTitleSize(0.)
     hframe_upper.GetYaxis().ChangeLabel(1, -1, 0)  # set first label size to 0 (invisible)
     
-    sign_label = 'p#minus^{3}He' if sign == 'Matter' else '#bar{p}#minus^{3}#bar{He}'
+    sign_label = 'p#minus^{3}He' if sign == 'Matter' else ('#bar{p}#minus^{3}#bar{He}' if sign == 'Antimatter' 
+                                                           else 'p#minus^{3}He #oplus #bar{p}#minus^{3}#bar{He}')
 
     correlation_name = None
     for name, primitive in canvas_primitives_dict.items():
@@ -93,7 +102,7 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
         h_systematics.SetFillColorAlpha(1, 0.3)
         h_systematics.SetLineColor(1)
         h_systematics.SetMarkerColor(1)  
-    #h_systematics.Draw('e2 same')
+        h_systematics.Draw('e2 same')
         
     latex = TLatex()
     latex.SetNDC()
@@ -112,9 +121,9 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
     lower_pad.Draw()
 
     h_nsigma = file.Get('model/nsigma')
-    set_root_object(h_nsigma, marker_color=get_color(1), marker_style=20, marker_size=1.7)
+    set_root_object(h_nsigma, marker_color=get_color(3), marker_style=20, marker_size=1.7)
     h_nsigma_model = file.Get('model/nsigma_model')
-    set_root_object(h_nsigma_model, marker_color=get_color(2), marker_style=20, marker_size=1.7)
+    set_root_object(h_nsigma_model, marker_color=get_color(1), marker_style=20, marker_size=1.7)
 
     x_step = h_nsigma.GetBinWidth(1)
     nbins = int((x_limits[1] - x_limits[0])/x_step)
