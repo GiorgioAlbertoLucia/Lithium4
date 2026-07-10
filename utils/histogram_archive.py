@@ -19,7 +19,7 @@ class Archive:
         "h2PtNSigmaITSHe": RegistryEntry("h2PtNSigmaITSHe", "^{3}He ;#it{p}_{T} (GeV/#it{c});n#sigma_{ITS}", "fSignedPtHe3", PT_NBINS, PT_MIN, PT_MAX, "fNSigmaITSHe3", 100, -4, 4, 'true', 'QA'),
         "h2PtNSigmaTPCHe": RegistryEntry("h2PtNSigmaTPCHe", "^{3}He ;#it{p}_{T} (GeV/#it{c});n#sigma_{TPC}", "fSignedPtHe3", PT_NBINS, PT_MIN, PT_MAX, "fNSigmaTPCHe3", 100, -4, 4, 'true', 'QA'),
         "h2PtpcNSigmaTPCHe": RegistryEntry("h2PtpcNSigmaTPCHe", "^{3}He ;#it{p}_{TPC} (GeV/#it{c});n#sigma_{TPC}", "fInnerParamTPCHe3", PT_NBINS, PT_MIN, PT_MAX, "fNSigmaTPCHe3", 100, -4, 4, 'true', 'QA'),
-        "h2PtMassTOFHe": RegistryEntry("h2PtMassTOFHe", "^{3}He ;#it{p}_{T} (GeV/#it{c});#it{m}_{TOF}", "fSignedPtHe3", PT_NBINS, PT_MIN, PT_MAX, "fMassTOFHe3", 200, 0, 4, 'true', 'QA'),
+        #"h2PtMassTOFHe": RegistryEntry("h2PtMassTOFHe", "^{3}He ;#it{p}_{T} (GeV/#it{c});#it{m}_{TOF}", "fSignedPtHe3", PT_NBINS, PT_MIN, PT_MAX, "fMassTOFHe3", 200, 0, 4, 'true', 'QA'),
         #"h2PtDCAxyHe3": RegistryEntry("h2PtDCAxyHe3", "^{3}He ;#it{p}_{T} (GeV/#it{c});DCA_{xy} (cm)", "fSignedPtHe3", PT_NBINS, PT_MIN, PT_MAX, "fDCAxyHe3", 100, -0.05, 0.05, 'true', 'QA'),
         #"h2PtDCAzHe3": RegistryEntry("h2PtDCAzHe3", "^{3}He ;#it{p}_{T} (GeV/#it{c});DCA_{z} (cm)", "fSignedPtHe3", PT_NBINS, PT_MIN, PT_MAX, "fDCAzHe3", 100, -0.05, 0.05, 'true', 'QA'),
         "h2PtDCAxyHe3": RegistryEntry("h2PtDCAxyHe3", "^{3}He ;#it{p}_{T} (GeV/#it{c});DCA_{xy} (cm)", "fSignedPtHe3", PT_NBINS, PT_MIN, PT_MAX, "fDCAxyHe3", 400, -0.1, 0.1, 'true', 'QA'),
@@ -39,7 +39,7 @@ class Archive:
         "h2PtDCAzHad": RegistryEntry("h2PtDCAzHad", "p ;#it{p}_{T} (GeV/#it{c});DCA_{z} (cm)", "fSignedPtHad", PT_NBINS, PT_MIN, PT_MAX, "fDCAzHad", 100, -0.05, 0.05, 'true', 'QA'),
         "h2PtNSigmaDCAxyPr": RegistryEntry("h2PtNSigmaDCAxyPr", "p ;#it{p}_{T} (GeV/#it{c});n#sigma (DCA_{#it{xy}})", "fSignedPtHad", PT_NBINS, PT_MIN, PT_MAX, "fNSigmaDCAxyHad", 100, -4, 4, 'true', 'QA'),
         "h2PtNSigmaDCAzPr": RegistryEntry("h2PtNSigmaDCAzPr", "p ;#it{p}_{T} (GeV/#it{c});n#sigma (DCA_{#it{z}})", "fSignedPtHad", PT_NBINS, PT_MIN, PT_MAX, "fNSigmaDCAzHad", 100, -4, 4, 'true', 'QA'),
-        "h2NSigmaTPCNSigmaTOFPr": RegistryEntry("h2NSigmaTPCNSigmaTOFPr", "p ;n#sigma_{TPC};n#sigma_{TOF}", "fNSigmaTPCHadPr", 100, -4, 4, "fNSigmaTOFHad", 100, -4, 4, 'true', 'QA'),
+        "h2NSigmaTPCNSigmaTOFPr": RegistryEntry("h2NSigmaTPCNSigmaTOFPr", "p ;n#sigma_{TPC};n#sigma_{TOF}", "fNSigmaTPCHad", 100, -4, 4, "fNSigmaTOFHad", 100, -4, 4, 'true', 'QA'),
 
         "hPtLi": RegistryEntry("hPtLi", "^{3}He+p ;#it{p}_{T} (GeV/#it{c});", "fSignedPtLi", 200, -10, 10., condition='true', save_directory='QA'),
         
@@ -47,6 +47,10 @@ class Archive:
         "hKstarMatter": RegistryEntry("hKstarMatter", ";#it{k}* (GeV/#it{c});", "fKstar", KSTAR_NBINS, KSTAR_MIN, KSTAR_MAX, condition='fSignedPtHe3 > 0', save_directory='QA'),
         "hKstarAntimatter": RegistryEntry("hKstarAntimatter", ";#it{k}* (GeV/#it{c});", "fKstar", KSTAR_NBINS, KSTAR_MIN, KSTAR_MAX, condition='fSignedPtHe3 < 0', save_directory='QA'),
         "hCentrality": RegistryEntry("hCentrality", ";Centrality FT0C (%);", "fCentralityFT0C", 100, 0, 100, condition='true', save_directory='QA'),
+        "hMultiplicity": RegistryEntry("hMultiplicity", ";Multiplicity FT0C (%);", "fMultiplicityFT0C", 1000, 0, 100_000, condition='true', save_directory='QA'),
+        "hMultiplicity010": RegistryEntry("hMultiplicity010", ";Multiplicity FT0C (%);", "fMultiplicityFT0C", 1000, 0, 100_000, condition='fCentralityFT0C < 10', save_directory='QA'),
+        "hMultiplicity1030": RegistryEntry("hMultiplicity1030", ";Multiplicity FT0C (%);", "fMultiplicityFT0C", 1000, 0, 100_000, condition='fCentralityFT0C >= 10 && fCentralityFT0C < 30', save_directory='QA'),
+        "hMultiplicity3050": RegistryEntry("hMultiplicity3050", ";Multiplicity FT0C (%);", "fMultiplicityFT0C", 1000, 0, 100_000, condition='fCentralityFT0C >= 30 && fCentralityFT0C < 50', save_directory='QA'),
         "hInvariantMass": RegistryEntry("hInvariantMass", ";Invariant mass (GeV/#it{c}^{2});", "fMassInvLi", 400, 3.747, 3.947, condition='true', save_directory='QA'),
 
         "hCentralityKstar": RegistryEntry("hCentralityKstar", ";Centrality FT0C (%);#it{k}* (GeV/#it{c})", "fCentralityFT0C", 100, 0, 100, "fKstar", KSTAR_NBINS, KSTAR_MIN, KSTAR_MAX, 'true', 'QA'),
