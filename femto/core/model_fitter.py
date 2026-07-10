@@ -176,12 +176,12 @@ class ModelFitter(Fitter):
             self._model_pdf.plotOn(frame, Name=signal.GetName(),  Title= signal.GetTitle(), Normalization=(1.0, RooAbsReal.RelativeExpected), Components={signal}, LineColor=line_color)
             line_color += 1
         
-        line_color = get_color(1)
+        line_color = get_color(3)
         for bkg in self._bkg_pdfs.values():
             self._model_pdf.plotOn(frame, Name=bkg.GetName(),  Title= bkg.GetTitle(), Normalization=(1.0, RooAbsReal.RelativeExpected), Components={bkg}, LineColor=line_color)
             line_color += 1
         
-        line_color = get_color(2)
+        line_color = get_color(1)
         self._model_pdf.plotOn(frame, Name=self._model_pdf.GetName(),  Title=self._model_pdf.GetTitle(),  
                                Normalization=(1.0, RooAbsReal.RelativeExpected), LineColor=line_color)
                                
@@ -331,6 +331,7 @@ class ModelFitter(Fitter):
         h_signal_correlation = h_mixed_event.Clone('h_signal_correlation')
         h_background_correlation = h_mixed_event.Clone('h_background_correlation')
         h_same_event_signal = h_mixed_event.Clone('h_same_event_signal')
+        h_same_event_total = h_mixed_event.Clone('h_same_event_total')
         nbins = h_mixed_event.GetNbinsX()
 
         xvar = self._roo_workspace.obj(self._xvar_name)
@@ -361,9 +362,14 @@ class ModelFitter(Fitter):
             h_signal_correlation.SetBinContent(ibin, signal_value)
             h_background_correlation.SetBinContent(ibin, bkg_value)
             h_same_event_signal.SetBinContent(ibin, signal_value * h_mixed_event.GetBinContent(ibin))
+            h_same_event_total.SetBinContent(ibin, (signal_value + bkg_value) * h_mixed_event.GetBinContent(ibin))
 
         last_bin = h_same_event_signal.FindBin(xvar.getMax())
         yield_value = h_same_event_signal.Integral(1, last_bin)
+        LAST_BIN_SIGNIFICANCE = h_same_event_total.FindBin(0.15)
+        signal_value = h_same_event_signal.Integral(1, LAST_BIN_SIGNIFICANCE)
+        total_value = h_same_event_total.Integral(1, LAST_BIN_SIGNIFICANCE)
+        significance = signal_value / np.sqrt(total_value) if total_value > 0 else 0
 
         canvas = TCanvas('yield_extraction', '')
         set_root_object(h_same_event_signal, marker_style=20, marker_color=797, line_color=797, 
@@ -374,6 +380,7 @@ class ModelFitter(Fitter):
         text.SetBorderSize(0)
         text.SetTextSize(0.04)
         text.AddText(f'Raw yield = {yield_value:.2f}')
+        text.AddText(f'Significance = {significance:.2f}')
 
         h_same_event_signal.Draw('hist')
         text.Draw('same')
@@ -381,8 +388,19 @@ class ModelFitter(Fitter):
         if self._outdir:
             self._outdir.cd()
             h_same_event_signal.Write()
+            h_same_event_total.Write()
             canvas.Write()
+        
+        for h in (h_signal_correlation, h_background_correlation, h_same_event_signal, h_same_event_total):
+            del h
 
         return yield_value
-
-
+    
+    def cleanup(self):
+        self._model_pdf = None
+        self._signal_pdfs = {}
+        self._bkg_pdfs = {}
+        self.fractions = {}
+        if hasattr(self, '_roo_data_hist'):
+            self._roo_data_hist = None
+        super().cleanup()
