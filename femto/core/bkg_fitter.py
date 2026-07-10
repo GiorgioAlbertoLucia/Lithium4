@@ -125,6 +125,8 @@ class BkgFitter(Fitter):
 
         xvar.setRange(*old_range)
         
+        del tree
+        
     def init_bkg(self, mode:str, *args, **kwargs):
 
         if mode == 'from_mc':   self._init_bkg_from_mc(*args, **kwargs)
@@ -192,4 +194,11 @@ class BkgFitter(Fitter):
         if self._bkg_normalisation is not None:
             getattr(self._roo_workspace, 'import')(self._bkg_normalisation)
 
-    
+    def cleanup(self):
+        self._bkg_pdf = None
+        self._bkg_pars = {}
+        self._bkg_datahist = None
+        self._bkg_normalisation = None
+        if hasattr(self, '_bkg_dataset'):
+            self._bkg_dataset = None
+        super().cleanup()

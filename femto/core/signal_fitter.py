@@ -106,6 +106,8 @@ class SignalFitter(Fitter):
             canvas.Write()
 
         xvar.setRange(*old_range)
+        
+        del tree
 
     def _init_signal_crystal_ball(self, name:str='signal_pdf'):
         
@@ -155,5 +157,14 @@ class SignalFitter(Fitter):
         getattr(self._roo_workspace, 'import')(self._signal_pdf)
         for param in self._signal_pars.values():
             getattr(self._roo_workspace, 'import')(param)
+            
+    def cleanup(self):
+        self._signal_pdf = None
+        self._signal_pars = {}
+        if hasattr(self, '_signal_datahist'):
+            self._signal_datahist = None
+        if hasattr(self, '_signal_dataset'):
+            self._signal_dataset = None
+        super().cleanup()
 
     
