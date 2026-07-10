@@ -507,6 +507,8 @@ def produce_lambda_models_with_variations(sign: str, centrality: str, outdir: TD
 
     h_lambda_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaParameters')
     h_lambda_Sigma_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaSigmaParameters')
+    
+    hist_radius_variation = {}
 
     for variation_name in INPUT_CK_VARIATIONS[centrality]:
 
@@ -524,6 +526,8 @@ def produce_lambda_models_with_variations(sign: str, centrality: str, outdir: TD
             h_theoretical_Ck=h_theoretical_Ck, h_theoretical_Sigma_Ck=h_theoretical_Sigma_Ck,
             modification_factor=LAMBDA_MODIFICATION_FACTOR
         )
+        
+        hist_radius_variation[variation_name] = h_lambda_Sigma_corrected_Ck
 
         smeared = {
             f'hLambdaSigmaCorrectedCk_Smeared_{variation_name}':        apply_resolution_smearing(h_lambda_Sigma_corrected_Ck, outdir, resolution_fits),
@@ -535,6 +539,36 @@ def produce_lambda_models_with_variations(sign: str, centrality: str, outdir: TD
         for name, hist in smeared.items():
             set_root_object(hist, title='; #it{k}* (MeV/c); C(#it{k}*)', line_width=2)
             hist.Write(name)
+            
+    smeared_hists = {}
+    for variation_name in INPUT_CK_VARIATIONS[centrality]:
+        variation_dir = outdir.Get(variation_name)
+        hist_name = f'hLambdaSigmaCorrectedCk_Smeared_{variation_name}'
+        h = variation_dir.Get(hist_name)
+        if h:
+            h.SetDirectory(0)
+            smeared_hists[variation_name] = h
+
+    if hist_radius_variation:
+        colors = {'nominal': get_color(0), 'lower': get_color(1), 'upper': get_color(2)}
+        labels = {'nominal': '#it{R}_{s}', 'lower': '#it{R}_{s} - #sigma_{R}', 'upper': '#it{R}_{s} + #sigma_{R}'}
+
+        canvas_summary = TCanvas(f'cRadiusVariations_{sign}_{centrality}',
+                                 f'Radius variations {sign} {centrality}', 800, 600)
+        hframe = canvas_summary.DrawFrame(0.01, 0., 0.4, 1.08,
+                                          f'{sign} {centrality}; #it{{k}}* (GeV/#it{{c}}); C(#it{{k}}*)')
+        legend_summary = TLegend(0.55, 0.65, 0.88, 0.88)
+        legend_summary.SetBorderSize(0)
+        legend_summary.SetFillStyle(0)
+
+        for variation_name, h in hist_radius_variation.items():
+            set_root_object(h, line_color=colors.get(variation_name, 1), line_width=2)
+            h.Draw('HIST SAME')
+            legend_summary.AddEntry(h, labels.get(variation_name, variation_name), 'l')
+
+        legend_summary.Draw()
+        outdir.cd()
+        canvas_summary.Write(f'cRadiusVariations_{sign}_{centrality}')
 
 if __name__ == '__main__':
 
