@@ -1,5 +1,5 @@
 from ROOT import TFile, TDirectory, gStyle, \
-                 RooWorkspace
+                 RooWorkspace, TH1F
 
 from core.signal_fitter import SignalFitter
 from core.bkg_fitter import BkgFitter
@@ -152,11 +152,24 @@ def prepare_centrality_dict(mode:str, use_systematics:bool=False, upper_radius:b
         'mixed_event_input_path': mixed_event_input_path,
         'h_mixed_event_name': h_mixed_event_names,
     }
+    
+AVAILABLE_BKGS = [
+    'nominal/hLambdaSigmaCorrectedCk_Smeared_nominal',
+    'nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_higher',
+    'nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_lower',
+    'upper/hLambdaSigmaCorrectedCk_Smeared_upper',
+    'upper/hLambdaSigmaCorrectedCk_Smeared_upper_higher',
+    'upper/hLambdaSigmaCorrectedCk_Smeared_upper_lower',
+    'lower/hLambdaSigmaCorrectedCk_Smeared_lower',
+    'lower/hLambdaSigmaCorrectedCk_Smeared_lower_higher',
+    'lower/hLambdaSigmaCorrectedCk_Smeared_lower_lower',
+]
 
 def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str, mixed_event_input_path:str, 
                     h_bkg_name:str, h_data_name:str, h_mixed_event_name:str,
                     output_pdf:str, mode:str='', centrality:str='',
-                    use_smoothening:bool=False):
+                    use_smoothening:bool=False, run_variations:bool=False,
+                   variations_bkg_path:str=''):
 
     workspace = RooWorkspace('roows')
     
@@ -196,7 +209,8 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
     model_fitter.fractions['signal_pdf'].SetTitle('#it{A}_{^{4}Li}')
     model_fitter.fractions['bkg_pdf'].SetTitle('#it{A}_{Coulomb + strong}')
     
-    sign_label = 'p#minus^{3}He' if mode == 'Matter' else '#bar{p}#minus^{3}#bar{He}'
+    sign_label = 'p#minus^{3}He' if mode == 'Matter' else ('#bar{p}#minus^{3}#bar{He}' if mode == 'Antimatter' 
+                                                           else 'p#minus^{3}He #oplus #bar{p}#minus^{3}#bar{He}')
     
     model_fitter.load_data(h_correlation_function, h_correlation_function.GetName())
     model_fitter.prefit_background(h_correlation_function, range_limits=(0.2, 0.4), range_name='bkg_fit_range',
@@ -207,8 +221,50 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
     model_fitter.compute_chi2(h_correlation_function)
     model_fitter.compute_raw_yield(h_mixed_event, 'signal_pdf', 'bkg_pdf')
     plot_correlation_over_nsigma(outfile, output_pdf, [KSTAR_MIN, KSTAR_MAX], mode, centrality)
-
     del workspace, signal_fitter, bkg_fitter, model_fitter
+
+    if run_variations:
+        h_raw_yields = TH1F('hRawYieldVariations', 'Raw yield variations;Raw yield;Counts', 400, -200, 1400)
+        prefix = INPUT_SUFFIX if INPUT_SUFFIX != 'PbPb' else 'LHC25_PbPb_pass1'
+        sign = 'Both' if mode == '' else mode
+
+        for i, bkg_rel_name in enumerate(AVAILABLE_BKGS):
+            var_bkg_name = f'{sign}/{centrality}/{bkg_rel_name}'
+            var_dir = outfile.mkdir(f'variations/var_{i}')
+            var_workspace = RooWorkspace('roows_var')
+
+            var_signal_fitter = SignalFitter('signal', kstar_spec, var_dir, var_workspace)
+            var_signal_fitter.init_signal(signal_init_mode, h_signal)
+            var_signal_fitter.title = '^{4}Li'
+            var_signal_fitter.save_to_workspace()
+
+            h_var_bkg = load_hist(variations_bkg_path, var_bkg_name)
+            var_bkg_fitter = BkgFitter('bkg', kstar_spec, var_dir, var_workspace)
+            var_bkg_fitter.init_bkg(bkg_init_mode, h_var_bkg, rho=0.1)
+            var_bkg_fitter.title = 'Coulomb + strong interaction'
+            var_bkg_fitter.save_to_workspace()
+
+            var_model_fitter = ModelFitter('model', kstar_spec, var_dir, ['signal_pdf'], ['bkg_pdf'], var_workspace,
+                                           extended=True, title='^{4}Li + interaction')
+            var_model_fitter.fractions['signal_pdf'].setRange(0., 1.)
+            var_model_fitter.fractions['signal_pdf'].setVal(0.3)
+            var_model_fitter.fractions['signal_pdf'].SetTitle('#it{A}_{^{4}Li}')
+            var_model_fitter.fractions['bkg_pdf'].SetTitle('#it{A}_{Coulomb + strong}')
+
+            var_model_fitter.load_data(h_correlation_function, h_correlation_function.GetName())
+            var_model_fitter.prefit_background(h_correlation_function, range_limits=(0.2, 0.4),
+                                               range_name='bkg_fit_range', save_normalisation_value=True)
+            var_model_fitter.fit_model(h_correlation_function, signal_name='signal_pdf',
+                                       norm_range='bkg_fit_range', data_label=sign_label)
+            var_model_fitter.save_to_workspace()
+            var_model_fitter.compute_chi2(h_correlation_function)
+            var_raw_yield = var_model_fitter.compute_raw_yield(h_mixed_event, 'signal_pdf', 'bkg_pdf')
+
+            h_raw_yields.Fill(var_raw_yield)
+            del var_workspace, var_signal_fitter, var_bkg_fitter, var_model_fitter
+
+        outfile.cd()
+        h_raw_yields.Write()
 
 if __name__ == '__main__':
 
@@ -250,9 +306,10 @@ if __name__ == '__main__':
             output_pdf = f'figures/{INPUT_SUFFIX}{SELECTION_SUFFIX}/fit_correlation_function_hadronpid_{name}{systematics_suffix}{upper_radius_suffix}{smoothening_suffix}{lower_radius_suffix}{plus_10_percent_suffix}{minus_10_percent_suffix}{finer_binning_suffix}{smeared_lambda_suffix}.pdf' 
 
             print('\n\n', tc.GREEN + f'Fitting correlation function for mode {mode}, centrality {centrality}' + tc.RESET)
+            prefix = INPUT_SUFFIX if INPUT_SUFFIX != 'PbPb' else 'LHC25_PbPb_pass1'
             fitting_routine(outdir, bkg_input_path=bkg_input_path, data_input_path=data_input, mixed_event_input_path=mixed_event_input_path, 
                             h_bkg_name=h_bkg_name, h_data_name=h_data_name, h_mixed_event_name=h_mixed_event_name,
                             output_pdf=output_pdf, mode=mode, centrality=centrality,
-                            use_smoothening=use_smoothening)
+                            use_smoothening=use_smoothening, run_variations=True, variations_bkg_path=f'models/{prefix}_lambda_models.root')
     
     outfile.Close()
