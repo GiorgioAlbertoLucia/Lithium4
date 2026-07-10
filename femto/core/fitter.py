@@ -47,3 +47,7 @@ class Fitter(ABC):
 
     def save_to_workspace(self):
         raise NotImplementedError()
+    
+    def cleanup(self):
+        self._roo_workspace = None
+        self._hist_data = None
