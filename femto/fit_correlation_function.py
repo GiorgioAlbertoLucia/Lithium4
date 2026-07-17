@@ -224,7 +224,9 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
     del workspace, signal_fitter, bkg_fitter, model_fitter
 
     if run_variations:
-        h_raw_yields = TH1F('hRawYieldVariations', 'Raw yield variations;Raw yield;Counts', 400, -200, 1400)
+        h_raw_yields = TH1F('hRawYieldVariations', 'Raw yield variations;Raw yield;Counts', 1600, -200, 1400)
+        h_raw_yields_radii = TH1F('hRawYieldVariationsRadii', 'Raw yield variations;Raw yield;Counts', 1600, -200, 1400)
+        h_raw_yields_lambda = TH1F('hRawYieldVariationsLambda', 'Raw yield variations;Raw yield;Counts', 1600, -200, 1400)
         prefix = INPUT_SUFFIX if INPUT_SUFFIX != 'PbPb' else 'LHC25_PbPb_pass1'
         sign = 'Both' if mode == '' else mode
 
@@ -261,10 +263,18 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
             var_raw_yield = var_model_fitter.compute_raw_yield(h_mixed_event, 'signal_pdf', 'bkg_pdf')
 
             h_raw_yields.Fill(var_raw_yield)
+            if 'nominal' in bkg_rel_name: # nominal radius
+                h_raw_yields_lambda.Fill(var_raw_yield)
+
+            if 'higher' not in bkg_rel_name and 'lower_' not in bkg_rel_name and 'upper_lower' not in bkg_rel_name and 'nominal_lower' not in bkg_rel_name: # skip lambda variations for the radii variations
+                h_raw_yields_radii.Fill(var_raw_yield)
+            
             del var_workspace, var_signal_fitter, var_bkg_fitter, var_model_fitter
 
         outfile.cd()
         h_raw_yields.Write()
+        h_raw_yields_radii.Write()
+        h_raw_yields_lambda.Write()
 
 if __name__ == '__main__':
 
