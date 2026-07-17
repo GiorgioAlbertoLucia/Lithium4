@@ -1,8 +1,8 @@
 # Same event
 same_event:
   input_data:   [ 
-                  #'/data/galucia/lithium/same/LHC23_PbPb_pass5_hadronpid_same.root',
-                  '/data/galucia/lithium/same/LHC24ar_pass3_hadronpid_same.root',
+                  '/data/galucia/lithium/same/LHC23_PbPb_pass5_hadronpid_same.root',
+                  #'/data/galucia/lithium/same/LHC24ar_pass3_hadronpid_same.root',
 
                   #'/data/galucia/lithium/same/LHC24ar_pass1_hadronpid_same.root',
                   #'/data/galucia/lithium/same/LHC24as_pass1_hadronpid_same.root',
@@ -20,8 +20,8 @@ same_event:
   tree_names:    ['O2he3hadtable', 'O2he3hadmult']
   mode:         'DF'
   #output_file:  'output/same_event.root'
-  #output_file:  'output/PbPb/LHC23_PbPb_pass5_hadronpid_same.root'
-  output_file:  'output/PbPb/LHC24ar_pass3_hadronpid_same.root'
+  output_file:  'output/PbPb/LHC23_PbPb_pass5_hadronpid_same.root'
+  #output_file:  'output/PbPb/LHC24ar_pass3_hadronpid_same.root'
   #output_file:  'output/PbPb/LHC24ar_pass1_hadronpid_same.root'
   #output_file:  'output/PbPb/LHC25_PbPb_pass1_hadronpid_same.root'
 
@@ -114,16 +114,16 @@ parameterisation: {
     kDCAzResolutionParamsMC_He: [-2.06e-5, 0.0018, 0.0080, 1.6000],
     
     # PbPb 23 pass5
-    ### kHeTPCParams: [-244.627, 0.100002, 1.14056, 0.365353, 3.26339],
-    ### kHeTPCResolution: 0.061,
-    ### kHeTPCResidualType: 'double_gaus',
-    ### kHeTPCParamsResiduals: [87.1178, 0.438363, 0.0814248, -16.9173, 0.754105, 0.285692],
+    kHeTPCParams: [-244.627, 0.100002, 1.14056, 0.365353, 3.26339],
+    kHeTPCResolution: 0.061,
+    kHeTPCResidualType: 'double_gaus',
+    kHeTPCParamsResiduals: [87.1178, 0.438363, 0.0814248, -16.9173, 0.754105, 0.285692],
     
     # 24_pass3
-    kHeTPCParams: [-190.723, 0.100000, 1.45622, 0.944291, 2.96807],
-    kHeTPCResolution: 0.059,
-    kHeTPCResidualType: 'exp',
-    kHeTPCParamsResiduals: [-19.1089, 5.27807, 0.698301, 0, 0, 0],
+    ### kHeTPCParams: [-190.723, 0.100000, 1.45622, 0.944291, 2.96807],
+    ### kHeTPCResolution: 0.059,
+    ### kHeTPCResidualType: 'exp',
+    ### kHeTPCParamsResiduals: [-19.1089, 5.27807, 0.698301, 0, 0, 0],
 
     # 25_pass1
     ### kHeTPCParams: [-208.928, 0.100000, 1.29761, 0.756458, 3.04256],
