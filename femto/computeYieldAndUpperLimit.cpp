@@ -44,10 +44,10 @@ struct CentralityConfig {
 };
 
 const std::vector<CentralityConfig> kCentralities = {
-    //{"010",  false},
-    //{"1030", false},
-    //{"3050", false},
-    //{"5080", false},
+    {"010",  false},
+    {"1030", false},
+    {"3050", false},
+    {"5080", false},
     //{"050",  true},
     //{"080",  true},
     {"1050", true},
@@ -71,7 +71,7 @@ namespace Config {
     const char* BACKGROUND_FILE = "/home/galucia/Lithium4/femto/models/LHC25_PbPb_pass1_lambda_models.root";
 
     //const char* OUTPUT_FILE = "output/yield_upper_limit.root"; 
-    const char* OUTPUT_FILE = "output/yield_upper_limit_syst.root"; 
+    const char* OUTPUT_FILE = "output/yield_upper_limit_syst_010.root"; 
     
     const int N_ITERATIONS = 10000;
     const int PRINT_INTERVAL = 100;
@@ -176,7 +176,7 @@ void prepareCorrelationFunction(const TH1F *h_same, const TH1F *h_mixed, TH1F* &
         
         //std::string histName = "Correlation" + std::string(sign) + "/Default/hCorrelation" + centralityConfig.name;
         std::string sign_str = (strcmp(sign, "Both") == 0) ? "" : sign;
-        std::string histName = "Correlation" + sign_str + "/hCorrelationSyst" + centralityConfig.name;
+        std::string histName = "Correlation" + sign_str + "/" + centralityConfig.name + "/hCorrelationSyst" + centralityConfig.name;
 
         std::cout << "Loading correlation function from file: " << Config::CORRELATION_FILE << std::endl;
         std::cout << "Histogram name: " << histName << std::endl;
