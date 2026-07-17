@@ -1,7 +1,8 @@
 
+import numpy as np
 from numpy import rint
 from uncertainties import ufloat
-from ROOT import TFile, TCanvas, TLegend, TGraphErrors, TF1, TH1F, TArrow, TPaveText
+from ROOT import TFile, TCanvas, TLegend, TGraphErrors, TF1, TH1F, TArrow, TPaveText, TGaxis, TLine
 from torchic.utils.root import set_root_object, init_legend, set_alice_global_style
 from torchic.utils.colors import get_color
 
@@ -46,12 +47,22 @@ YIELD = {
         '10-50%': ufloat(406.6, 81.66),
     },
     'Both': {
-        '0-10%': ufloat(197.1, 92.07) / 2.,
-        '10-30%': ufloat(413.15, 91.97) / 2.,
-        '30-50%': ufloat(232.4, 50.76) / 2.,
-        '50-80%': ufloat(60.44, 22.19) / 2.,
+        '0-10%': ufloat(199.30, 92.07) / 2.,
+        '10-30%': ufloat(420.43, 91.97) / 2.,
+        '30-50%': ufloat(231.99, 50.76) / 2.,
+        '50-80%': ufloat(58.76, 22.19) / 2.,
         '0-50%': ufloat(819.6, 149.) / 2.,
-        '10-50%': ufloat(629.9, 105.8) / 2.,
+        '10-50%': ufloat(650.18, 105.8) / 2.,
+    }
+}
+YIELD_SYST = {
+    'Both': {
+        '0-10%': ufloat(199.30, np.sqrt(35.2**2 + ((288-135)/2)**2)) / 2.,
+        '10-30%': ufloat(420.43, np.sqrt(28.6**2 + ((540-336)/2)**2)) / 2.,
+        '30-50%': ufloat(231.99, np.sqrt(17.2**2 + ((300-187)/2)**2)) / 2.,
+        '50-80%': ufloat(58.76, np.sqrt(6.0**2 + ((75-42)/2)**2)) / 2.,
+        #'0-50%': ufloat(819.6, np.sqrt(35.2**2 + ((288-135)/2)**2)) / 2.,
+        '10-50%': ufloat(650.18, np.sqrt(34.7**2 + ((831-526)/2)**2)) / 2.,
     }
 }
 UPPER_LIMIT = {
@@ -173,8 +184,7 @@ def draw_yields(outfile: TFile) -> None:
                     marker_style=20, marker_color=get_color(2), line_color=get_color(2), marker_size=1.4,
                     fill_color_alpha=(get_color(2), 0.3))
     graph_yields_1050_syst.SetName(f"g_Both_1050_syst")
-    nucleus_yield_1050_syst = correct_yield('Both', '10-50%', raw_yield=ufloat(YIELD['Both']['10-50%'].n, 
-                                                                          68))
+    nucleus_yield_1050_syst = correct_yield('Both', '10-50%', raw_yield=YIELD_SYST['Both']['10-50%'])
     graph_yields_1050_syst.SetPoint(1, 1.5, nucleus_yield_1050_syst.n)
     graph_yields_1050_syst.SetPointError(1, 0.3, nucleus_yield_1050_syst.s)
     
@@ -210,12 +220,20 @@ def draw_yields(outfile: TFile) -> None:
     graph_yields_he4_fist.SetPoint(1, .5, 7.9e-07)
     graph_yields_he4_fist.SetPointError(1, 0.3, 0)
     
-    canvas_yields_centralities = TCanvas(f"canvas_Both_centralities", "yield", 800, 700)
+    graph_yields_he4_fist_1050 = TGraphErrors(1)
+    set_root_object(graph_yields_he4_fist_1050, name=f"g_he4_fist_1050",
+                    marker_style=20, marker_color=get_color(7), line_color=get_color(7), marker_size=0,
+                    line_style=2, line_width=2)
+    graph_yields_he4_fist_1050.SetName(f"g_he4_fist_1050")
+    graph_yields_he4_fist_1050.SetPoint(1, 1.5, 4.9659e-07)
+    graph_yields_he4_fist_1050.SetPointError(1, 0.3, 0)
+    
+    canvas_yields_centralities = TCanvas(f"canvas_Both_centralities", "yield", 800, 600)
     canvas_yields_centralities.SetLeftMargin(0.15)
     canvas_yields_centralities.SetBottomMargin(0.15)
     canvas_yields_centralities.SetLogy()
     hframe_yields_centralities = TH1F('hfame', '; FT0C Centrality (%); #frac{1}{N_{events}} #frac{d#it{N}}{d#it{y}}; #frac{1}{N_{events}} #frac{d#it{N}}{d#it{y}}', 
-                                      2, 0, 2)
+                                      4, 0, 4)
     hframe_yields_centralities.GetXaxis().SetBinLabel(1, '0-10%')
     hframe_yields_centralities.GetXaxis().SetBinLabel(2, '10-50%')
     
@@ -226,18 +244,22 @@ def draw_yields(outfile: TFile) -> None:
     hframe_yields_centralities.GetYaxis().SetLabelSize(0.045)
     hframe_yields_centralities.GetYaxis().SetTitleOffset(1.5)
     
+    # for log scale
     hframe_yields_centralities.SetMaximum(4e-5)
     hframe_yields_centralities.SetMinimum(1.3e-7)
+    
+    #hframe_yields_centralities.SetMaximum(1e-5)
+    #hframe_yields_centralities.SetMinimum(0.2e-8)
     
     text = TPaveText(0.2, 0.78, 0.5, 0.86, "NDC")
     text.SetBorderSize(0)
     text.SetFillStyle(0)
     text.SetTextSize(0.04)
     text.SetTextFont(42)
-    text.AddText("ALICE Preliminary")
-    text.AddText("Pb#minusPb")
+    text.AddText("ALICE Pb#minusPb")
+    #text.AddText("")
     
-    leg = TLegend(0.53, 0.26, 0.9, 0.9)
+    leg = TLegend(0.55, 0.58, 0.86, 0.86)
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
     leg.SetTextSize(0.03)
@@ -247,16 +269,30 @@ def draw_yields(outfile: TFile) -> None:
     leg.SetMargin(0.1)
     #leg.AddEntry(graphs_sta["ahe4"], "ALICE Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.02 TeV", "pe")
     #leg.AddEntry(graphs_ul["ali4"], "#splitline{Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV}{95% confidence level}", "l")
-    leg.AddEntry(graph_yields_010, "#splitline{#splitline{(^{4}Li + ^{4}#bar{Li})/2}{#sqrt{#it{s}_{NN}} = 5.36 TeV}}{95% confidence level}", "l")
-    leg.AddEntry(graph_yields_1050, "#splitline{(^{4}Li + ^{4}#bar{Li})/2}{#sqrt{#it{s}_{NN}} = 5.36 TeV}", "l")
-    leg.AddEntry(graph_yields_alpha_010, "#splitline{#splitline{(^{4}He + ^{4}#bar{He})/2}{#sqrt{#it{s}_{NN}} = 5.02 TeV}}{#it{PLB} 858 (2024) 138943}", "pe")
-    leg.AddEntry(graph_yields_he4_fist, "#splitline{#splitline{^{4}He Thermal-FIST (GCE SHM)}{#it{T} = 156.4 MeV, #it{V} = 4233 fm^{3}}}{Nuclear excitation particle list}", "l")
-    leg.AddEntry(graph_yields_li4_fist, "#splitline{#splitline{^{4}Li Thermal-FIST (GCE SHM)}{#it{T} = 156.6 MeV, #it{V} = 4459 fm^{3}}}{Nuclear excitation particle list}", "l")
+    leg.AddEntry(graph_yields_010, "#splitline{(^{4}Li + ^{4}#bar{Li})/2    #sqrt{#it{s}_{NN}} = 5.36 TeV}{95% confidence level}", "l")
+    leg.AddEntry(graph_yields_1050, "(^{4}Li + ^{4}#bar{Li})/2    #sqrt{#it{s}_{NN}} = 5.36 TeV", "pe")
+    leg.AddEntry(graph_yields_alpha_010, "#splitline{(^{4}He + ^{4}#bar{He})/2    #sqrt{#it{s}_{NN}} = 5.02 TeV}{#it{PLB} 858 (2024) 138943}", "pe")
     leg.Draw()
     
+    leg_fist = TLegend(0.55, 0.2, 0.86, 0.56)
+    leg_fist.SetHeader("#splitline{   Thermal-FIST (GCE SHM)}{   Nuclear excitation particle list}")
+    leg_fist.SetBorderSize(0)
+    leg_fist.SetFillStyle(0)
+    leg_fist.SetTextSize(0.03)
+    leg_fist.SetMargin(0.1)
+    leg_fist.SetNColumns(1)
+    leg_fist.SetColumnSeparation(0.05)
+    leg_fist.SetMargin(0.1)
+    leg_fist.AddEntry(graph_yields_he4_fist, "#splitline{(^{4}He + ^{4}#bar{He})/2}{#it{T} = 156.4 MeV, #it{V} = 4233 fm^{3}}", "l")
+    leg_fist.AddEntry(graph_yields_he4_fist_1050, "#splitline{(^{4}He + ^{4}#bar{He})/2}{#it{T} = 158.8 MeV, #it{V} = 1804 fm^{3}}", "l")
+    leg_fist.AddEntry(graph_yields_li4_fist, "#splitline{(^{4}Li + ^{4}#bar{Li})/2}{#it{T} = 156.6 MeV, #it{V} = 4459 fm^{3}}", "l")
+    leg_fist.Draw()
+
+    nucleus_yield_010_with_syst = correct_yield('Both', '0-10%', raw_yield=ufloat(YIELD['Both']['0-10%'].n, 39))
+    print(f"Corrected yield for Both in 0-10%: {nucleus_yield_010_with_syst:.2e} #pm {nucleus_yield_010_with_syst.s:.2e} (stat + syst)")
     # print(f"Corrected yield for Both in 0-10%: {nucleus_yield_010:.2e}")
     print(f"Corrected yield for Both in 10-50%: {nucleus_yield_1050:.2e} #pm {nucleus_yield_1050.s:.2e} (stat) #pm {nucleus_yield_1050_syst.s:.2e} (syst)")
-    # print(f"95% CL upper limit for Both in 0-10%: {nucleus_upper_limit_010:.2e}")
+    print(f"95% CL upper limit for Both in 0-10%: {nucleus_upper_limit_010:.2e}")
     # print(f"Corrected yield for (^{{4}}He + ^{{4}}#bar{{He}})/2 in 0-10%: {correct_yield('Both', '0-10%'):.2e}")
     # print(f"Thermal-FIST prediction for ^{{4}}Li: 8.2004e-6")
     print(f"Upper limit to the ^{{4}}Li/^{{4}}He ratio in 0-10%: {nucleus_upper_limit_010.n / correct_yield('Both', '0-10%').n:.2e}")
@@ -271,21 +307,32 @@ def draw_yields(outfile: TFile) -> None:
     graph_yields_alpha_010_syst.Draw("E2 SAME")
     graph_yields_li4_fist.Draw("P SAME")
     graph_yields_he4_fist.Draw("P SAME")
-    text.Draw('same')
+    graph_yields_he4_fist_1050.Draw("P SAME")
     leg.Draw()
+    leg_fist.Draw()
+    text.Draw('same')
     outfile.cd()
     canvas_yields_centralities.Write()
     canvas_yields_centralities.SaveAs("figures/corrected_yields_centralities.pdf")
+
+def print_corrected_yields():
     
+    print('----------------------------------------------------------------')
+    for sign in ['Matter', 'Antimatter', 'Both']:
+        for centrality in ['0-10%', '10-30%', '30-50%', '50-80%', '0-50%', '10-50%']:
+            corrected_yield = correct_yield(sign, centrality, raw_yield=YIELD[sign][centrality])
+            corrected_yield_syst = correct_yield(sign, centrality, raw_yield=YIELD_SYST[sign][centrality]) if sign in YIELD_SYST and centrality in YIELD_SYST[sign] else None
+            if corrected_yield_syst is not None:
+                print(f"Corrected yield for {sign} in {centrality}: {corrected_yield.n:.2e} ± {corrected_yield.s:.2e} (stat) ± {corrected_yield_syst.s:.2e} (syst)")
+            else:
+                print(f"Corrected yield for {sign} in {centrality}: {corrected_yield.n:.2e} ± {corrected_yield.s:.2e} (stat)")   
+    print('----------------------------------------------------------------')
     
 if __name__ == "__main__":
     
     set_alice_global_style()
 
-    for sign in ['Matter', 'Antimatter', 'Both']:
-        for centrality in ['0-10%', '10-30%', '30-50%', '50-80%', '0-50%', '10-50%']:
-            corrected_yield = correct_yield(sign, centrality)
-            print(f"Corrected yield for {sign} in {centrality}: {corrected_yield:.2e}")
+    print_corrected_yields()
             
     outfile = TFile.Open("output/corrected_yields.root", "RECREATE")
     draw_yields(outfile)
