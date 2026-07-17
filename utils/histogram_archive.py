@@ -87,9 +87,9 @@ class Archive:
         KSTAR_HISTOGRAMS[f"hKt{centrality}"] = RegistryEntry(f"hKt{centrality}", ";#it{k}_{T} (GeV/#it{c});", "fKt", 500, 0, 5, condition=f'{centrality_condition}', save_directory='kstar')
         KSTAR_HISTOGRAMS[f"hMt{centrality}"] = RegistryEntry(f"hMt{centrality}", ";#it{m}_{T} (GeV/#it{c});", "fMt", 500, 0, 5, condition=f'{centrality_condition}', save_directory='kstar')
         
-        ### KSTAR_HISTOGRAMS[f"hPtHe3LowKstar{centrality}"] = RegistryEntry(f"hPtHe3LowKstar{centrality}", ";#it{p}_{T} (GeV/#it{c});", "fPtHe3", 500, 0, 10, condition=f'{centrality_condition} && (fKstar < 0.15)', save_directory='kstar')
-        ### KSTAR_HISTOGRAMS[f"hPtHadLowKstar{centrality}"] = RegistryEntry(f"hPtHadLowKstar{centrality}", ";#it{p}_{T} (GeV/#it{c});", "fPtHad", 500, 0, 5, condition=f'{centrality_condition} && (fKstar < 0.15)', save_directory='kstar')
-        ### 
+        KSTAR_HISTOGRAMS[f"hPtHe3LowKstar{centrality}"] = RegistryEntry(f"hPtHe3LowKstar{centrality}", ";#it{p}_{T} (GeV/#it{c});", "fPtHe3", 500, 0, 10, condition=f'{centrality_condition} && (fKstar < 0.15)', save_directory='kstar')
+        KSTAR_HISTOGRAMS[f"hPtHadLowKstar{centrality}"] = RegistryEntry(f"hPtHadLowKstar{centrality}", ";#it{p}_{T} (GeV/#it{c});", "fPtHad", 500, 0, 5, condition=f'{centrality_condition} && (fKstar < 0.15)', save_directory='kstar')
+
         ### KSTAR_HISTOGRAMS[f"hKstar{centrality}SharedUnder50"] = RegistryEntry(f"hKstar{centrality}SharedUnder50", ";#it{k}* (GeV/#it{c});", "fKstar", KSTAR_NBINS, KSTAR_MIN, KSTAR_MAX, condition=f'{centrality_condition} && fSharedClustersHe3 < 50', save_directory='kstar')
         ### KSTAR_HISTOGRAMS[f"hKstar{centrality}SharedUnder40"] = RegistryEntry(f"hKstar{centrality}SharedUnder40", ";#it{k}* (GeV/#it{c});", "fKstar", KSTAR_NBINS, KSTAR_MIN, KSTAR_MAX, condition=f'{centrality_condition} && fSharedClustersHe3 < 40', save_directory='kstar')
         ### KSTAR_HISTOGRAMS[f"hKstar{centrality}SharedUnder30"] = RegistryEntry(f"hKstar{centrality}SharedUnder30", ";#it{k}* (GeV/#it{c});", "fKstar", KSTAR_NBINS, KSTAR_MIN, KSTAR_MAX, condition=f'{centrality_condition} && fSharedClustersHe3 < 30', save_directory='kstar')
