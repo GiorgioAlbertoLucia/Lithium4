@@ -150,7 +150,9 @@ if __name__ == '__main__':
     
     for centrality, centrality_selection in {'010': 'fCentralityFT0C >= 0 && fCentralityFT0C < 10', 
                                              '1030': 'fCentralityFT0C >= 10 && fCentralityFT0C < 30', 
-                                             '3050': 'fCentralityFT0C >= 30 && fCentralityFT0C < 50'}.items():
+                                             '3050': 'fCentralityFT0C >= 30 && fCentralityFT0C < 50',
+                                             '5080': 'fCentralityFT0C >= 50 && fCentralityFT0C < 80',
+                                             '1050': 'fCentralityFT0C >= 10 && fCentralityFT0C < 50'}.items():
         output_dir = output_file.mkdir(centrality)
         hist_centrality_had = rdf.Filter(centrality_selection).Histo1D(('hMtHad', ';m_{T} (GeV/c^{2}); Counts', 200, 0, 10), 'fMtHad').GetValue()
         hist_centrality_he3 = rdf.Filter(centrality_selection).Histo1D(('hMtHe3', ';m_{T} (GeV/c^{2}); Counts', 200, 0, 10), 'fMtHe3').GetValue()
