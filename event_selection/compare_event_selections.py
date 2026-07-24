@@ -45,11 +45,13 @@ if __name__ == "__main__":
     set_alice_global_style()
     
     hist_names = ['he3-hadron-femto/QA/hVtxZ',
+                  'he3-hadron-femto/QA/hCentralityFT0C',
                   'he3-hadron-femto/QA/hhe3HadtInvMass',
                   'he3-hadron-femto/QA/He3/hHe3Pt',
                   'he3-hadron-femto/QA/He3/hDCAxyHe3',
                   'he3-hadron-femto/QA/He3/hDCAzHe3',]
     x_ranges = [(-11, 11),
+                (0, 100),
                 (3.74, 3.79),
                 (-6, 6),
                 (-0.5, 0.5),
