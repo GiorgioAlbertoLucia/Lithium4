@@ -1,0 +1,324 @@
+#
+# Configuration file for plots
+#
+
+outPath: /home/galucia/Lithium4/figures/root/efficiency.root
+
+plots:
+  [
+
+    # all centralities - efficiency
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: -10.,
+            xmax: 10,
+            name: 'efficiency',
+            title: '; #it{p}_{T} (GeV/#it{c}); #varepsilon #times #it{A}',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: .16,
+            name: 'efficiency',
+            title: '; #it{p}_{T} (GeV/#it{c}); #varepsilon #times #it{A}',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/LHC25g11_efficiency.root,
+            histName: Efficiency/hEfficiency,
+            histLabel: 'LHC25g11',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/LHC26e5_efficiency.root,
+            histName: Efficiency/hEfficiency,
+            histLabel: 'LHC26e5',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      fill_color: 601, fill_alpha: 0.5, fill_style: 3001,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/LHC26e6_efficiency.root,
+            histName: Efficiency/hEfficiency,
+            histLabel: 'LHC26e6',
+            kwargs: {
+                      line_color: 418, line_width: 1, line_style: 1,
+                      marker_color: 418, marker_style: 20, marker_size: 1,
+                      fill_color: 418, fill_alpha: 0.5, fill_style: 3001,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.22, xmax: 0.42,
+          ymin: 0.67, ymax: 0.82,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/efficiency/efficiency.pdf
+    },
+
+    # 0-10% - efficiency
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: -10.,
+            xmax: 10,
+            name: 'efficiency010',
+            title: '0-10% FT0C; #it{p}_{T} (GeV/#it{c}); #varepsilon #times #it{A}',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: .16,
+            name: 'efficiency010',
+            title: '0-10% FT0C; #it{p}_{T} (GeV/#it{c}); #varepsilon #times #it{A}',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/LHC25g11_efficiency.root,
+            histName: Efficiency/hEfficiency010,
+            histLabel: 'LHC25g11',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/LHC26e5_efficiency.root,
+            histName: Efficiency/hEfficiency010,
+            histLabel: 'LHC26e5',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      fill_color: 601, fill_alpha: 0.5, fill_style: 3001,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/LHC26e6_efficiency.root,
+            histName: Efficiency/hEfficiency010,
+            histLabel: 'LHC26e6',
+            kwargs: {
+                      line_color: 418, line_width: 1, line_style: 1,
+                      marker_color: 418, marker_style: 20, marker_size: 1,
+                      fill_color: 418, fill_alpha: 0.5, fill_style: 3001,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.22, xmax: 0.42,
+          ymin: 0.67, ymax: 0.82,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/efficiency/efficiency010.pdf
+    },
+
+    # 10-50% - efficiency
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: -10.,
+            xmax: 10,
+            name: 'efficiency1050',
+            title: '10-50% FT0C; #it{p}_{T} (GeV/#it{c}); #varepsilon #times #it{A}',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: .16,
+            name: 'efficiency1050',
+            title: '10-50% FT0C; #it{p}_{T} (GeV/#it{c}); #varepsilon #times #it{A}',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/LHC25g11_efficiency.root,
+            histName: Efficiency/hEfficiency1050,
+            histLabel: 'LHC25g11',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/LHC26e5_efficiency.root,
+            histName: Efficiency/hEfficiency1050,
+            histLabel: 'LHC26e5',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      fill_color: 601, fill_alpha: 0.5, fill_style: 3001,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/LHC26e6_efficiency.root,
+            histName: Efficiency/hEfficiency1050,
+            histLabel: 'LHC26e6',
+            kwargs: {
+                      line_color: 418, line_width: 1, line_style: 1,
+                      marker_color: 418, marker_style: 20, marker_size: 1,
+                      fill_color: 418, fill_alpha: 0.5, fill_style: 3001,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          }
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.22, xmax: 0.42,
+          ymin: 0.67, ymax: 0.82,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/efficiency/efficiency1050.pdf
+    },
+
+    # Centrality
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 100,
+            name: 'centrality',
+            title: '; FT0C Centrality (%); Counts',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 9000.,
+            name: 'centrality',
+            title: '; FT0C Centrality (%); Counts',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/LHC25g11_efficiency.root,
+            histName: Reconstructed/QA/hCentrality,
+            histLabel: 'LHC25g11',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/LHC26e5_efficiency.root,
+            histName: Reconstructed/QA/hCentrality,
+            histLabel: 'LHC26e5',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/LHC26e6_efficiency.root,
+            histName: Reconstructed/QA/hCentrality,
+            histLabel: 'LHC26e6',
+            kwargs: {
+                      line_color: 418, line_width: 2, line_style: 1,
+                      marker_color: 418, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.22, ymax: 0.37,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/efficiency/centrality.pdf
+    },
+
+  ]

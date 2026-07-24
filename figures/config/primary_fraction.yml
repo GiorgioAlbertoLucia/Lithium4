@@ -1,0 +1,447 @@
+#
+# Configuration file for plots
+#
+
+outPath: /home/galucia/Lithium4/figures/root/primary_fraction.root
+
+plots:
+  [
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 5.05,
+            name: 'primary_fraction_he3',
+            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}He)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: -0.05,
+            xmax: 1.05,
+            name: 'primary_fraction_he3',
+            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}He)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: He/DCAxy/g_primary_fraction_matter,
+            graphLabel: 'primaries',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: He/DCAxy/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 21, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: He/DCAxy/g_material_fraction_matter,
+            graphLabel: 'material',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_he3.pdf
+    },
+
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 5.05,
+            name: 'primary_fraction_he3_methods',
+            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); #it{f}_{primary}(^{3}He)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: -0.05,
+            xmax: 1.05,
+            name: 'primary_fraction_he3_methods',
+            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); #it{f}_{primary}(^{3}He)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: He/DCAxy/g_primary_fraction_matter,
+            graphLabel: 'fits',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      leg_add: 'false'
+                    }
+          },
+          #{
+          #  inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+          #  graphName: He/DCAxy/g_primary_fraction_matter_subtraction,
+          #  graphLabel: 'subtraction',
+          #  kwargs: {
+          #            line_color: 797, line_width: 1, line_style: 1,
+          #            marker_color: 797, marker_style: 24, marker_size: 1,
+          #            draw_option: 'pl same',
+          #            leg_option: 'pl',
+          #          }
+          #},
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_he3_methods.pdf
+    },
+
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 5.05,
+            name: 'primary_fraction_antihe3',
+            title: '^{3}#bar{He}; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}#bar{He})',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: -0.05,
+            xmax: 1.05,
+            name: 'primary_fraction_antihe3',
+            title: '^{3}#bar{He}; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}#bar{He})',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: He/DCAxy/g_primary_fraction_antimatter,
+            graphLabel: 'primaries',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: He/DCAxy/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 21, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_antihe3.pdf
+    },
+
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 5.05,
+            name: 'primary_fraction_p',
+            title: 'p; #it{p}_{T} (GeV/#it{c}); #it{f}(p)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: -0.05,
+            xmax: 1.05,
+            name: 'primary_fraction_p',
+            title: 'p; #it{p}_{T} (GeV/#it{c}); #it{f}(p)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy/g_primary_fraction_matter,
+            graphLabel: 'primaries',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 21, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy/g_material_fraction_matter,
+            graphLabel: 'material',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_p.pdf
+    },
+
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 5.05,
+            name: 'primary_fraction_antip',
+            title: '#bar{p}; #it{p}_{T} (GeV/#it{c}); #it{f}(#bar{p})',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: -0.05,
+            xmax: 1.05,
+            name: 'primary_fraction_antip',
+            title: '#bar{p}; #it{p}_{T} (GeV/#it{c}); #it{f}(#bar{p})',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy/g_primary_fraction_antimatter,
+            graphLabel: 'primaries',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 21, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_antip.pdf
+    },
+
+    {
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 5.05,
+            name: 'ratio_antimatter_matter',
+            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); ^{3}#bar{He} / ^{3}He',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: .75,
+            xmax: 2.55,
+            name: 'ratio_antimatter_matter',
+            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); ^{3}#bar{He} / ^{3}He',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: He/DCAxy/g_ratio,
+            graphLabel: ' ',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      leg_add: 'false'
+                    }
+          },
+          #{
+          #  inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+          #  graphName: He/DCAxy/g_primary_fraction_matter_subtraction,
+          #  graphLabel: 'subtraction',
+          #  kwargs: {
+          #            line_color: 797, line_width: 1, line_style: 1,
+          #            marker_color: 797, marker_style: 24, marker_size: 1,
+          #            draw_option: 'pl same',
+          #            leg_option: 'pl',
+          #          }
+          #},
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/ratio_antimatter_matter.pdf
+    },
+
+  ]

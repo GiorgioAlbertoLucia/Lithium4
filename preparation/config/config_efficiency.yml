@@ -1,10 +1,14 @@
 input_data:   [
-                '/data/galucia/lithium/MC/LHC25g11.root',
+                #'/data/galucia/lithium/MC/LHC25g11_new.root',
+                #'/data/galucia/lithium/MC/LHC26e5_new.root',
+                '/data/galucia/lithium/MC/LHC26e6_new.root',
                 #'/data/galucia/QA/LHC26c6/AO2D.root',
                 ]
 tree_names:   ['O2he3hadtable', 'O2he3hadtablemc', 'O2he3hadmult']
 mode:         'DF'
-output_file:  'output/PbPb/LHC25g11_efficiency.root'
+#output_file:  'output/PbPb/LHC25g11_efficiency.root'
+#output_file:  'output/PbPb/LHC26e5_efficiency.root'
+output_file:  'output/PbPb/LHC26e6_efficiency.root'
 
 selections:     [
                 # quality cuts
@@ -62,9 +66,22 @@ parameterisation: {
     ### kHeTPCParamsResiduals: [29.733, 0.6556, 0.0807, -11.574, 0.9746, 0.1368],
 
     # PbPb MC 25g11
-    kHeTPCParamsMC: [-290.16, 0.12445, 1.0868, 0.5000, 3.0244],
-    kHeTPCResolutionMC: 0.05,
-    kHeTPCParamsResidualsMC: [188.58, 0.3435, 0.0994, -30.418, 0.6842, 0.2525],
+    ### kHeTPCParamsMC: [-290.16, 0.12445, 1.0868, 0.5000, 3.0244],
+    ### kHeTPCResolutionMC: 0.05,
+    ### kHeTPCParamsResidualsMC: [188.58, 0.3435, 0.0994, -30.418, 0.6842, 0.2525],
+    ### kHeTPCResidualType: 'double_gaus',
+
+    # PbPb MC 26e5
+    ### kHeTPCParamsMC: [-258.37, 0.0010, 0.9602, 0.2538, 3.6406],
+    ### kHeTPCResolutionMC: 0.046,
+    ### kHeTPCParamsResidualsMC: [278.81, 0.3405, 0.0876, -67.330, 0.6206, 0.2923],
+    ### kHeTPCResidualType: 'double_gaus',
+
+    # PbPb MC 26e6
+    kHeTPCParamsMC: [-275.70, 0.0010, 0.9381, 0.1000, 3.6633],
+    kHeTPCResolutionMC: 0.044,
+    kHeTPCParamsResidualsMC: [32.020, 0.5660, 0.0466, -43.482, 0.7209, 0.2791],
+    kHeTPCResidualType: 'double_gaus',
 
     kPrTPCParams: [-13.9261, -2.4156, 0.9469, 1.2628, 3.4574],
     kPrTPCResolution: 0.076,
@@ -76,20 +93,36 @@ parameterisation: {
     # PbPb 23 pass5
     kITSParams_Pr: [1.0228, 1.9634, 2.2081], # Pr from Ka fitting
     kITSParams_He: [2.5734, 1.3620, 5.1383],  # He 
-
     kITSResolutionParams_Pr: [0.1575, 0., 0.],
     kITSResolutionParams_He: [0.1124, -0.0100, 0.],
-    
-    kITSParamsMC_Pr: [1.5273, 1.8027, 2.8959],
-    kITSParamsMC_He: [2.4882, 1.7105, 7.3087],
 
-    kITSResolutionParamsMC_Pr: [0.1300, 0., 0.],
-    kITSResolutionParamsMC_He: [0.0885, 0.0015, -0.0010],
+    # PbPb MC 26e5
+    ### kITSParamsMC_Pr: [1.5516, 1.7196, 3.0265], # Pr from Ka fitting
+    ### kITSParamsMC_He: [2.4369, 1.7804, 7.4600],  # He 
+    ### kITSResolutionParamsMC_Pr: [0.1787, 0.0307, 0.9959],
+    ### kITSResolutionParamsMC_He: [0.092, 0., 0.],
+
+    # PbPb MC 26e6
+    kITSParamsMC_Pr: [1.5527, 1.7075, 3.0183], # Pr from Ka fitting
+    kITSParamsMC_He: [2.4464, 1.6754, 7.4016],  # He 
+    kITSResolutionParamsMC_Pr: [0.1778, 0.0655, 0.9722],
+    kITSResolutionParamsMC_He: [0.094, 0., 0.],
+    
+    # PbPb MC 25g11
+    ### kITSParamsMC_Pr: [1.5273, 1.8027, 2.8959],
+    ### kITSParamsMC_He: [2.4882, 1.7105, 7.3087],
+    ### kITSResolutionParamsMC_Pr: [0.1300, 0., 0.],
+    ### kITSResolutionParamsMC_He: [0.0885, 0.0015, -0.0010],
       
     kPrTOFParams: [0.9452, -0.0098, 0.0039],
     kPrTOFResolutionParams: [-0.0069, 0.0289],
 
-    kHePidTrkParamsPt: [0.3101, -0.1759, 0.0262],
+    # LHC25g11
+    #kHePidTrkParamsPt: [0.3101, -0.1759, 0.0262],
     #kHePidTrkParamsP: [1.1157, -0.9171, 0.1987],
+
+    # LHC26e6
+    kHePidTrkParamsPt: [-0.023, 0.032, 0.227],
+
     kHePidTrkParamsP: [0., -0., 0.],
 }
