@@ -6,7 +6,9 @@ from ROOT import TFile, TCanvas, TH1F, TLegend, TH2F, TTree, TLatex, gStyle, \
                 kOrange, kBlue, kGreen, \
                 RooDataSet, RooRealVar, RooDataHist, RooFit, RooFFTConvPdf, RooKeysPdf
 
-from torchic.roopdf import RooSillPdf, RooSillGeneralizedKstarPdf
+from torchic.roopdf import load_fit_modules
+load_fit_modules()
+from torchic.roopdf import RooSillGeneralizedKstarPdf
 from torchic.core.histogram import load_hist
 from torchic.utils.root import set_root_object, init_legend
 from torchic.utils.colors import get_color
@@ -363,7 +365,8 @@ if __name__ == '__main__':
                           mass_daughter_1=MASS_PROTON, mass_daughter_2=MASS_HE3, l=l,
                           outfile=outdir)
 
-        h_mc_signal = load_hist('/home/galucia/antiLithium4/root_dataframe/output/mc.root', 'InvariantMassAntimatter/hInvariantMassAntimatter')
+        h_mc_signal = load_hist('/home/galucia/Lithium4/preparation/output/PbPb/LHC26e6_efficiency.root', 
+                                'Reconstructed/QA/hInvariantMass')
         sampler.init_shape_from_mc_in_kstar(h_mc_signal, 'crystal_ball')
         sampler.sample('sill_gaus_conv_numpy', 10_000_000)
 
