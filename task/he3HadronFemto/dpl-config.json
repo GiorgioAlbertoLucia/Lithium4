@@ -16,13 +16,11 @@
         "timestamp": {
             "verbose": "false",
             "fatalOnInvalidTimestamp": "false",
-            "rct-path": "RCT\/Info\/RunInformation",
             "orbit-reset-path": "CTP\/Calib\/OrbitReset",
             "isRun2MC": "-1"
         },
         "bcselOpts": {
             "amIneeded": "-1",
-            "triggerBcShift": "0",
             "ITSROFrameStartBorderMargin": "-1",
             "ITSROFrameEndBorderMargin": "-1",
             "TimeFrameStartBorderMargin": "-1",
@@ -44,13 +42,13 @@
         "evselOpts": {
             "amIneeded": "-1",
             "muonSelection": "0",
-            "maxDiffZvtxFT0vsPV": "1",
+            "maxDiffZvtxFT0vsPV": "3",
             "isMC": "-1",
             "confSigmaBCforHighPtTracks": "4",
             "TimeIntervalForOccupancyCalculationMin": "-40",
             "TimeIntervalForOccupancyCalculationMax": "100",
             "TimeRangeVetoOnCollStrict": "10",
-            "TimeRangeVetoOnCollNarrow": "2",
+            "TimeRangeVetoOnCollNarrow": "0.25",
             "FT0CamplPerCollCutVetoOnCollInTimeRange": "8000",
             "FT0CamplPerCollCutVetoOnCollInROF": "5000",
             "EpsilonVzDiffVetoInROF": "0.300000012",
@@ -76,7 +74,8 @@
             "skipTPCOnly": "-1",
             "devicesRequiringTPCOnlyPID": {
                 "values": [
-                    "photon-conversion-builder"
+                    "photon-conversion-builder",
+                    "dalitz-selection"
                 ]
             },
             "networkPathLocally": "network.onnx",
@@ -350,8 +349,47 @@
             "mc_findableDetachedCascade": "false"
         },
         "preSelectOpts": {
-            "preselectOnlyDesiredV0s": "false",
-            "preselectOnlyDesiredCascades": "false",
+            "preselectedSpecies": {
+                "labels_rows": [
+                    "Photon",
+                    "K0s",
+                    "Lambda",
+                    "AntiLambda",
+                    "XiMinus",
+                    "XiPlus",
+                    "OmegaMinus",
+                    "OmegaPlus"
+                ],
+                "labels_cols": [
+                    "enable"
+                ],
+                "values": [
+                    [
+                        "0"
+                    ],
+                    [
+                        "0"
+                    ],
+                    [
+                        "0"
+                    ],
+                    [
+                        "0"
+                    ],
+                    [
+                        "0"
+                    ],
+                    [
+                        "0"
+                    ],
+                    [
+                        "0"
+                    ],
+                    [
+                        "0"
+                    ]
+                ]
+            },
             "lifetimeCut": {
                 "labels_rows": "",
                 "labels_cols": [
@@ -555,16 +593,16 @@
         "processRun2": "false"
     },
     "track-selection": {
-        "isRun3": "false",
+        "isRun3": "true",
         "produceTable": "-1",
         "produceFBextendedTable": "-1",
         "compatibilityIU": "false",
-        "itsMatching": "0",
+        "itsMatching": "1",
         "dcaSetup": "0",
         "ptMin": "0.100000001",
         "ptMax": "1e+10",
-        "etaMin": "-0.800000012",
-        "etaMax": "0.800000012"
+        "etaMin": "-1",
+        "etaMax": "1"
     },
     "mult-cent-table": {
         "enabledTables": {
@@ -866,7 +904,10 @@
                 "No same-bunch pile-up",
                 "kIsGoodZvtxFT0vsPV",
                 "isGoodITSLayersAll",
-                "isEPtriggered"
+                "isEPtriggered",
+                "No collision in ROF standard",
+                "No high-multiplicity collision in previous ROF",
+                "No collision in time range standard"
             ],
             "labels_cols": [
                 "Event selections"
@@ -895,18 +936,27 @@
                 ],
                 [
                     "0"
+                ],
+                [
+                    "0"
+                ],
+                [
+                    "0"
+                ],
+                [
+                    "0"
                 ]
             ]
         },
         "settingNoMixedEvents": "5",
         "settingEnableBkgUS": "false",
         "settingEnableDCAfitter": "false",
-        "settingSaveUSandLS": "false",
+        "settingSaveUSandLS": "true",
         "settingIsMC": "false",
         "settingFillMultiplicity": "true",
         "settingFillQa": "false",
-        "settingFillPrimariesMc": "true",
-        "settingFillLi4DaughtersMc": "false",
+        "settingFillPrimariesMc": "false",
+        "settingFillLi4DaughtersMc": "true",
         "settingFillMixedMc": "false",
         "settingSkimmedProcessing": "false",
         "settingSkipAmbiTracks": "false",
@@ -932,12 +982,12 @@
             ],
             "values": [
                 [
-                    "-162.83000000000001",
-                    "-0.4007",
-                    "1.1513",
-                    "0.95889999999999997",
-                    "2.7650999999999999",
-                    "0.060999999999999999"
+                    "-372.20999999999998",
+                    "0.89659999999999995",
+                    "1.7425999999999999",
+                    "0.53129999999999999",
+                    "2.9516",
+                    "0.058999999999999997"
                 ]
             ]
         },
@@ -955,10 +1005,10 @@
             ],
             "values": [
                 [
-                    "0",
+                    "29.733000000000001",
                     "0.65559999999999996",
                     "0.080699999999999994",
-                    "0",
+                    "-11.574",
                     "0.97460000000000002",
                     "0.1368"
                 ]
@@ -1098,9 +1148,9 @@
                 "100"
             ]
         },
-        "processSameEvent": "false",
+        "processSameEvent": "true",
         "processMixedEvent": "false",
-        "processMC": "true",
+        "processMC": "false",
         "processPurity": "false",
         "processPurityMc": "false"
     },

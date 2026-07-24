@@ -9,10 +9,10 @@
 # mc: /data/galucia/lithium_local/MC/raw/LHC25a4_004_raw.root
 
 LOGFILE="output.log"
-#CONF="-b --configuration json://configuration.json --shm-segment-size 750000000000"
-CONF="-b --configuration json://configuration_mc.json --shm-segment-size 750000000000"
-#OUTPUT_DIR="OutputDirector.json"
-OUTPUT_DIR="OutputDirector_mc.json"
+CONF="-b --configuration json://configuration.json --shm-segment-size 750000000000"
+#CONF="-b --configuration json://configuration_mc.json --shm-segment-size 750000000000"
+OUTPUT_DIR="OutputDirector.json"
+#OUTPUT_DIR="OutputDirector_mc.json"
 
 
 

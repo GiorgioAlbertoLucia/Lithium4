@@ -212,7 +212,7 @@
         "reconstructionPassDefault": "unanchored"
     },
     "he3-hadron-femto": {
-        "settingIsMC": "1",
+        "settingIsMC": "0",
         "settingHePidTrkPtParams": {
             "values": [
                 [
@@ -263,6 +263,15 @@
                 ],
                 [
                     0
+                ],
+                [
+                    0
+                ],
+                [
+                    0
+                ],
+                [
+                    0
                 ]
             ]
         },
@@ -296,7 +305,7 @@
         "settingGeoPath": "GLO/Config/GeometryAligned",
         "settingCompensatePIDinTracking": "0",
         "processMixedEvent": "0",
-        "processSameEvent": "0",
+        "processSameEvent": "true",
         "settingPidPath": "",
         "cutSettings.settingCutVertex": "10",
         "cutSettings.settingCutChi2NClITS": "36",
@@ -347,7 +356,7 @@
         "cutSettings.settingCutEta": "0.9",
         "settingSkipAmbiTracks": "0",
         "cutSettings.settingCutNsigmaITSHe3": "-1.5",
-        "processPurity": "1",
+        "processPurity": "0",
         "cutSettings.settingCutNsigmaTPC": "3",
         "settingBetheBlochCorrectionParams": {
             "values": [
