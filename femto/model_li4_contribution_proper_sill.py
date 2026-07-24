@@ -162,28 +162,6 @@ class Sampler:
         canvas.Write()
 
 
-
-def sampling(outfile: TFile, n_samples: int = 1_000_000) -> RooDataSet:
-
-    invmass = RooRealVar('invmass', 'm (p+^{3}He)', 3.743, 3.755, 'GeV/#it{c}^{2}')
-    sill_params = {
-        'mass': RooRealVar('mass', 'mass', M_LI4),
-        'gamma': RooRealVar('mass', 'mass', W_LI4),
-        'eth': RooRealVar('eth', 'eth', E_TH)
-    }
-    sill_pdf = RooSillPdf('sill', 'sill', invmass, *sill_params.values())
-    roo_dataset = sill_pdf.generate([invmass], NumEvents=n_samples)
-
-    frame = invmass.frame()
-    sill_pdf.plotOn(frame, LineColor=kOrange-3)
-
-    canvas = TCanvas('cSill', '', 800, 600)
-    frame.Draw()
-    outfile.cd()
-    canvas.Write()
-
-    return roo_dataset
-
 def draw_profile(roo_dataset: RooDataSet, outfile: TFile, name:str) -> TH1F:
 
     h_kstar = TH1F('hKstar', ';#it{k}* (GeV/#it{c});Counts', 400, 0, 0.4)
@@ -195,46 +173,6 @@ def draw_profile(roo_dataset: RooDataSet, outfile: TFile, name:str) -> TH1F:
 
     outfile.cd()
     h_kstar.Write(f'hKstar_{name}')
-
-    return h_kstar
-
-def draw_kstar_profile(roo_dataset: RooDataSet, outfile: TFile) -> TH1F:
-
-    h_kstar = TH1F('hKstar', ';#it{k}* (GeV/#it{c});Counts', 400, 0, 0.4)
-    h2_kstar_vs_invmass = TH2F('h2KstarVsInvmass', ';m (GeV/#it{c}^{2});#it{k}* (GeV/#it{c})', 800, 3.737, 3.865, 400, 0, 0.4)
-    for ientry in range(roo_dataset.numEntries()):
-        invmass = roo_dataset.get(ientry)['invmass'].getVal()
-        kstar = convert_invmass_to_kstar(invmass)
-        h_kstar.Fill(kstar)
-        h2_kstar_vs_invmass.Fill(invmass, kstar)
-
-    h_kstar.SetBinContent(1, 0.)    # in the conversion, this bin behaves as an underflow bin
-
-    outfile.cd()
-    h_kstar.Write()
-    h2_kstar_vs_invmass.Write()
-
-    return h_kstar
-
-def draw_kstar_profile_from_hist(roo_dataset: RooDataSet, outfile: TFile) -> TH1F:
-
-    roo_datahist = roo_dataset.binnedClone()
-
-    h_kstar = TH1F('hKstarHist', ';#it{k}* (GeV/#it{c});Counts', 400, 0, 0.4)
-    for ientry in range(1, roo_datahist.getBinnings()[0].numBins()):
-        invmass = roo_datahist.get(ientry)['invmass'].getVal()
-        weight = roo_datahist.weight(ientry)
-        kstar = convert_invmass_to_kstar(invmass)
-        h_kstar.Fill(kstar, weight)
-    for ibin in range(1, h_kstar.GetNbinsX()+1):
-        bin_value = h_kstar.GetBinContent(ibin)
-        h_kstar.SetBinError(ibin, np.sqrt(bin_value))
-
-    h_cumualative = h_kstar.GetCumulative()
-
-    outfile.cd()
-    h_kstar.Write()
-    h_cumualative.Write()
 
     return h_kstar
 
@@ -391,12 +329,8 @@ def draw_ck_profile_from_hist(h_signal:TH1F, h_mixed_event:TH1F, outfile:TFile,
 
 if __name__ == '__main__':
 
-    M_LI4 = 3.7513 # GeV/c^2
-    W_LI4 = 0.005 # GeV/c^2 (li4 width)
-    E_TH = 3.7466 # GeV/c^2
     MASS_PROTON = 0.938272 # GeV/c^2
     MASS_HE3 = 2.80839 # GeV/c^2
-    L_LI4 = 2
     
     @dataclass
     class nucleus:
@@ -418,44 +352,42 @@ if __name__ == '__main__':
                   'ex. 2': nucleus(mass=3.75281, width=0.00935, l=0, normalization=1.5490),
                   'ex. 3': nucleus(mass=3.75358, width=0.01351, l=1, normalization=4.6255)}
 
-    #outfile = TFile.Open('models/li4_contribution.root', 'recreate')
-    outfile = None
+    outfile = TFile.Open('models/li4_contribution_proper_sill.root', 'recreate')
     h_kstars = []
 
-    if True:
-        outfile = TFile.Open('models/li4_contribution_proper_sill.root', 'recreate')
+    for state_name, state in li4_states.items():
+        outdir = outfile.mkdir(state_name)
+        print(f'Sampling {state_name} state...')
+        mass, width, l = state.mass, state.width, state.l
+        sampler = Sampler(mass=mass, intrinsic_width=width, experimental_width=0., 
+                          mass_daughter_1=MASS_PROTON, mass_daughter_2=MASS_HE3, l=l,
+                          outfile=outdir)
 
-        for state_name, state in li4_states.items():
-            outdir = outfile.mkdir(state_name)
-            print(f'Sampling {state_name} state...')
-            mass, width, l = state.mass, state.width, state.l
-            sampler = Sampler(mass=mass, intrinsic_width=width, experimental_width=0., 
-                              mass_daughter_1=MASS_PROTON, mass_daughter_2=MASS_HE3, l=l,
-                              outfile=outdir)
+        h_mc_signal = load_hist('/home/galucia/antiLithium4/root_dataframe/output/mc.root', 'InvariantMassAntimatter/hInvariantMassAntimatter')
+        sampler.init_shape_from_mc_in_kstar(h_mc_signal, 'crystal_ball')
+        sampler.sample('sill_gaus_conv_numpy', 10_000_000)
 
-            #sampler.sample('sill')
-            h_mc_signal = load_hist('/home/galucia/antiLithium4/root_dataframe/output/mc.root', 'InvariantMassAntimatter/hInvariantMassAntimatter')
-            sampler.init_shape_from_mc_in_kstar(h_mc_signal, 'crystal_ball')
-            #sampler.init_shape_from_mc_in_kstar(h_mc_signal, 'gaus')
-            sampler.sample('sill_gaus_conv_numpy', 10_000_000)
+        sampler.save_sampling()
+        h_kstar = draw_profile(sampler.sampled_roo_dataset, outfile, state_name)
+        h_kstars.append(h_kstar)
 
-            sampler.save_sampling()
-            h_kstar = draw_profile(sampler.sampled_roo_dataset, outfile, state_name)
-            h_kstars.append(h_kstar)
-            #h_kstar = draw_kstar_profile(sampler.sampled_roo_dataset, outfile)
-            #draw_kstar_profile_from_hist(sampler.sampled_roo_dataset, outfile)
-        
-    h_kstar = None    
-    for ihist, (hist, states) in enumerate(zip(h_kstars, li4_states.values())):
+    GROUND_STATE_NAME = 'g.s.'
+    state_names = list(li4_states.keys())
+
+    h_kstar = None
+    h_kstar_ground_state = None
+    for ihist, (state_name, hist, states) in enumerate(zip(state_names, h_kstars, li4_states.values())):
         hist.Scale(states.normalization)
+        if state_name == GROUND_STATE_NAME:
+            h_kstar_ground_state = hist.Clone('hKstar_GroundStateOnly')
         if ihist == 0:
             h_kstar = hist.Clone('hKstar')
         else:
             h_kstar.Add(hist)
     outfile.cd()
     h_kstar.Write('hKstar')
+    h_kstar_ground_state.Write('hKstar_GroundStateOnly')
 
-    #h_mixed_event = load_hist('/home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root', 'Correlation/Default/hNormalisedMixedEvent050')
     h_mixed_event = load_hist('/home/galucia/Lithium4/preparation/checks/mixed_event_hadronpid_pass1_pass4_refined_dca_finer_binning.root', 'kstar/hKstar050FinerBinning')
     h_correlation_reference = load_hist('/home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root', 'Correlation/Default/hCorrelation050')
     h_kstar = load_hist('models/li4_contribution_proper_sill.root', 'hKstar')
