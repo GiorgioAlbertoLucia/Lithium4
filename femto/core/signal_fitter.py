@@ -55,7 +55,7 @@ class SignalFitter(Fitter):
             frame.Draw()
             canvas.Write()
 
-    def _init_signal_from_kde(self, h_signal:TH1F, name:str='signal_pdf', xmin:float=0., xmax:float=0.42, rho:float=2.):
+    def _init_signal_from_kde(self, h_signal:TH1F, name:str='signal_pdf', xmin:float=0., xmax:float=0.42, rho:float=2., tree_name:str='tree'):
     
         xvar = self._roo_workspace.obj(self._xvar_name)
         old_range = (xvar.getMin(), xvar.getMax())
@@ -73,7 +73,8 @@ class SignalFitter(Fitter):
             x_data.append(x_val)
             weights.append(y_val)
         
-        tree = TTree('tree', 'tree')
+        tree = TTree(tree_name, tree_name)
+        tree.SetDirectory(0)
         x = np.zeros(1, dtype=np.float64)
         w = np.zeros(1, dtype=np.float64)
         tree.Branch('kstar', x, 'kstar/D')
@@ -158,13 +159,13 @@ class SignalFitter(Fitter):
         for param in self._signal_pars.values():
             getattr(self._roo_workspace, 'import')(param)
             
-    def cleanup(self):
+    def cleanup(self, keep_histograms:bool=False):
         self._signal_pdf = None
         self._signal_pars = {}
         if hasattr(self, '_signal_datahist'):
             self._signal_datahist = None
         if hasattr(self, '_signal_dataset'):
             self._signal_dataset = None
-        super().cleanup()
+        super().cleanup(keep_histograms=keep_histograms)
 
     

@@ -92,6 +92,7 @@ class BkgFitter(Fitter):
             weights.append(y_val)
         
         tree = TTree('tree', 'tree')
+        tree.SetDirectory(0)
         x = np.zeros(1, dtype=np.float64)
         w = np.zeros(1, dtype=np.float64)
         tree.Branch('kstar', x, 'kstar/D')
@@ -194,11 +195,11 @@ class BkgFitter(Fitter):
         if self._bkg_normalisation is not None:
             getattr(self._roo_workspace, 'import')(self._bkg_normalisation)
 
-    def cleanup(self):
+    def cleanup(self, keep_histograms:bool=False):
         self._bkg_pdf = None
         self._bkg_pars = {}
         self._bkg_datahist = None
         self._bkg_normalisation = None
         if hasattr(self, '_bkg_dataset'):
             self._bkg_dataset = None
-        super().cleanup()
+        super().cleanup(keep_histograms=keep_histograms)
