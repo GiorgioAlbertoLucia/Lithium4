@@ -11,121 +11,24 @@ from torchic.core.histogram import load_hist, HistLoadInfo
 from torchic.utils.root import set_root_object, init_legend
 from torchic.utils.colors import get_color
 from torchic.roopdf.roopdf_utils import init_roopdf
+import argparse
+from core.config_loader import load_yaml, build_hist_load_info_dict, build_hist_load_info_variations
 
-LAMBDA_MODIFICATION_FACTOR = 0.1  # 10% change in lambda
+LAMBDA_MODIFICATION_FACTOR = None
+LAMBDA_VARIATION = None
 
-INPUT_CK_PATH = {
-    '010':  HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=6.12_fm'),
-    '1030': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.18_fm'),
-    '3050': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=4.09_fm'),
-    '5080': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=3.05_fm'),
-    '050':  HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.52_fm'),
-    '080':  HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.50_fm'),
-    '1050': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=4.90_fm'),
-    '1080': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=4.91_fm'),
-}
-INPUT_SIGMA_CK_PATH = {
-    '010':  HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=6.12_fm'),
-    '1030': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.18_fm'),
-    '3050': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.09_fm'),
-    '5080': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=3.05_fm'),
-    '050':  HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.52_fm'),
-    '080':  HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.50_fm'),
-    '1050': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.90_fm'),
-    '1080': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.91_fm'),
-}
-INPUT_CK_VARIATIONS = {
-    '010': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=6.12_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.44_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=6.80_fm'),
-    },
-    '1030': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.18_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=4.57_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.80_fm'),
-    },
-    '3050': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=4.09_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=3.54_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=4.64_fm'),
-    },
-    '5080': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=3.05_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=2.56_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=3.54_fm'),
-    },
-    '050': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.52_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.14_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.90_fm'),
-    },
-    '080': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.50_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.12_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.88_fm'),
-    },
-    '1050': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=4.90_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=4.30_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.50_fm'),
-    },
-    '1080': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=4.91_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=4.42_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root', 'hcats_CF_r=5.40_fm'),
-    },
-}
-INPUT_SIGMA_CK_VARIATIONS = {
-    '010': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=6.12_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.44_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=6.80_fm'),
-    },
-    '1030': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.18_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.57_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.80_fm'),
-    },
-    '3050': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.09_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=3.54_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.64_fm'),
-    },
-    '5080': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=3.05_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=2.56_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=3.54_fm'),
-    },
-    '050': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.52_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.14_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.90_fm'),
-    },
-    '080': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.50_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.12_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.88_fm'),
-    },
-    '1050': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.90_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.30_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.50_fm'),
-    },
-    '1080': {
-        'nominal': HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.91_fm'),
-        'lower':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=4.42_fm'),
-        'upper':   HistLoadInfo('/home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root', 'hhe3_Sigma_plus_CF_r=5.40_fm'),
-    },
-}
-INPUT_LAMBDA_PARAMETER_PATH = '/home/galucia/Lithium4/calibration/output/LHC25_PbPb_pass1_lambda_parameters.root'
-EXPERIMENTAL_CK_PATH = '/home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root'
-EXPERIMENTAL_CK_NAME = 'Correlation/Default/hCorrelation010'
+INPUT_CK_PATH = None
+INPUT_SIGMA_CK_PATH = None
+INPUT_CK_VARIATIONS = None
+INPUT_SIGMA_CK_VARIATIONS = None
 
-INPUT_RESOLUTION_PATH = '/data/galucia/lithium/MC/AnalysisResults_LHC25g11.root'
-INPUT_MIXED_EVENT_REFERENCE_PATH = '/home/galucia/Lithium4/preparation/output/PbPb/LHC25_PbPb_pass1_hadronpid_event_mixing.root'
+CENTRALITY_BINS = None
 
-OUTPUT_LAMBDA_MODEL_PATH = '/home/galucia/Lithium4/femto/models/LHC25_PbPb_pass1_lambda_models.root'
+INPUT_LAMBDA_PARAMETER_PATH = None
+INPUT_RESOLUTION_PATH = None
+INPUT_MIXED_EVENT_REFERENCE_PATH = None
+OUTPUT_LAMBDA_MODEL_PATH = None
+
 
 def match_bin_width_correlation_function(h_source, h_target, kstar_threshold:float=0.4):
     """
@@ -239,9 +142,13 @@ def produce_lambda_with_modified_values(sign:str, centrality:str, h_theoretical_
         where x is the modification_factor. This can be used to understand the sensitivity of the model to changes in lambda.
         The lambda is changed both in lambda + x% and lambda - x% to understand the effect in both directions.
     '''
+    
+    if not INPUT_LAMBDA_PARAMETER_PATH:
+        raise ValueError("INPUT_LAMBDA_PARAMETER_PATH is not set. Please set it before calling this function.")
 
-    h_lambda_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaParameters')
-    h_lambda_Sigma_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaSigmaParameters')
+    centrality_dir = 'centrality_0_10' if centrality == '010' else 'centrality_10_50'
+    h_lambda_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{centrality_dir}/{sign}/hLambdaParameters')
+    h_lambda_Sigma_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{centrality_dir}/{sign}/hLambdaSigmaParameters')
     
     h_lambda_parameter_higher_lambda = h_lambda_parameter.Clone(f'hLambdaParameter_HigherLambda')
     h_lambda_parameter_lower_lambda = h_lambda_parameter.Clone(f'hLambdaParameter_LowerLambda')
@@ -270,6 +177,10 @@ def precompute_resolution_fits(outfile: TFile) -> dict:
     Returns a dict mapping kstar bin index (1-based) -> callable(x) using the fitted PDF.
     Saves all fits to outfile under 'ResolutionFits/'.
     """
+    
+    if not INPUT_RESOLUTION_PATH:
+        raise ValueError("INPUT_RESOLUTION_PATH is not set. Please set it before calling this function.")
+    
     h_resolution = load_hist(INPUT_RESOLUTION_PATH, 'he3-hadron-femto/QA/hKstarRecVsKstarGen')
 
     outdir_fits = outfile.mkdir('ResolutionFits')
@@ -315,6 +226,11 @@ def precompute_resolution_fits(outfile: TFile) -> dict:
     return fits
 
 def apply_resolution_smearing(h_correlation_function, outdir:TDirectory, resolution_fits:dict):
+
+    if not INPUT_RESOLUTION_PATH:
+        raise ValueError("INPUT_RESOLUTION_PATH is not set. Please set it before calling this function.")
+    if not INPUT_MIXED_EVENT_REFERENCE_PATH:
+        raise ValueError("INPUT_MIXED_EVENT_REFERENCE_PATH is not set. Please set it before calling this function.")
 
     h_resolution = load_hist(INPUT_RESOLUTION_PATH, 'he3-hadron-femto/QA/hKstarRecVsKstarGen')
     h_mixed_event = load_hist(INPUT_MIXED_EVENT_REFERENCE_PATH, 'QA/hKstar')
@@ -380,11 +296,19 @@ def apply_resolution_smearing(h_correlation_function, outdir:TDirectory, resolut
 
     return h_smeared_correlation_function
 
-
 def produce_lambda_models(sign:str, centrality:str, outdir:TDirectory, resolution_fits:dict):
     
-    h_lambda_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaParameters')
-    h_lambda_Sigma_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaSigmaParameters')
+    if not INPUT_LAMBDA_PARAMETER_PATH:
+            raise ValueError("INPUT_LAMBDA_PARAMETER_PATH is not set. Please set it before calling this function.")
+    if not LAMBDA_MODIFICATION_FACTOR:
+            raise ValueError("LAMBDA_MODIFICATION_FACTOR is not set. Please set it before calling this function.")
+    if not LAMBDA_VARIATION:
+            raise ValueError("LAMBDA_VARIATION is not set. Please set it before calling this function.")
+        
+    # only 010 and 1050 are computed 
+    centrality_dir = 'centrality_0_10' if centrality == '010' else 'centrality_10_50'
+    h_lambda_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{centrality_dir}/{sign}/hLambdaParameters')
+    h_lambda_Sigma_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{centrality_dir}/{sign}/hLambdaSigmaParameters')
     h_theoretical_Ck = load_hist(INPUT_CK_PATH[centrality])
     h_theoretical_Sigma_Ck = load_hist(INPUT_SIGMA_CK_PATH[centrality])
     
@@ -406,7 +330,7 @@ def produce_lambda_models(sign:str, centrality:str, outdir:TDirectory, resolutio
         lambda_Sigma_corrected_value = lambda_param * original_value + lambda_Sigma_param * Sigma_value + (1 - lambda_param - lambda_Sigma_param) * 1.0
         h_lambda_Sigma_corrected_Ck.SetBinContent(ibin, lambda_Sigma_corrected_value)
 
-    modification_factor = 0.1  # 10% change in lambda
+    modification_factor = LAMBDA_VARIATION
     (h_lambda_parameter_higher_lambda, h_lambda_parameter_lower_lambda,
     h_lambda_corrected_Ck_lower_lambda, h_lambda_corrected_Ck_higher_lambda,
     h_lambda_Sigma_corrected_Ck_higher_lambda, h_lambda_Sigma_corrected_Ck_lower_lambda) \
@@ -505,8 +429,17 @@ def produce_lambda_models(sign:str, centrality:str, outdir:TDirectory, resolutio
 
 def produce_lambda_models_with_variations(sign: str, centrality: str, outdir: TDirectory, resolution_fits: dict):
 
-    h_lambda_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaParameters')
-    h_lambda_Sigma_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{sign}/hLambdaSigmaParameters')
+    if not INPUT_LAMBDA_PARAMETER_PATH:
+        raise ValueError("INPUT_LAMBDA_PARAMETER_PATH is not set. Please set it before calling this function.")
+    if not LAMBDA_MODIFICATION_FACTOR:
+        raise ValueError("LAMBDA_MODIFICATION_FACTOR is not set. Please set it before calling this function.")
+    if not INPUT_CK_VARIATIONS or not INPUT_SIGMA_CK_VARIATIONS:
+        raise ValueError("INPUT_CK_VARIATIONS and INPUT_SIGMA_CK_VARIATIONS must be set. Please set them before calling this function.")
+    
+    # only 010 and 1050 are computed 
+    centrality_dir = 'centrality_10_50' if centrality == '010' else 'centrality_10_50'
+    h_lambda_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{centrality_dir}/{sign}/hLambdaParameters')
+    h_lambda_Sigma_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{centrality_dir}/{sign}/hLambdaSigmaParameters')
     
     hist_radius_variation = {}
 
@@ -571,6 +504,28 @@ def produce_lambda_models_with_variations(sign: str, centrality: str, outdir: TD
         canvas_summary.Write(f'cRadiusVariations_{sign}_{centrality}')
 
 if __name__ == '__main__':
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', default='configs/lambda_model.yaml',
+                        help='Path to YAML config file')
+    args, _ = parser.parse_known_args()
+
+    cfg = load_yaml(args.config)
+
+    LAMBDA_MODIFICATION_FACTOR = cfg['lambda_modification_factor']
+    LAMBDA_VARIATION = cfg['lambda_variation']
+
+    INPUT_CK_PATH = build_hist_load_info_dict(cfg['ck_input'])
+    INPUT_SIGMA_CK_PATH = build_hist_load_info_dict(cfg['sigma_ck_input'])
+    INPUT_CK_VARIATIONS = build_hist_load_info_variations(cfg['ck_input']) if 'variations' in cfg['ck_input'] else None
+    INPUT_SIGMA_CK_VARIATIONS = build_hist_load_info_variations(cfg['sigma_ck_input']) if 'variations' in cfg['sigma_ck_input'] else None
+
+    INPUT_LAMBDA_PARAMETER_PATH = cfg['paths']['lambda_parameters']
+    INPUT_RESOLUTION_PATH = cfg['paths']['resolution']
+    INPUT_MIXED_EVENT_REFERENCE_PATH = cfg['paths']['mixed_event_reference']
+    OUTPUT_LAMBDA_MODEL_PATH = cfg['paths']['output_model']
+    
+    CENTRALITY_BINS = cfg['centrality_bins']
 
     outfile = TFile.Open(OUTPUT_LAMBDA_MODEL_PATH, 'recreate')
     resolution_fits = precompute_resolution_fits(outfile)
@@ -581,7 +536,7 @@ if __name__ == '__main__':
 
         outdir_sign = outfile.mkdir(sign)
 
-        for centrality in ['010', '1030', '3050', '5080', '050', '080', '1050', '1080']:
+        for centrality in CENTRALITY_BINS:
         #for centrality in ['010', '1030', '3050']:
             print(f"\n{'-'*40}")
             print(f"Processing centrality {centrality}")
@@ -589,6 +544,7 @@ if __name__ == '__main__':
             outdir = outdir_sign.mkdir(f'{centrality}')
             produce_lambda_models(sign, centrality, outdir, resolution_fits)
 
-            produce_lambda_models_with_variations(sign, centrality, outdir, resolution_fits)
+            if INPUT_CK_VARIATIONS and INPUT_SIGMA_CK_VARIATIONS:
+                produce_lambda_models_with_variations(sign, centrality, outdir, resolution_fits)
             
     outfile.Close()

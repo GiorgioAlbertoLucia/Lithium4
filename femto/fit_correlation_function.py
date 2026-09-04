@@ -1,5 +1,7 @@
+import numpy as np
+
 from ROOT import TFile, TDirectory, gStyle, \
-                 RooWorkspace, TH1F
+                 RooWorkspace, TH1F, TCanvas, TLatex
 
 from core.signal_fitter import SignalFitter
 from core.bkg_fitter import BkgFitter
@@ -8,167 +10,97 @@ from core.plot_correlation_over_nsigma import plot_correlation_over_nsigma
 from torchic.core.histogram import load_hist, AxisSpec, HistLoadInfo
 from torchic.utils.terminal_colors import TerminalColors as tc
 
-#SIGNAL_HIST_LOAD_INFO = HistLoadInfo('output/sampling_check.root', 'hCkHist')
-#SIGNAL_HIST_LOAD_INFO = HistLoadInfo('models/li4_contribution.root', 'hCkHist')
-#SIGNAL_HIST_LOAD_INFO = HistLoadInfo('models/li4_contribution_finer_binning.root', 'hCkHist')
-SIGNAL_HIST_LOAD_INFO = HistLoadInfo('models/li4_contribution_proper_sill.root', 'hCkHist')
-HIST_BKG_NAME = 'hHe3_p_Coul_CF'
-#DATA_INPUT_PATH = '/home/galucia/Lithium4/preparation/output/correlation.root'
-#DATA_INPUT_PATH = '/home/galucia/Lithium4/preparation/checks/correlation_all_pass1_pass4_nclstpc.root'
-#DATA_INPUT_PATH = '/home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_nohe3pcut_offlinetpc.root'
-#DATA_INPUT_PATH = '/home/galucia/Lithium4/preparation/checks/correlation_23_24_25_pass1_pass4_pass1_reject_multiples_pidintrk.root'
-DATA_INPUT_PATH = '/home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root'
-INPUT_SUFFIX = 'PbPb'
-SELECTION = 'Default' # 'Default', 'PLiGreaterThan3'
-SELECTION_SUFFIX = f'_{SELECTION}' if SELECTION != 'Default' else ''
+from dataclasses import dataclass, field
+from typing import Dict
 
-def prepare_centrality_dict(mode:str, use_systematics:bool=False, upper_radius:bool=False, lower_radius:bool=False,
-                            plus_10_percent:bool=False, minus_10_percent:bool=False, smeared_lambda:bool=False):
+import argparse
+from core.config_loader import load_yaml
+
+HIST_BKG_NAME = None
+DATA_INPUT_PATH = None
+INPUT_SUFFIX = None
+SELECTION = None
+SELECTION_SUFFIX = None
+
+CENTRALITY_BINS = None
+
+AVAILABLE_BKGS = None
+AVAILABLE_SIGNALS = None
+SYSTEMATICS_FILE_PATH = None
+
+@dataclass
+class FitOptions:
+    ground_state_only: bool = False
+    use_smoothening: bool = True
+    finer_binning: bool = True
+    lambda_to_one: bool = False
+    lambda_to_zero: bool = False
+    lambda_variation: float = 10
+    match_ratio: bool = False
+
+    _SUFFIX_MAP: Dict[str, str] = field(default_factory=lambda : {
+        'ground_state_only': '_ground_state_only',
+        'use_smoothening': '_smoothened',
+        'finer_binning': '_finer_binning',
+        'lambda_to_one': '_dummy_fraction_to_one',
+        'lambda_to_zero': '_dummy_fraction_to_zero',
+    }, repr=False)
+
+    def _lambda_variation_suffix(self) -> str:
+        suffix = ''
+        if self.lambda_variation: suffix += f'_{self.lambda_variation}'
+        if self.match_ratio: suffix += '_match_ratio'
+        return suffix
+
+    def suffix(self) -> str:
+        '''Builds the combined filename suffix from whichever flags are True.'''
+        base = ''.join(s for name, s in self._SUFFIX_MAP.items() if getattr(self, name))
+        return base + self._lambda_variation_suffix()
+
+    def lambda_suffix(self) -> str:
+        '''Builds the combined filename suffix for lambda variations.'''
+        return self._lambda_variation_suffix()
+
+def _lambda_hist_names(mode_dir: str, template: str) -> list:
+    '''template uses {mode_dir} and {cent} placeholders, e.g.
+       "{mode_dir}/{cent}/hLambdaSigmaCorrectedCk_Smeared"'''
+    return [template.format(mode_dir=mode_dir, cent=c) for c in CENTRALITY_BINS]
+
+def prepare_centrality_dict(mode: str, opts: FitOptions):
     if mode != 'Matter' and mode != 'Antimatter' and mode != '':
         raise ValueError('Supported modes are "Matter", "Antimatter" ans "" (for inclusive).')
-    
+
     mode_dir = 'Both' if mode == '' else mode
     prefix = INPUT_SUFFIX if INPUT_SUFFIX != 'PbPb' else 'LHC25_PbPb_pass1'
 
-    if smeared_lambda:
-        hist_names = [f'{mode_dir}/050/hLambdaSigmaCorrectedCk_Smeared', 
-                      f'{mode_dir}/010/hLambdaSigmaCorrectedCk_Smeared',
-                      f'{mode_dir}/1030/hLambdaSigmaCorrectedCk_Smeared',
-                      f'{mode_dir}/3050/hLambdaSigmaCorrectedCk_Smeared',
-                      f'{mode_dir}/1050/hLambdaSigmaCorrectedCk_Smeared',
-                      f'{mode_dir}/5080/hLambdaSigmaCorrectedCk_Smeared',
-                      f'{mode_dir}/080/hLambdaSigmaCorrectedCk_Smeared',
-                      f'{mode_dir}/1080/hLambdaSigmaCorrectedCk_Smeared'
-                      ]
-        bkg_paths = [f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root', 
-                     f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root',
-                     f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root',
-                     f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root']
-    elif plus_10_percent:
-        hist_names = [f'{mode_dir}/050/hLambdaSigmaCorrectedCk_Smeared', 
-                      f'{mode_dir}/010/hLambdaSigmaCorrectedCk_Smeared',
-                      f'{mode_dir}/1030/hLambdaSigmaCorrectedCk_Smeared',
-                      f'{mode_dir}/3050/hLambdaSigmaCorrectedCk_Smeared',
-                      f'{mode_dir}/1050/hLambdaSigmaCorrectedCk_Smeared',
-                      f'{mode_dir}/5080/hLambdaSigmaCorrectedCk_Smeared',
-                      f'{mode_dir}/080/hLambdaSigmaCorrectedCk_Smeared',
-                      f'{mode_dir}/1080/hLambdaSigmaCorrectedCk_Smeared'
-                      ]
-        bkg_paths = [f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root', 
-                     f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root',
-                     f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root',
-                     f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root']
-        hist_names = [f'{mode_dir}/050/hLambdaSigmaCorrectedCk_LowerLambda', 
-                      f'{mode_dir}/010/hLambdaSigmaCorrectedCk_LowerLambda',
-                      f'{mode_dir}/1030/hLambdaSigmaCorrectedCk_LowerLambda',
-                      f'{mode_dir}/3050/hLambdaSigmaCorrectedCk_LowerLambda',
-                      f'{mode_dir}/1050/hLambdaSigmaCorrectedCk_LowerLambda',
-                      f'{mode_dir}/5080/hLambdaSigmaCorrectedCk_LowerLambda',
-                      f'{mode_dir}/080/hLambdaSigmaCorrectedCk_LowerLambda',
-                      f'{mode_dir}/1080/hLambdaSigmaCorrectedCk_LowerLambda',
-                      ]
-        bkg_paths = [f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root', 
-                     f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root',
-                     f'models/{prefix}_lambda_models.root'] # Dummy last one
-    elif upper_radius:
-        hist_names = [f'{mode_dir}/050/upper/hLambdaSigmaCorrectedCk_Smeared_upper', 
-                      f'{mode_dir}/010/upper/hLambdaSigmaCorrectedCk_Smeared_upper',
-                      f'{mode_dir}/1030/upper/hLambdaSigmaCorrectedCk_Smeared_upper',
-                      f'{mode_dir}/3050/upper/hLambdaSigmaCorrectedCk_Smeared_upper',
-                      f'{mode_dir}/1050/upper/hLambdaSigmaCorrectedCk_Smeared_upper',
-                      f'{mode_dir}/5080/upper/hLambdaSigmaCorrectedCk_Smeared_upper',
-                      f'{mode_dir}/080/upper/hLambdaSigmaCorrectedCk_Smeared_upper',
-                      f'{mode_dir}/1080/upper/hLambdaSigmaCorrectedCk_Smeared_upper',
-                      ]
-        bkg_paths = [f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root', 
-                     f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root',
-                     f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root',
-                     f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root']
-    elif lower_radius:
-        hist_names = [f'{mode_dir}/050/lower/hLambdaSigmaCorrectedCk_Smeared_lower', 
-                      f'{mode_dir}/010/lower/hLambdaSigmaCorrectedCk_Smeared_lower',
-                      f'{mode_dir}/1030/lower/hLambdaSigmaCorrectedCk_Smeared_lower',
-                      f'{mode_dir}/3050/lower/hLambdaSigmaCorrectedCk_Smeared_lower',
-                      f'{mode_dir}/1050/lower/hLambdaSigmaCorrectedCk_Smeared_lower',
-                      f'{mode_dir}/5080/lower/hLambdaSigmaCorrectedCk_Smeared_lower',
-                      f'{mode_dir}/080/lower/hLambdaSigmaCorrectedCk_Smeared_lower',
-                      f'{mode_dir}/1080/lower/hLambdaSigmaCorrectedCk_Smeared_lower',
-                      ]
-        bkg_paths = [f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root', 
-                     f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root',
-                     f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root',
-                     f'models/{prefix}_lambda_models.root', f'models/{prefix}_lambda_models.root']
-    else:
-        hist_names = [HIST_BKG_NAME] * 5
-        bkg_paths = [f'models/{prefix}_CATS_converted.root', f'models/{prefix}_CATS_cent0_10_converted.root',  
-                     f'models/{prefix}_CATS_cent10_30_converted.root', f'models/{prefix}_CATS_cent30_50_converted.root',
-                     f'models/{prefix}_pHe3_square_well_1050_GeV.root',]
-    
-    data_input_path = [DATA_INPUT_PATH] * 8 if not use_systematics else \
-                      ['/home/galucia/Lithium4/preparation/output/correlation_with_systematics.root'] * 5
-    h_data_names = [f'Correlation{mode}/{SELECTION}/hCorrelation050', 
-                    f'Correlation{mode}/{SELECTION}/hCorrelation010', 
-                    f'Correlation{mode}/{SELECTION}/hCorrelation1030', 
-                    f'Correlation{mode}/{SELECTION}/hCorrelation3050',
-                    f'Correlation{mode}/{SELECTION}/hCorrelationDirectComputation1050', 
-                    f'Correlation{mode}/{SELECTION}/hCorrelation5080', 
-                    f'Correlation{mode}/{SELECTION}/hCorrelationDirectComputation080', 
-                    f'Correlation{mode}/{SELECTION}/hCorrelationDirectComputation1080'
-                    ] if not use_systematics else \
-                    [f'{mode}/hCorrelation050StatAndSyst', 
-                     f'{mode}/hCorrelation010StatAndSyst', 
-                     f'{mode}/hCorrelation1030StatAndSyst', 
-                     f'{mode}/hCorrelation3050StatAndSyst',
-                     f'{mode}/hCorrelationDirectComputation1050StatAndSyst',
-                     f'{mode}/hCorrelation5080StatAndSyst',
-                     f'{mode}/hCorrelationDirectComputation080StatAndSyst',
-                     f'{mode}/hCorrelationDirectComputation1080StatAndSyst',
-                    ]
-    
-    mixed_event_input_path = [DATA_INPUT_PATH] * 8
-    h_mixed_event_names = [f'Correlation{mode}/{SELECTION}/hNormalisedMixedEvent050', 
-                           f'Correlation{mode}/{SELECTION}/hNormalisedMixedEvent010', 
-                           f'Correlation{mode}/{SELECTION}/hNormalisedMixedEvent1030',
-                           f'Correlation{mode}/{SELECTION}/hNormalisedMixedEvent3050',
-                           f'Correlation{mode}/{SELECTION}/hNormalisedMixedEventDirectComputation1050',
-                           f'Correlation{mode}/{SELECTION}/hNormalisedMixedEvent5080',
-                           f'Correlation{mode}/{SELECTION}/hNormalisedMixedEventDirectComputation080',
-                           f'Correlation{mode}/{SELECTION}/hNormalisedMixedEventDirectComputation1080',
-                          ]
+    hist_names = _lambda_hist_names(mode_dir, '{mode_dir}/{cent}/hLambdaSigmaCorrectedCk_Smeared')
+    bkg_paths = [f'models/{prefix}_lambda_models.root'] * 8
         
-    print(tc.BLUE + f'Preparing centrality dict for mode {mode}' + tc.RESET)
-    print(tc.BLUE + f'Bkg paths: {bkg_paths}' + tc.RESET)
-    print(tc.BLUE + f'Hist names: {hist_names}' + tc.RESET)
-    
+    data_input_path = [DATA_INPUT_PATH] * 8
+    h_data_names = [(f'Correlation{mode}/{SELECTION}/hCorrelation{cent}' if (cent != '1050' and cent != '080' and cent != '1080') else 
+                     f'Correlation{mode}/{SELECTION}/hCorrelationDirectComputation{cent}') for cent in CENTRALITY_BINS]
+        
+    mixed_event_input_path = [DATA_INPUT_PATH] * 8
+    h_mixed_event_names = [f'Correlation{mode}/{SELECTION}/hNormalisedMixedEvent{cent}' if (cent != '1050' and cent != '080' and cent != '1080') else
+                           f'Correlation{mode}/{SELECTION}/hNormalisedMixedEventDirectComputation{cent}' for cent in CENTRALITY_BINS]
+    h_same_event_names = [f'Correlation{mode}/{SELECTION}/hSameEvent{cent}' if (cent != '1050' and cent != '080' and cent != '1080') else
+                          f'Correlation{mode}/{SELECTION}/hSameEventDirectComputation{cent}' for cent in CENTRALITY_BINS]
+
     return {
-        'name': [f'{mode}050', 
-                 f'{mode}010', f'{mode}1030', f'{mode}3050',
-                 f'{mode}1050', f'{mode}5080', f'{mode}080', f'{mode}1080'
-                 ],
+        'name': [f'{mode}{cent}' for cent in CENTRALITY_BINS],
         'bkg_input_path': bkg_paths,
         'h_bkg_name': hist_names,
         'data_input_path': data_input_path,
         'h_data_name': h_data_names,
         'mixed_event_input_path': mixed_event_input_path,
+        'h_same_event_name': h_same_event_names,
         'h_mixed_event_name': h_mixed_event_names,
     }
-    
-AVAILABLE_BKGS = [
-    'nominal/hLambdaSigmaCorrectedCk_Smeared_nominal',
-    'nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_higher',
-    'nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_lower',
-    'upper/hLambdaSigmaCorrectedCk_Smeared_upper',
-    'upper/hLambdaSigmaCorrectedCk_Smeared_upper_higher',
-    'upper/hLambdaSigmaCorrectedCk_Smeared_upper_lower',
-    'lower/hLambdaSigmaCorrectedCk_Smeared_lower',
-    'lower/hLambdaSigmaCorrectedCk_Smeared_lower_higher',
-    'lower/hLambdaSigmaCorrectedCk_Smeared_lower_lower',
-]
 
 def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str, mixed_event_input_path:str, 
-                    h_bkg_name:str, h_data_name:str, h_mixed_event_name:str,
+                    h_bkg_name:str, h_data_name:str, h_same_event_name:str, h_mixed_event_name:str,
                     output_pdf:str, mode:str='', centrality:str='',
-                    use_smoothening:bool=False, run_variations:bool=False,
+                    use_smoothening:bool=False, run_variations:bool=False, run_sigma_variations:bool=False,
                    variations_bkg_path:str=''):
 
     workspace = RooWorkspace('roows')
@@ -179,19 +111,35 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
     print(tc.CYAN + f'Correlation function histogram: {h_data_name} from {data_input_path}' + tc.RESET)
     print(tc.CYAN + f'Mixed event histogram: {h_mixed_event_name} from {mixed_event_input_path}' + tc.RESET)
     
+    if not SIGNAL_HIST_LOAD_INFO.hist_file_path or not SIGNAL_HIST_LOAD_INFO.hist_name:
+        raise ValueError('Signal histogram file path and name must be provided in SIGNAL_HIST_LOAD_INFO.')
+    if not SYSTEMATICS_FILE_PATH:
+        raise ValueError('Systematics file path must be provided in SYSTEMATICS_FILE_PATH.')
+    if not AVAILABLE_BKGS:
+        raise ValueError('List of available backgrounds must be provided in AVAILABLE_BKGS.')
+    if not AVAILABLE_SIGNALS:
+        raise ValueError('List of available signals must be provided in AVAILABLE_SIGNALS.')
+    if not INPUT_SUFFIX:
+        raise ValueError('INPUT_SUFFIX must be provided in the configuration.')
+
+    
+    sign = 'Both' if mode == '' else mode
     h_bkg = load_hist(bkg_input_path, h_bkg_name)
     h_signal = load_hist(SIGNAL_HIST_LOAD_INFO)
     h_correlation_function = load_hist(data_input_path, h_data_name)
     h_mixed_event = load_hist(mixed_event_input_path, h_mixed_event_name)
+    h_same_event = load_hist(data_input_path, h_same_event_name)
+    h_systematics_name = f'Correlation{mode}/{centrality}/hCorrelationSyst{centrality}'
+    h_systematics = load_hist(SYSTEMATICS_FILE_PATH, h_systematics_name)
 
     is_first_bin_empty = h_correlation_function.GetBinContent(1) < 1e-12
-    KSTAR_MIN, KSTAR_MAX = (0.02, 0.4) if is_first_bin_empty else (0.01, 0.4)
+    KSTAR_MIN, KSTAR_MAX = (0.02, 0.4) if is_first_bin_empty else (0., 0.4)
     kstar_spec = AxisSpec(100, KSTAR_MIN, KSTAR_MAX, 'kstar', '#it{k}* (GeV/#it{c})')
     
     signal_fitter = SignalFitter('signal', kstar_spec, outfile, workspace)
     signal_init_mode = 'from_mc' if not use_smoothening else 'from_kde'
     print(f'{h_signal=}')
-    signal_fitter.init_signal(signal_init_mode, h_signal)
+    signal_fitter.init_signal(signal_init_mode, h_signal, rho=3)
     signal_fitter.title = '^{4}Li'
     signal_fitter.save_to_workspace()
 
@@ -203,6 +151,10 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
 
     model_fitter = ModelFitter('model', kstar_spec, outfile, ['signal_pdf'], ['bkg_pdf'], workspace, 
                                extended=True, title='^{4}Li + interaction')
+    
+    model_fitter.REFERENCE_KSTAR_VALUE_FOR_BKG_NORMALIZATION = 0.31 # GeV/c - arbitrary value in the region where the background is expected to be dominant to perform the normalisation
+    model_fitter.REFERENCE_KSTAR_VALUE_FOR_SIGNAL_NORMALIZATION = 0.07 # GeV/c - arbitrary value in the region where the signal is expected to be dominant to perform the normalisation
+    model_fitter.KSTAR_MAX_SIGNIFICANCE = 0.23 # GeV/c - arbitrary value in the region where the signal is expected to be dominant to perform the significance calculation
 
     model_fitter.fractions['signal_pdf'].setRange(0., 1.)
     model_fitter.fractions['signal_pdf'].setVal(0.3)
@@ -217,18 +169,25 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
                                    save_normalisation_value=True) #, use_chi2_method=False)
     model_fitter.fit_model(h_correlation_function, signal_name='signal_pdf', norm_range='bkg_fit_range',
                            data_label=sign_label)
+    bkg_normalisation_value = model_fitter.get_bkg_value_at_reference_kstar()
     model_fitter.save_to_workspace()
-    model_fitter.compute_chi2(h_correlation_function)
-    model_fitter.compute_raw_yield(h_mixed_event, 'signal_pdf', 'bkg_pdf')
-    plot_correlation_over_nsigma(outfile, output_pdf, [KSTAR_MIN, KSTAR_MAX], mode, centrality)
+    model_fitter.compute_chi2(h_correlation_function, h_systematics)
+    model_fitter.compute_raw_yield(h_same_event, h_mixed_event, 'signal_pdf', 'bkg_pdf')
+    #plot_correlation_over_nsigma(outfile, output_pdf, [KSTAR_MIN, KSTAR_MAX], mode, centrality)
+    plot_correlation_over_nsigma(outfile, output_pdf, [0.001, KSTAR_MAX], sign, centrality, 
+                                 #use_systematics=False
+                                 available_bkgs=AVAILABLE_BKGS, bkg_file_path=variations_bkg_path, 
+                                 normalisation_value=bkg_normalisation_value,
+                                 use_systematics=True if h_systematics is not None else False
+                                 )
     del workspace, signal_fitter, bkg_fitter, model_fitter
 
     if run_variations:
         h_raw_yields = TH1F('hRawYieldVariations', 'Raw yield variations;Raw yield;Counts', 1600, -200, 1400)
+        raw_yields = []
         h_raw_yields_radii = TH1F('hRawYieldVariationsRadii', 'Raw yield variations;Raw yield;Counts', 1600, -200, 1400)
         h_raw_yields_lambda = TH1F('hRawYieldVariationsLambda', 'Raw yield variations;Raw yield;Counts', 1600, -200, 1400)
         prefix = INPUT_SUFFIX if INPUT_SUFFIX != 'PbPb' else 'LHC25_PbPb_pass1'
-        sign = 'Both' if mode == '' else mode
 
         for i, bkg_rel_name in enumerate(AVAILABLE_BKGS):
             var_bkg_name = f'{sign}/{centrality}/{bkg_rel_name}'
@@ -236,7 +195,7 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
             var_workspace = RooWorkspace('roows_var')
 
             var_signal_fitter = SignalFitter('signal', kstar_spec, var_dir, var_workspace)
-            var_signal_fitter.init_signal(signal_init_mode, h_signal)
+            var_signal_fitter.init_signal(signal_init_mode, h_signal) #, rho=0.1)
             var_signal_fitter.title = '^{4}Li'
             var_signal_fitter.save_to_workspace()
 
@@ -259,10 +218,11 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
             var_model_fitter.fit_model(h_correlation_function, signal_name='signal_pdf',
                                        norm_range='bkg_fit_range', data_label=sign_label)
             var_model_fitter.save_to_workspace()
-            var_model_fitter.compute_chi2(h_correlation_function)
-            var_raw_yield = var_model_fitter.compute_raw_yield(h_mixed_event, 'signal_pdf', 'bkg_pdf')
+            var_model_fitter.compute_chi2(h_correlation_function, h_systematics)
+            var_raw_yield = var_model_fitter.compute_raw_yield(h_same_event, h_mixed_event, 'signal_pdf', 'bkg_pdf')
 
             h_raw_yields.Fill(var_raw_yield)
+            raw_yields.append(var_raw_yield)
             if 'nominal' in bkg_rel_name: # nominal radius
                 h_raw_yields_lambda.Fill(var_raw_yield)
 
@@ -270,56 +230,124 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
                 h_raw_yields_radii.Fill(var_raw_yield)
             
             del var_workspace, var_signal_fitter, var_bkg_fitter, var_model_fitter
+        
+        if run_sigma_variations:
+            h_sigma_raw_yields = TH1F('hRawYieldSigmaVariations', 'Raw yield variations;Raw yield;Counts', 1600, -200, 1400)
+            sign = 'Both' if mode == '' else mode
+            
+            for i, signal_name in enumerate(AVAILABLE_SIGNALS):
+                var_dir = outfile.mkdir(f'sigma_variations/var_{i}')
+                var_workspace = RooWorkspace('roows_var')
+            
+                var_signal_fitter = SignalFitter('signal', kstar_spec, var_dir, var_workspace)
+                h_var_signal = load_hist(SIGNAL_HIST_LOAD_INFO.hist_file_path, signal_name)
+                var_signal_fitter.init_signal(signal_init_mode, h_var_signal) #, rho=0.1)
+                var_signal_fitter.title = '^{4}Li'
+                var_signal_fitter.save_to_workspace()
+            
+                var_bkg_fitter = BkgFitter('bkg', kstar_spec, var_dir, var_workspace)
+                var_bkg_fitter.init_bkg(bkg_init_mode, h_bkg, rho=0.1)
+                var_bkg_fitter.title = 'Coulomb + strong interaction'
+                var_bkg_fitter.save_to_workspace()
+            
+                var_model_fitter = ModelFitter('model', kstar_spec, var_dir, ['signal_pdf'], ['bkg_pdf'], var_workspace,
+                                               extended=True, title='^{4}Li + interaction')
+                var_model_fitter.fractions['signal_pdf'].setRange(0., 1.)
+                var_model_fitter.fractions['signal_pdf'].setVal(0.3)
+                signal_suffix = "#sigma + 10%" if 'SigmaUp' in signal_name else ("#sigma - 10%" if 'SigmaDown' in signal_name else "")
+                var_model_fitter.fractions['signal_pdf'].SetTitle('#it{A}_{^{4}Li}'+f' ({signal_suffix})')
+                var_model_fitter.fractions['bkg_pdf'].SetTitle('#it{A}_{Coulomb + strong}')
+            
+                var_model_fitter.load_data(h_correlation_function, h_correlation_function.GetName())
+                var_model_fitter.prefit_background(h_correlation_function, range_limits=(0.2, 0.4),
+                                                   range_name='bkg_fit_range', save_normalisation_value=True)
+                var_model_fitter.fit_model(h_correlation_function, signal_name='signal_pdf',
+                                           norm_range='bkg_fit_range', data_label=sign_label)
+                var_model_fitter.save_to_workspace()
+                var_model_fitter.compute_chi2(h_correlation_function, h_systematics)
+                var_raw_yield = var_model_fitter.compute_raw_yield(h_same_event, h_mixed_event, 'signal_pdf', 'bkg_pdf')
+            
+                h_sigma_raw_yields.Fill(var_raw_yield)
+                
+                del var_workspace, var_signal_fitter, var_bkg_fitter, var_model_fitter
 
+        canvas = TCanvas('cRawYieldVariations', 'Raw yield variations', 800, 600)
+        h_raw_yields.Draw()
+        std_dev = np.std(raw_yields, ddof=1)
+        text = TLatex(0.15, 0.85, f'#sigma = {std_dev:.2f}')
+        text.SetNDC()
+        text.SetTextSize(0.04)
+        text.Draw()
+        
         outfile.cd()
         h_raw_yields.Write()
+        h_sigma_raw_yields.Write()
         h_raw_yields_radii.Write()
         h_raw_yields_lambda.Write()
+        canvas.Write()
+        
 
 if __name__ == '__main__':
 
     gStyle.SetOptStat(0)
-    use_systematics = False
-    use_smoothening = True
-    plus_10_percent = False
-    minus_10_percent = False
-    finer_binning = True
     
-    smeared_lambda = True
-    upper_radius = False
-    lower_radius = False
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', default='configs/fit_correlation_PbPb.yaml',
+                        help='Path to YAML config file')
+    args, _ = parser.parse_known_args()
 
-    systematics_suffix = '_with_systematics' if use_systematics else ''
-    smoothening_suffix = '_smoothened' if use_smoothening else ''
-    plus_10_percent_suffix = '_plus_10_percent' if plus_10_percent else ''
-    minus_10_percent_suffix = '_minus_10_percent' if minus_10_percent else ''
-    finer_binning_suffix = '_finer_binning' if finer_binning else ''
-    smeared_lambda_suffix = '_smeared_lambda' if smeared_lambda else ''
-    upper_radius_suffix = '_upper_radius' if upper_radius else ''
-    lower_radius_suffix = '_lower_radius' if lower_radius else ''
+    cfg = load_yaml(args.config)
 
-    outfile = TFile(f'output/{INPUT_SUFFIX}{SELECTION_SUFFIX}_fit_correlation_function_hadronpid_{systematics_suffix}{upper_radius_suffix}{smoothening_suffix}{lower_radius_suffix}{plus_10_percent_suffix}{minus_10_percent_suffix}{finer_binning_suffix}{smeared_lambda_suffix}.root', 'recreate')
+    HIST_BKG_NAME = cfg['data'].get('bkg_hist_name', 'hHe3_p_Coul_CF')
+    DATA_INPUT_PATH = cfg['data']['input_path']
+    INPUT_SUFFIX = cfg['data']['suffix']
+    SELECTION = cfg['data']['selection']
+    SELECTION_SUFFIX = f'_{SELECTION}' if SELECTION != 'Default' else ''
+
+    AVAILABLE_BKGS = cfg['available_bkgs']
+    AVAILABLE_SIGNALS = cfg['available_signals']
+    SYSTEMATICS_FILE_PATH = cfg['systematics_file']
+    CENTRALITY_BINS = cfg['centrality_bins']
+    
+    opts = FitOptions(**cfg['fit_options'])
+    
+    suffix = opts.suffix()
+    lambda_suffix = opts.lambda_suffix()
+    
+    SIGNAL_HIST_LOAD_INFO = HistLoadInfo('models/li4_contribution_proper_sill.root', 'hCkHist' if not opts.ground_state_only else  'hCkHist_GroundStateOnly')
+
+    outfile = TFile(f'output/{INPUT_SUFFIX}{SELECTION_SUFFIX}_fit_correlation_function_hadronpid_{suffix}.root', 'recreate')
 
     for mode in ['', 'Matter', 'Antimatter']:
         
-        CENTRALITIES = prepare_centrality_dict(mode, use_systematics=use_systematics, upper_radius=upper_radius, lower_radius=lower_radius,
-                                               plus_10_percent=plus_10_percent, minus_10_percent=minus_10_percent, smeared_lambda=smeared_lambda)
+        CENTRALITIES = prepare_centrality_dict(mode, opts)
         
-        for name, bkg_input_path, h_bkg_name, data_input, h_data_name, mixed_event_input_path, h_mixed_event_name in zip(CENTRALITIES['name'], CENTRALITIES['bkg_input_path'], 
-                                                                 CENTRALITIES['h_bkg_name'], CENTRALITIES['data_input_path'], CENTRALITIES['h_data_name'], CENTRALITIES['mixed_event_input_path'], CENTRALITIES['h_mixed_event_name']):
+        for (name, bkg_input_path, h_bkg_name, data_input, h_data_name, 
+             mixed_event_input_path, h_same_event_name, h_mixed_event_name) in zip(
+                 CENTRALITIES['name'], CENTRALITIES['bkg_input_path'], CENTRALITIES['h_bkg_name'], 
+                 CENTRALITIES['data_input_path'], CENTRALITIES['h_data_name'], 
+                 CENTRALITIES['mixed_event_input_path'], CENTRALITIES['h_same_event_name'], 
+                 CENTRALITIES['h_mixed_event_name']):
 
             #if '050' in name and '3' not in name:
             #    continue
             
             outdir = outfile.mkdir(name)
             centrality = name.replace(mode, '') if mode != '' else name
-            output_pdf = f'figures/{INPUT_SUFFIX}{SELECTION_SUFFIX}/fit_correlation_function_hadronpid_{name}{systematics_suffix}{upper_radius_suffix}{smoothening_suffix}{lower_radius_suffix}{plus_10_percent_suffix}{minus_10_percent_suffix}{finer_binning_suffix}{smeared_lambda_suffix}.pdf' 
 
             print('\n\n', tc.GREEN + f'Fitting correlation function for mode {mode}, centrality {centrality}' + tc.RESET)
             prefix = INPUT_SUFFIX if INPUT_SUFFIX != 'PbPb' else 'LHC25_PbPb_pass1'
-            fitting_routine(outdir, bkg_input_path=bkg_input_path, data_input_path=data_input, mixed_event_input_path=mixed_event_input_path, 
-                            h_bkg_name=h_bkg_name, h_data_name=h_data_name, h_mixed_event_name=h_mixed_event_name,
+            
+            #INPUT_MODELS_PATH = f'models/{prefix}_lambda_models{lambda_to_one_suffix}{lambda_to_zero_suffix}.root'
+            INPUT_MODELS_PATH = f'models/lambda_models{lambda_suffix}.root'
+            output_pdf = f'figures/{INPUT_SUFFIX}{SELECTION_SUFFIX}/fit_correlation_function_hadronpid_{name}{suffix}.pdf' 
+            
+            fitting_routine(outdir, bkg_input_path=INPUT_MODELS_PATH, data_input_path=data_input, mixed_event_input_path=mixed_event_input_path, 
+                            h_bkg_name=h_bkg_name, h_data_name=h_data_name, h_same_event_name=h_same_event_name, h_mixed_event_name=h_mixed_event_name,
                             output_pdf=output_pdf, mode=mode, centrality=centrality,
-                            use_smoothening=use_smoothening, run_variations=True, variations_bkg_path=f'models/{prefix}_lambda_models.root')
+                            use_smoothening=opts.use_smoothening, run_variations=True, run_sigma_variations=True, 
+                            variations_bkg_path=INPUT_MODELS_PATH)
     
+    print('Output written to', tc.CYAN+outfile.GetName()+tc.RESET)
     outfile.Close()

@@ -1,0 +1,41 @@
+data:
+  input_path: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root
+  suffix: PbPb
+  selection: Default
+
+centrality_bins:
+  - '050'
+  - '010'
+  - '1030'
+  - '3050'
+  - '1050'
+  - '5080'
+  - '080'
+  - '1080'
+
+fit_options:
+  ground_state_only: false
+  use_smoothening: true
+  finer_binning: true
+  lambda_to_one: false
+  lambda_to_zero: false
+  lambda_variation: 10
+  match_ratio: false
+
+available_bkgs:
+  - nominal/hLambdaSigmaCorrectedCk_Smeared_nominal
+  - nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_higher
+  - nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_lower
+  - upper/hLambdaSigmaCorrectedCk_Smeared_upper
+  - upper/hLambdaSigmaCorrectedCk_Smeared_upper_higher
+  - upper/hLambdaSigmaCorrectedCk_Smeared_upper_lower
+  - lower/hLambdaSigmaCorrectedCk_Smeared_lower
+  - lower/hLambdaSigmaCorrectedCk_Smeared_lower_higher
+  - lower/hLambdaSigmaCorrectedCk_Smeared_lower_lower
+
+available_signals:
+  - hCkHist
+  - hCkHist_SigmaUp
+  - hCkHist_SigmaDown
+
+systematics_file: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root

@@ -1,0 +1,61 @@
+# configs/lambda_models_010.yaml
+lambda_modification_factor: 0.1
+lambda_variation: 0.10
+
+centrality_bins:
+  - '010'
+  - '1030'
+  - '3050'
+  - '5080'
+  - '050'
+  - '080'
+  - '1050'
+  - '1080'
+
+paths:
+  lambda_parameters: /home/galucia/Lithium4/calibration/output/lambda_parameters.root
+  resolution: /data/galucia/lithium/MC/AnalysisResults_LHC25g11.root
+  mixed_event_reference: /home/galucia/Lithium4/preparation/output/PbPb/LHC25_PbPb_pass1_hadronpid_event_mixing.root
+  output_model: /home/galucia/Lithium4/femto/models/lambda_models_10.root
+
+ck_input:
+  root_file: /home/galucia/phemto/output/pHe3_square_well_recomputed_rescaled.root
+  centralities:
+    '010': hcats_CF_r=6.12_fm
+    '1030': hcats_CF_r=5.18_fm
+    '3050': hcats_CF_r=4.09_fm
+    '5080': hcats_CF_r=3.05_fm
+    '050': hcats_CF_r=5.52_fm
+    '080': hcats_CF_r=5.50_fm
+    '1050': hcats_CF_r=4.90_fm
+    '1080': hcats_CF_r=4.91_fm
+  variations:
+    '010': {nominal: hcats_CF_r=6.12_fm, lower: hcats_CF_r=5.44_fm, upper: hcats_CF_r=6.80_fm}
+    '1030': {nominal: hcats_CF_r=5.18_fm, lower: hcats_CF_r=4.57_fm, upper: hcats_CF_r=5.80_fm}
+    '3050': {nominal: hcats_CF_r=4.09_fm, lower: hcats_CF_r=3.54_fm, upper: hcats_CF_r=4.64_fm}
+    '5080': {nominal: hcats_CF_r=3.05_fm, lower: hcats_CF_r=2.56_fm, upper: hcats_CF_r=3.54_fm}
+    '050':  {nominal: hcats_CF_r=5.52_fm, lower: hcats_CF_r=5.14_fm, upper: hcats_CF_r=5.90_fm}
+    '080':  {nominal: hcats_CF_r=5.50_fm, lower: hcats_CF_r=5.12_fm, upper: hcats_CF_r=5.88_fm}
+    '1050': {nominal: hcats_CF_r=4.90_fm, lower: hcats_CF_r=4.30_fm, upper: hcats_CF_r=5.50_fm}
+    '1080': {nominal: hcats_CF_r=4.91_fm, lower: hcats_CF_r=4.42_fm, upper: hcats_CF_r=5.40_fm}
+
+sigma_ck_input:
+  root_file: /home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root
+  centralities:
+    '010': hhe3_Sigma_plus_CF_r=6.12_fm
+    '1030': hhe3_Sigma_plus_CF_r=5.18_fm
+    '3050': hhe3_Sigma_plus_CF_r=4.09_fm
+    '5080': hhe3_Sigma_plus_CF_r=3.05_fm
+    '050': hhe3_Sigma_plus_CF_r=5.52_fm
+    '080': hhe3_Sigma_plus_CF_r=5.50_fm
+    '1050': hhe3_Sigma_plus_CF_r=4.90_fm
+    '1080': hhe3_Sigma_plus_CF_r=4.91_fm
+  variations:
+    '010': {nominal: hhe3_Sigma_plus_CF_r=6.12_fm, lower: hhe3_Sigma_plus_CF_r=5.44_fm, upper: hhe3_Sigma_plus_CF_r=6.80_fm}
+    '1030': {nominal: hhe3_Sigma_plus_CF_r=5.18_fm, lower: hhe3_Sigma_plus_CF_r=4.57_fm, upper: hhe3_Sigma_plus_CF_r=5.80_fm}
+    '3050': {nominal: hhe3_Sigma_plus_CF_r=4.09_fm, lower: hhe3_Sigma_plus_CF_r=3.54_fm, upper: hhe3_Sigma_plus_CF_r=4.64_fm}
+    '5080': {nominal: hhe3_Sigma_plus_CF_r=3.05_fm, lower: hhe3_Sigma_plus_CF_r=2.56_fm, upper: hhe3_Sigma_plus_CF_r=3.54_fm}
+    '050':  {nominal: hhe3_Sigma_plus_CF_r=5.52_fm, lower: hhe3_Sigma_plus_CF_r=5.14_fm, upper: hhe3_Sigma_plus_CF_r=5.90_fm}
+    '080':  {nominal: hhe3_Sigma_plus_CF_r=5.50_fm, lower: hhe3_Sigma_plus_CF_r=5.12_fm, upper: hhe3_Sigma_plus_CF_r=5.88_fm}
+    '1050': {nominal: hhe3_Sigma_plus_CF_r=4.90_fm, lower: hhe3_Sigma_plus_CF_r=4.30_fm, upper: hhe3_Sigma_plus_CF_r=5.50_fm}
+    '1080': {nominal: hhe3_Sigma_plus_CF_r=4.91_fm, lower: hhe3_Sigma_plus_CF_r=4.42_fm, upper: hhe3_Sigma_plus_CF_r=5.40_fm}

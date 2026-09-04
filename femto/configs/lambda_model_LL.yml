@@ -1,0 +1,26 @@
+# configs/lambda_models_010.yaml
+lambda_modification_factor: 0.1
+lambda_variation: 0.10
+
+centrality_bins:
+  - '010'
+  - '1050'
+
+paths:
+  lambda_parameters: /home/galucia/Lithium4/calibration/output/lambda_parameters.root
+  resolution: /data/galucia/lithium/MC/AnalysisResults_LHC25g11.root
+  mixed_event_reference: /home/galucia/Lithium4/preparation/output/PbPb/LHC25_PbPb_pass1_hadronpid_event_mixing.root
+  output_model: /home/galucia/Lithium4/femto/models/lambda_models_LL_10.root
+
+ck_input:
+  root_file: /home/galucia/PhaseShiftAnalysis/numerical_lednicky/pHe/output/comparison_pHe3_LL.root
+  centralities:
+    '010': Rs4.33/combined/combined_4.33_aRe-9.06_aIm0.00_r1.36
+    '1050': Rs3.46/combined/combined_3.46_aRe-9.06_aIm0.00_r1.36
+  
+sigma_ck_input:
+  root_file: /home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root
+  centralities:
+    '010': hhe3_Sigma_plus_CF_r=6.12_fm
+    '1050': hhe3_Sigma_plus_CF_r=4.90_fm
+  
