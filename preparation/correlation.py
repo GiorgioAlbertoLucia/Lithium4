@@ -1,26 +1,57 @@
-
+from array import array
 from ROOT import TFile, TH1F, TDirectory, TCanvas, TDirectory, TF1
 from torchic.utils.root import set_root_object
+from torchic.utils.terminal_colors import TerminalColors as tc
 
 NORM_LOW_KSTAR = 0.2 # 0.25
 NORM_HIGH_KSTAR = 0.4 # 0.8
 NBINS_KSTAR = 40 # 20
 
+def get_adaptive_bin_edges(x_max: float, mid_edge: float = 0.15,
+                            width_low: float = 0.02, width_high: float = 0.01) -> array:
+    """
+    Build variable-width bin edges: `width_low`-wide bins from 0 up to `mid_edge`,
+    then `width_high`-wide bins from `mid_edge` up to `x_max`.
+    Returns an array('d', ...) suitable for TH1::Rebin(nbins, name, edges).
+    """
+    edges = []
+    x = 0.
+    while x < mid_edge - 1e-9:
+        edges.append(round(x, 10))
+        x += width_low
+
+    x = mid_edge
+    while x < x_max - 1e-9:
+        edges.append(round(x, 10))
+        x += width_high
+    edges.append(round(x_max, 10))
+
+    return array('d', edges)
+
 def normalise_histograms_and_compute_correlation_no_centrality(infile_sames, infile_mixeds, outdir:TDirectory,
-                                                 mode:str, rebin:int=1, suffix:str=''):
+                                                 mode:str, rebin:int=1, suffix:str='', adaptive_binning:bool=False):
 
     h_same = infile_sames[0].Get(f'QA/hKstar{mode}').Clone(f'hSameEvent')
     h_same.SetDirectory(0)  # Detach from file to avoid issues with deletion
     for infile_same in infile_sames[1:]:
         h_same.Add(infile_same.Get(f'QA/hKstar{mode}'))
-    if rebin > 1:
+    if adaptive_binning:
+        bin_edges = get_adaptive_bin_edges(h_same.GetXaxis().GetXmax())
+        h_same = h_same.Rebin(len(bin_edges) - 1, 'hSameEvent', bin_edges)
+        h_same.SetDirectory(0)
+    elif rebin > 1:
         h_same.Rebin(rebin)
 
+    print(f'Getting: {tc.CYAN+tc.UNDERLINE}QA/hKstar{mode}{tc.RESET} from {len(infile_mixeds)} mixed event files')
     h_mixed = infile_mixeds[0].Get(f'QA/hKstar{mode}').Clone(f'hMixedEvent')
     h_mixed.SetDirectory(0)  # Detach from file to avoid issues with deletion
     for infile_mixed in infile_mixeds[1:]:
         h_mixed.Add(infile_mixed.Get(f'QA/hKstar{mode}'))
-    if rebin > 1:
+    if adaptive_binning:
+        bin_edges = get_adaptive_bin_edges(h_mixed.GetXaxis().GetXmax())
+        h_mixed = h_mixed.Rebin(len(bin_edges) - 1, 'hMixedEvent', bin_edges)
+        h_mixed.SetDirectory(0)
+    elif rebin > 1:
         h_mixed.Rebin(rebin)
     h_normalised_mixed = h_mixed.Clone(f'hNormalisedMixedEvent')
 
@@ -43,20 +74,29 @@ def normalise_histograms_and_compute_correlation_no_centrality(infile_sames, inf
     return h_same, h_mixed, h_normalised_mixed, h_corr
 
 def normalise_histograms_and_compute_correlation(infile_sames, infile_mixeds, outdir:TDirectory,
-                                                 mode:str, centrality:str, rebin:int=1, suffix:str=''):
+                                                 mode:str, centrality:str, rebin:int=1, suffix:str='',
+                                                 adaptive_binning:bool=False):
 
     h_same = infile_sames[0].Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}').Clone(f'hSameEvent{centrality}')
     h_same.SetDirectory(0)  # Detach from file to avoid issues with deletion
     for infile_same in infile_sames[1:]:
         h_same.Add(infile_same.Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}'))
-    if rebin > 1:
+    if adaptive_binning:
+        bin_edges = get_adaptive_bin_edges(h_same.GetXaxis().GetXmax())
+        h_same = h_same.Rebin(len(bin_edges) - 1, f'hSameEvent{centrality}', bin_edges)
+        h_same.SetDirectory(0)
+    elif rebin > 1:
         h_same.Rebin(rebin)
 
     h_mixed = infile_mixeds[0].Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}').Clone(f'hMixedEvent{centrality}')
     h_mixed.SetDirectory(0)  # Detach from file to avoid issues with deletion
     for infile_mixed in infile_mixeds[1:]:
         h_mixed.Add(infile_mixed.Get(f'kstar{mode}/hKstar{centrality}{suffix}{mode}'))
-    if rebin > 1:
+    if adaptive_binning:
+        bin_edges = get_adaptive_bin_edges(h_mixed.GetXaxis().GetXmax())
+        h_mixed = h_mixed.Rebin(len(bin_edges) - 1, f'hMixedEvent{centrality}', bin_edges)
+        h_mixed.SetDirectory(0)
+    elif rebin > 1:
         h_mixed.Rebin(rebin)
     h_normalised_mixed = h_mixed.Clone(f'hNormalisedMixedEvent{centrality}')
 
@@ -191,22 +231,34 @@ if __name__ == '__main__':
     #outfile_path = 'output/correlation.root'
 
     infile_same_paths = [
-        'output/PbPb/LHC23_PbPb_pass5_hadronpid_same.root',
-        'output/PbPb/LHC24ar_pass3_hadronpid_same.root',
-        'output/PbPb/LHC25_PbPb_pass1_hadronpid_same.root',
+        #'output/PbPb/LHC23_PbPb_pass5_hadronpid_same.root',
+        #'output/PbPb/LHC24ar_pass3_hadronpid_same.root',
+        #'output/PbPb/LHC25_PbPb_pass1_hadronpid_same.root',
+        #'checks/PbPb/LHC25_PbPb_pass1_hadronpid_same_skip_he3_pt_bin.root',
+        'output/pp/LHC24_pass1_skimmed_hadronpid_same.root',
+        'output/pp/LHC25_pass1_skimmed_hadronpid_same.root',
         ]
     infile_mixed_paths = [
-        'output/PbPb/LHC23_PbPb_pass5_hadronpid_event_mixing.root',
-        'output/PbPb/LHC24ar_pass3_hadronpid_event_mixing.root',
-        'output/PbPb/LHC25_PbPb_pass1_hadronpid_event_mixing.root',
+        #'output/PbPb/LHC23_PbPb_pass5_hadronpid_event_mixing.root',
+        #'output/PbPb/LHC24ar_pass3_hadronpid_event_mixing.root',
+        #'output/PbPb/LHC25_PbPb_pass1_hadronpid_event_mixing.root',
+        #'checks/PbPb/LHC25_PbPb_pass1_hadronpid_event_mixing_skip_he3_pt_bin.root',
+        #'checks/PbPb/LHC25_PbPb_pass1_hadronpid_event_mixing_depth5.root',
+        'output/pp/LHC24_pass1_skimmed_hadronpid_event_mixing.root',
+        'output/pp/LHC25_pass1_skimmed_hadronpid_event_mixing.root',
         ]
     outfile_path = (
         #'output/PbPb/correlation_LHC23_PbPb_pass5_hadronpid.root'
         #'output/PbPb/correlation_LHC24ar_pass3_hadronpid.root' 
         #'output/PbPb/correlation_LHC25_PbPb_pass1_hadronpid.root'
-        'output/PbPb/correlation_PbPb_hadronpid.root'
+        #'output/PbPb/correlation_PbPb_hadronpid.root'
+        #'checks/PbPb/correlation_LHC25_PbPb_pass1_hadronpid_depth5.root'
+        #'checks/PbPb/correlation_LHC25_PbPb_pass1_hadronpid_skip_he3_pt_bin.root'
         #'output/PbPb/correlation_LHC23_PbPb_pass5_LHC24ar_pass3_hadronpid.root'
+        'output/pp/correlation_pp_hadronpid.root'
         )
+    
+    ADAPTIVE_BINNING = False
 
     infile_sames = [TFile.Open(infile_same_path) for infile_same_path in infile_same_paths]
     infile_mixeds = [TFile.Open(infile_mixed_path) for infile_mixed_path in infile_mixed_paths]
@@ -218,12 +270,13 @@ if __name__ == '__main__':
 
         h_sames, h_mixeds, h_normalised_mixeds, h_corrs = [], [], [], []
 
-        normalise_histograms_and_compute_correlation_no_centrality(infile_sames, infile_mixeds, outdir, mode, rebin=2)
+        normalise_histograms_and_compute_correlation_no_centrality(infile_sames, infile_mixeds, outdir, mode, rebin=2, adaptive_binning=ADAPTIVE_BINNING)
         
-        if False:
+        if True:
             continue
             
-        for suffix in ['', 'PLiGreaterThan3',
+        for suffix in ['', 
+                       #'PLiGreaterThan3',
                        #'SharedUnder50', 'SharedUnder40', 'SharedUnder30', 'PLi2', 'PLi3', 'PLi4', 'PLi5',
                        #'PLiUnder2', 
                        #'PLiUnder3', 'PLiUnder4', 'PLiUnder5', 'PtHadronUnder1p0', 'PtHadronUnder1p1', 'PtHadronUnder1p2'
@@ -236,7 +289,8 @@ if __name__ == '__main__':
 
                 h_same, h_mixed, h_normalised_mixed, h_corr = normalise_histograms_and_compute_correlation(
                                                                     infile_sames, infile_mixeds, outdir_suffix, 
-                                                                    mode, centrality, rebin=2, suffix=suffix)
+                                                                    mode, centrality, rebin=2, suffix=suffix,
+                                                                    adaptive_binning=ADAPTIVE_BINNING)
                 #if suffix == '':
                 fit_normalisation_region(h_corr, outdir_suffix, mode, centrality, suffix)
                 h_sames.append(h_same)
