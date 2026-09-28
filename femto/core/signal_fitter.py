@@ -1,4 +1,5 @@
 import numpy as np
+from array import array
 from ROOT import TFile, TCanvas, TH1F, TTree, \
                  RooRealVar, RooCrystalBall, RooFit, RooHistPdf, RooDataHist, RooWorkspace, RooDataSet, RooKeysPdf
 from torchic import AxisSpec
@@ -54,6 +55,7 @@ class SignalFitter(Fitter):
             canvas = TCanvas('signal_pdf')
             frame.Draw()
             canvas.Write()
+        del frame, canvas
 
     def _init_signal_from_kde(self, h_signal:TH1F, name:str='signal_pdf', xmin:float=0., xmax:float=0.42, rho:float=2., tree_name:str='tree'):
     
@@ -75,8 +77,8 @@ class SignalFitter(Fitter):
         
         tree = TTree(tree_name, tree_name)
         tree.SetDirectory(0)
-        x = np.zeros(1, dtype=np.float64)
-        w = np.zeros(1, dtype=np.float64)
+        x = array('d', [0.0])
+        w = array('d', [0.0])
         tree.Branch('kstar', x, 'kstar/D')
         tree.Branch('weight', w, 'weight/D')
         
@@ -108,7 +110,7 @@ class SignalFitter(Fitter):
 
         xvar.setRange(*old_range)
         
-        del tree
+        del tree, frame, canvas
 
     def _init_signal_crystal_ball(self, name:str='signal_pdf'):
         

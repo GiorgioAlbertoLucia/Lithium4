@@ -1,3 +1,4 @@
+from typing import List
 import numpy as np
 from ROOT import (TFile, TCanvas, TH1F, TLegend, TPaveText, 
                  RooRealVar, RooFit, RooDataHist, RooWorkspace, 
@@ -8,6 +9,7 @@ from torchic.utils.colors import get_color
 
 import sys
 sys.path.append('/home/galucia/Lithium4/femto')
+from core.chi2_calculation import Chi2Calculation
 from core.fitter import Fitter
 from core.utils import write_params_to_text
 
@@ -142,7 +144,7 @@ class ModelFitter(Fitter):
 
         xvar.setRange(old_limits[0], old_limits[1])
 
-        del datahist
+        del frame, datahist
 
     def fit_model(self, h_data:TH1F, signal_name:str, use_chi2_fit_method:bool=True, norm_range:str=None,
                   data_label:str=None):
@@ -178,7 +180,19 @@ class ModelFitter(Fitter):
             graph.SetMarkerStyle(20)
             self._outdir.cd()
             graph.Write('signal_fraction')
-            self._fit_result.Write('fit_result')
+            
+            # Store fit-quality info as plain values instead of the RooFitResult
+            # object itself, whose custom Streamer is unsafe to write/re-read/merge
+            # once the parameters came from a short-lived workspace.
+            h_fit_status = TH1F('fit_status_info', ';;value', 3, 0, 3)
+            h_fit_status.GetXaxis().SetBinLabel(1, 'status')
+            h_fit_status.GetXaxis().SetBinLabel(2, 'covQual')
+            h_fit_status.GetXaxis().SetBinLabel(3, 'edm')
+            h_fit_status.SetBinContent(1, self._fit_result.status())
+            h_fit_status.SetBinContent(2, self._fit_result.covQual())
+            h_fit_status.SetBinContent(3, self._fit_result.edm())
+            h_fit_status.Write()
+        del frame
 
     def plot_model(self, frame:RooPlot, roodatahist:RooDataHist, canvas_name:str):
 
@@ -211,11 +225,11 @@ class ModelFitter(Fitter):
         legend = TLegend(0.52, 0.18, 0.81, 0.33)
         legend.SetBorderSize(0)
         legend.SetTextSize(0.045)
-        h_dummy = TH1F('h_dummy', ';#it{k}* (GeV/#it{c}); C(k*)', 1, 0, 1)
+        #h_dummy = TH1F('h_dummy', ';#it{k}* (GeV/#it{c}); C(k*)', 1, 0, 1)
         if self._data_label is not None:
-            set_root_object(h_dummy, marker_color=1, line_color=1, 
+            set_root_object(0, marker_color=1, line_color=1, 
                             marker_style=20, marker_size=1.7, fill_color_alpha=(797, 0.3))
-            legend.AddEntry(h_dummy, self._data_label, 'lep')
+            legend.AddEntry(0, self._data_label, 'lep')
         
         legend.AddEntry(frame.findObject(self._model_pdf.GetName()), self._model_pdf.GetTitle(), 'l')
         for signal in self._signal_pdfs.values():
@@ -232,8 +246,9 @@ class ModelFitter(Fitter):
             self._outdir.cd()
             canvas.Write()
         
-        h_dummy.SetDirectory(0)
-        del h_dummy
+        #h_dummy.SetDirectory(0)
+        #del h_dummy
+        del canvas, legend
 
     def save_to_workspace(self):
 
@@ -257,23 +272,28 @@ class ModelFitter(Fitter):
         return self.bkg_normalisations_at_reference_kstar
         
     
-    def compute_chi2(self, h_data:TH1F, h_systematics:TH1F=None, suffix:str='') -> float:
+    def compute_chi2_stat_only(self, h_data:TH1F, h_systematics:TH1F=None,
+                               h_bkg_low:TH1F=None, h_bkg_high:TH1F=None, suffix:str='',
+                               kstar_max_chi2:float=None) -> float:
         '''
             Compute the chi2 for data against a background histogram
         '''
 
-        chi2, chi2_model, ndf, nsigma, nsigma_syst = 0, 0, 0, 0, 0
-        h_chi2 = TH1F(f'chi2{suffix}', ';#it{k}* (GeV/#it{c}); #chi^{2}', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
-        h_chi2_model = TH1F(f'chi2_model{suffix}', ';#it{k}* (GeV/#it{c}); #chi^{2} (model)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
-        h_chi2_ndf = TH1F(f'chi2_ndf{suffix}', ';#it{k}* (GeV/#it{c}); #chi^{2} / NDF', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
+        kstar_max_chi2 = kstar_max_chi2 if kstar_max_chi2 is not None else self.KSTAR_MAX_SIGNIFICANCE
+        chi2, chi2_model, chi2_model_to_return, ndf, nsigma, nsigma_syst = 0, 0, 0, 0, 0,0
+        h_chi2_stat_only = TH1F(f'chi2_stat_only{suffix}', ';#it{k}* (GeV/#it{c}); #chi^{2}', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
+        h_chi2_bkg_high_stat_only = TH1F(f'chi2_bkg_high_stat_only{suffix}', ';#it{k}* (GeV/#it{c}); #chi^{2} (bkg high)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
+        h_chi2_bkg_low_stat_only = TH1F(f'chi2_bkg_low_stat_only{suffix}', ';#it{k}* (GeV/#it{c}); #chi^{2} (bkg low)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
+        h_chi2_model_stat_only = TH1F(f'chi2_model_stat_only{suffix}', ';#it{k}* (GeV/#it{c}); #chi^{2} (model)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
+        h_chi2_ndf_stat_only = TH1F(f'chi2_ndf_stat_only{suffix}', ';#it{k}* (GeV/#it{c}); #chi^{2} / NDF', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
         
-        h_nsigma = TH1F(f'nsigma{suffix}', ';#it{k}* (GeV/#it{c}); n#sigma', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
-        h_nsigma_syst = TH1F(f'nsigma_syst{suffix}', ';#it{k}* (GeV/#it{c}); n#sigma (systematics)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
-        h_bkg_check = TH1F(f'bkg_check{suffix}', ';#it{k}* (GeV/#it{c}); C(k*)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
+        ### h_nsigma = TH1F(f'nsigma{suffix}', ';#it{k}* (GeV/#it{c}); n#sigma', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
+        ### h_nsigma_syst = TH1F(f'nsigma_syst{suffix}', ';#it{k}* (GeV/#it{c}); n#sigma (systematics)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
+        h_bkg_check_stat_only = TH1F(f'bkg_check_stat_only{suffix}', ';#it{k}* (GeV/#it{c}); C(k*)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
         
-        h_nsigma_model = TH1F(f'nsigma_model{suffix}', ';#it{k}* (GeV/#it{c}); n#sigma (model)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
-        h_nsigma_model_syst = TH1F(f'nsigma_model_syst{suffix}', ';#it{k}* (GeV/#it{c}); n#sigma (model + systematics)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
-        h_model_check = TH1F(f'model_check{suffix}', ';#it{k}* (GeV/#it{c}); C(k*)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
+        ### h_nsigma_model = TH1F(f'nsigma_model{suffix}', ';#it{k}* (GeV/#it{c}); n#sigma (model)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
+        ### h_nsigma_model_syst = TH1F(f'nsigma_model_syst{suffix}', ';#it{k}* (GeV/#it{c}); n#sigma (model + systematics)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
+        h_model_check_stat_only = TH1F(f'model_check_stat_only{suffix}', ';#it{k}* (GeV/#it{c}); C(k*)', h_data.GetNbinsX(), h_data.GetBinLowEdge(1), h_data.GetBinLowEdge(h_data.GetNbinsX()+1))
         
         xvar = self._roo_workspace.obj(self._xvar_name)
         stored_signal_fractions = {signal_name: self.fractions[signal_name].getVal() for signal_name in self._signal_pdfs.keys()}
@@ -285,7 +305,7 @@ class ModelFitter(Fitter):
                 continue
             data_value = h_data.GetBinContent(ibin)
             data_error = h_data.GetBinError(ibin)
-            syst_error = h_systematics.GetBinError(ibin) if h_systematics is not None else 0
+            ### syst_error = h_systematics.GetBinError(ibin) if h_systematics is not None else 0
 
             xvar.setVal(self.REFERENCE_KSTAR_VALUE_FOR_BKG_NORMALIZATION)
             bkg_value_at_reference_kstar = self._model_pdf.getVal(xvar)
@@ -298,16 +318,18 @@ class ModelFitter(Fitter):
             difference = data_value - model_value
             uncertainty = np.sqrt(data_error*data_error +  model_error*model_error)
             nsigma = difference / uncertainty if uncertainty > 0 else 0
-            uncertainty_syst = np.sqrt(syst_error*syst_error + model_error*model_error + data_error*data_error)
-            nsigma_syst = difference / uncertainty_syst if uncertainty_syst > 0 else 0
+            ### uncertainty_syst = np.sqrt(syst_error*syst_error + model_error*model_error + data_error*data_error)
+            ### nsigma_syst = difference / uncertainty_syst if uncertainty_syst > 0 else 0
             chi2_model += nsigma * nsigma
+            if kstar_value <= kstar_max_chi2:
+                chi2_model_to_return += nsigma * nsigma
 
-            h_chi2_model.SetBinContent(ibin, chi2_model)
-            h_nsigma_model.SetBinContent(ibin, nsigma)
-            h_nsigma_model_syst.SetBinContent(ibin, nsigma_syst)
+            h_chi2_model_stat_only.SetBinContent(ibin, chi2_model)
+            ### h_nsigma_model.SetBinContent(ibin, nsigma)
+            ### h_nsigma_model_syst.SetBinContent(ibin, nsigma_syst)
             
-            h_model_check.SetBinContent(ibin, model_value)
-            h_model_check.SetBinError(ibin, model_error)
+            h_model_check_stat_only.SetBinContent(ibin, model_value)
+            h_model_check_stat_only.SetBinError(ibin, model_error)
         
         
         ### Set signal to zero and compute the background-only chi2
@@ -315,6 +337,12 @@ class ModelFitter(Fitter):
             self.fractions[signal_name].setVal(0.)
         #with open('debug_model_fit.txt', 'w') as debug_file:
             #debug_file.write('#kstar\tdata_value\tdata_error\tbkg_value\tbkg_error\tdifference\tuncertainty\tnsigma\n')
+            
+        chi2_low, chi2_high = 0, 0
+        correction_low = (self.bkg_normalisations_at_reference_kstar /
+                        h_bkg_low.Interpolate(self.REFERENCE_KSTAR_VALUE_FOR_BKG_NORMALIZATION)) if h_bkg_low is not None else None
+        correction_high = (self.bkg_normalisations_at_reference_kstar /
+                            h_bkg_high.Interpolate(self.REFERENCE_KSTAR_VALUE_FOR_BKG_NORMALIZATION)) if h_bkg_high is not None else None
 
         for ibin in range(1, h_data.GetNbinsX()+1):
             
@@ -323,7 +351,7 @@ class ModelFitter(Fitter):
                 continue
             data_value = h_data.GetBinContent(ibin)
             data_error = h_data.GetBinError(ibin)
-            syst_error = h_systematics.GetBinError(ibin) if h_systematics is not None else 0
+            ### syst_error = h_systematics.GetBinError(ibin) if h_systematics is not None else 0
 
             xvar.setVal(self.REFERENCE_KSTAR_VALUE_FOR_BKG_NORMALIZATION)
             bkg_value_at_reference_kstar = self._model_pdf.getVal(xvar)
@@ -336,46 +364,129 @@ class ModelFitter(Fitter):
             difference = data_value - bkg_value
             uncertainty = np.sqrt(data_error*data_error +  bkg_error*bkg_error)
             nsigma = difference / uncertainty if uncertainty > 0 else 0
-            uncertainty_syst = np.sqrt(syst_error*syst_error + bkg_error*bkg_error + data_error*data_error)
-            nsigma_syst = difference / uncertainty_syst if uncertainty_syst > 0 else 0
+            ### uncertainty_syst = np.sqrt(syst_error*syst_error + bkg_error*bkg_error + data_error*data_error)
+            ### nsigma_syst = difference / uncertainty_syst if uncertainty_syst > 0 else 0
             
             chi2 += nsigma * nsigma
             ndf += 1
 
+            if h_bkg_low is not None:
+                bkg_low_value = h_bkg_low.Interpolate(kstar_value) * correction_low
+                nsigma_low = (data_value - bkg_low_value) / uncertainty if uncertainty > 0 else 0
+                chi2_low += nsigma_low * nsigma_low
+                h_chi2_bkg_low_stat_only.SetBinContent(ibin, chi2_low)
+
+            if h_bkg_high is not None:
+                bkg_high_value = h_bkg_high.Interpolate(kstar_value) * correction_high
+                nsigma_high = (data_value - bkg_high_value) / uncertainty if uncertainty > 0 else 0
+                chi2_high += nsigma_high * nsigma_high
+                h_chi2_bkg_high_stat_only.SetBinContent(ibin, chi2_high)
+
             #debug_file.write(f'{kstar_value:.4f}\t{data_value:.4f}\t{data_error:.4f}\t{bkg_value:.4f}\t{bkg_error:.4f}\t{difference:.4f}\t{uncertainty:.4f}\t{nsigma:.4f}\n')
 
-            h_chi2.SetBinContent(ibin, chi2)
-            h_chi2_ndf.SetBinContent(ibin, chi2/ndf)
-            h_nsigma.SetBinContent(ibin, nsigma)
-            h_nsigma_syst.SetBinContent(ibin, nsigma_syst)
+            h_chi2_stat_only.SetBinContent(ibin, chi2)
+            h_chi2_ndf_stat_only.SetBinContent(ibin, chi2/ndf)
+            ### h_nsigma.SetBinContent(ibin, nsigma)
+            ### h_nsigma_syst.SetBinContent(ibin, nsigma_syst)
             
-            h_bkg_check.SetBinContent(ibin, bkg_value)
-            h_bkg_check.SetBinError(ibin, bkg_error)
+            h_bkg_check_stat_only.SetBinContent(ibin, bkg_value)
+            h_bkg_check_stat_only.SetBinError(ibin, bkg_error)
 
         for signal_name in self._signal_pdfs.keys():
             self.fractions[signal_name].setVal(stored_signal_fractions[signal_name])
 
-        canvas = TCanvas('data_bkg_comparison', '')
-        set_root_object(h_data, marker_style=20, marker_color=797, line_color=797, title='Data')
-        set_root_object(h_bkg_check, marker_style=20, marker_color=420, line_color=420, title='Background')
-        h_data.Draw('e1')
-        h_bkg_check.Draw('e1 same')
-        legend = canvas.BuildLegend(0.5, 0.3, 0.8, 0.5)
-        legend.SetBorderSize(0)
-
         if self._outdir:
             self._outdir.cd()
-            for obj in [h_data, h_bkg_check, h_chi2, h_nsigma, h_nsigma_syst, h_chi2_model,
-                        h_chi2_ndf, h_bkg_check, h_nsigma_model, h_nsigma_model_syst, h_model_check, canvas]:
+            for obj in [h_data, h_bkg_check_stat_only, h_chi2_stat_only, h_chi2_model_stat_only,
+                        h_chi2_ndf_stat_only, h_bkg_check_stat_only, h_model_check_stat_only,
+                        h_chi2_bkg_low_stat_only, h_chi2_bkg_high_stat_only]:
                 obj.Write()
-        for obj in [h_bkg_check, h_chi2, h_nsigma, h_nsigma_syst, h_chi2_model,
-                    h_chi2_ndf, h_bkg_check, h_nsigma_model, h_nsigma_model_syst, h_model_check]:
+        for obj in [h_bkg_check_stat_only, h_chi2_stat_only, h_chi2_model_stat_only,
+                    h_chi2_ndf_stat_only, h_bkg_check_stat_only, h_model_check_stat_only,
+                    h_chi2_bkg_low_stat_only, h_chi2_bkg_high_stat_only]:
             obj.SetDirectory(0)
             del obj
-        del canvas
         
-        return chi2_model
+        return chi2_model_to_return
+    
+    def _get_component_histogram(self, components, hist_ref: TH1F, name: str) -> TH1F:
+        '''
+        Sample a PDF component (or set of components) of self._model_pdf at the
+        bin centers of hist_ref, using the same RelativeExpected normalisation
+        already used in plot_model() / the reference-kstar normalisations, so it
+        stays on a consistent scale with the rest of the model.
+        '''
+        xvar = self._roo_workspace.obj(self._xvar_name)
+        frame = xvar.frame(xvar.getMin(), xvar.getMax())
+        self._model_pdf.plotOn(frame, Name=name, Normalization=(1.0, RooAbsReal.RelativeExpected),
+                                Components=set(components))
+        curve = frame.findObject(name)
+
+        h_component = hist_ref.Clone(name)
+        h_component.Reset()
+        for ibin in range(1, hist_ref.GetNbinsX() + 1):
+            h_component.SetBinContent(ibin, curve.interpolate(hist_ref.GetBinCenter(ibin)))
+        return h_component
+    
+    def compute_chi2_new(self, h_data:TH1F, h_systematics:TH1F,
+                         h_bkg_ref:TH1F, h_bkg_variations:List[List[TH1F]], suffix:str='',
+                         kstar_max_chi2:float=None) -> float:
+        '''
+            Compute the chi2 for data against a background histogram
+        '''
         
+        #h_data_reduced = h_data.Clone('h_data_reduced')
+        xvar = self._roo_workspace.obj(self._xvar_name)
+        kstar_max_chi2 = kstar_max_chi2 if kstar_max_chi2 is not None else xvar.getMax()
+        
+        bin_width = h_data.GetBinWidth(1)
+        nbins = int((xvar.getMax() - xvar.getMin()) / bin_width)
+        h_data_reduced = TH1F('h_data_reduced', h_data.GetTitle(), nbins, xvar.getMin(), xvar.getMax())
+        h_syst_reduced = TH1F('h_syst_reduced', h_systematics.GetTitle(), nbins, xvar.getMin(), xvar.getMax())
+        for ibin in range(1, h_data.GetNbinsX() + 1):
+            kstar_value = h_data.GetBinCenter(ibin)
+            if kstar_value < xvar.getMin() or kstar_value > xvar.getMax():
+                continue
+            bin_index = h_data_reduced.FindBin(kstar_value)
+            h_data_reduced.SetBinContent(bin_index, h_data.GetBinContent(ibin))
+            h_data_reduced.SetBinError(bin_index, h_data.GetBinError(ibin))
+            h_syst_reduced.SetBinContent(bin_index, h_systematics.GetBinContent(ibin))
+            h_syst_reduced.SetBinError(bin_index, h_systematics.GetBinError(ibin))
+
+        # Rescale signal and background histograms to match the data normalization
+        h_signal = self._get_component_histogram(self._signal_pdfs.values(), h_data_reduced, 'h_signal')
+        h_bkg = self._get_component_histogram(self._bkg_pdfs.values(), h_data_reduced, 'h_bkg')
+        correction = self.bkg_normalisations_at_reference_kstar / h_bkg.Interpolate(self.REFERENCE_KSTAR_VALUE_FOR_BKG_NORMALIZATION)
+        h_bkg.Scale(correction)
+        h_signal.Scale(correction)
+        
+        correction_variations = (h_bkg.GetBinContent(h_bkg.FindBin(self.REFERENCE_KSTAR_VALUE_FOR_BKG_NORMALIZATION)) 
+                                 / h_bkg_ref.GetBinContent(h_bkg_ref.FindBin(self.REFERENCE_KSTAR_VALUE_FOR_BKG_NORMALIZATION)))
+        for variations in h_bkg_variations:
+            for variation in variations:
+                variation.Scale(correction_variations)
+        
+        # with signal
+        chi2_calculation = Chi2Calculation(h_data_reduced, h_syst_reduced, h_bkg, h_bkg_variations, h_signal)
+        chi2, p_value, chi2_contrib = chi2_calculation.calculate_chi2(x_max_chi2=kstar_max_chi2)
+        
+        if self._outdir:
+            self._outdir.cd()
+            chi2_calculation.write_histograms(self._outdir, '_model')
+        
+        print(f'Chi2 calculation for {suffix}: chi2 = {chi2:.2f}, p-value = {p_value:.4f}')
+        print(f'Chi2 contributions for {suffix}: {chi2_contrib}')
+        
+        # without signal
+        chi2_calculation = Chi2Calculation(h_data_reduced, h_syst_reduced, h_bkg, h_bkg_variations)
+        __, p_value, chi2_contrib = chi2_calculation.calculate_chi2(x_max_chi2=kstar_max_chi2)
+        
+        if self._outdir:
+            self._outdir.cd()
+            chi2_calculation.write_histograms(self._outdir)
+        
+        return chi2 
+     
     def compute_raw_yield(self, h_same_event:TH1F, h_mixed_event:TH1F, signal_pdf_name:str, bkg_pdf_name:str):
 
         nsig_stored, nbkg_stored = self.fractions[signal_pdf_name].getVal(), self.fractions[bkg_pdf_name].getVal()
@@ -479,6 +590,7 @@ class ModelFitter(Fitter):
         
         for h in (h_signal_correlation, h_background_correlation, h_same_event_signal, h_same_event_total):
             del h
+        del canvas, canvas_bin_counting, text, text_bin_counting
 
         return yield_value
     

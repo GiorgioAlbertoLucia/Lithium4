@@ -1,4 +1,5 @@
 import numpy as np
+from array import array
 from ROOT import TFile, TCanvas, TH1F, TTree, \
                  RooRealVar, RooFit, RooHistPdf, RooDataHist, RooWorkspace, RooDataSet, RooKeysPdf, RooExtendPdf
 from torchic import AxisSpec
@@ -70,8 +71,7 @@ class BkgFitter(Fitter):
             canvas = TCanvas('bkg_pdf')
             frame.Draw()
             canvas.Write()
-
-            del canvas
+        del frame, canvas
     
     def _init_bkg_from_kde(self, h_bkg:TH1F, name:str='bkg_pdf', xmin:float=0.01, xmax:float=0.42, rho:float=0.05, **kwargs):
     
@@ -93,8 +93,8 @@ class BkgFitter(Fitter):
         
         tree = TTree('tree', 'tree')
         tree.SetDirectory(0)
-        x = np.zeros(1, dtype=np.float64)
-        w = np.zeros(1, dtype=np.float64)
+        x = array('d', [0.0])
+        w = array('d', [0.0])
         tree.Branch('kstar', x, 'kstar/D')
         tree.Branch('weight', w, 'weight/D')
         
@@ -126,7 +126,7 @@ class BkgFitter(Fitter):
 
         xvar.setRange(*old_range)
         
-        del tree
+        del tree, frame, canvas
         
     def init_bkg(self, mode:str, *args, **kwargs):
 
@@ -178,11 +178,10 @@ class BkgFitter(Fitter):
             canvas = TCanvas('fit_bkg')
             frame.Draw()
             canvas.Write()
-
             del canvas
 
+        del frame
         xvar.setRange(old_limits[0], old_limits[1])
-
         del datahist
 
     def save_to_workspace(self):

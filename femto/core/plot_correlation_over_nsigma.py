@@ -158,18 +158,19 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
 
         primitive.Draw('p same' if 'hCorrelation' in name else 'same')
 
-    available_bkgs = [f'{sign}/{centrality}/{bkg_name}' for bkg_name in available_bkgs]
-    x_values, ex_values, ey_low_rel, ey_high_rel = compute_bkg_bandwidth(available_bkgs, bkg_file_path)
-    bkg_model_curve = canvas_primitives_dict.get('bkg_pdf')
-    bkg_band = create_bkg_band_from_model(bkg_model_curve, x_values, ex_values, ey_low_rel, ey_high_rel)
-    set_root_object(bkg_band, fill_color_alpha=(get_color(3), 1), line_color=get_color(3))
-    
-    model_curve = canvas_primitives_dict.get('model')
-    model_band = create_bkg_band_from_model(model_curve, x_values, ex_values, ey_low_rel, ey_high_rel)
-    set_root_object(model_band, fill_color_alpha=(get_color(1), 1), line_color=get_color(1))
-    
-    bkg_band.Draw('e3 same')
-    model_band.Draw('e3 same')
+    if available_bkgs is not None and bkg_file_path is not None:
+        available_bkgs = [f'{sign}/{centrality}/{bkg_name}' for bkg_name in available_bkgs]
+        x_values, ex_values, ey_low_rel, ey_high_rel = compute_bkg_bandwidth(available_bkgs, bkg_file_path)
+        bkg_model_curve = canvas_primitives_dict.get('bkg_pdf')
+        bkg_band = create_bkg_band_from_model(bkg_model_curve, x_values, ex_values, ey_low_rel, ey_high_rel)
+        set_root_object(bkg_band, fill_color_alpha=(get_color(3), 1), line_color=get_color(3))
+        
+        model_curve = canvas_primitives_dict.get('model')
+        model_band = create_bkg_band_from_model(model_curve, x_values, ex_values, ey_low_rel, ey_high_rel)
+        set_root_object(model_band, fill_color_alpha=(get_color(1), 1), line_color=get_color(1))
+        
+        bkg_band.Draw('e3 same')
+        model_band.Draw('e3 same')
     canvas_primitives_dict[correlation_name].Draw('p same')
     
     # Draw systematics as shaded area 
@@ -200,10 +201,10 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
     set_root_object(h_nsigma, marker_color=get_color(3), marker_style=20, marker_size=1.7)
     h_nsigma_model = file.Get('model/nsigma_model')
     set_root_object(h_nsigma_model, marker_color=get_color(1), marker_style=20, marker_size=1.7)
-    h_nsigma_syst = file.Get('model/nsigma_syst')
-    set_root_object(h_nsigma_syst, marker_color=get_color(3), fill_color_alpha=(get_color(3), 0.3), line_color=get_color(3), marker_style=20, marker_size=1.7)
-    h_nsigma_model_syst = file.Get('model/nsigma_model_syst')
-    set_root_object(h_nsigma_model_syst, marker_color=get_color(1), fill_color_alpha=(get_color(1), 0.3), line_color=get_color(1), marker_style=20, marker_size=1.7)
+    ### h_nsigma_syst = file.Get('model/nsigma_syst')
+    ### set_root_object(h_nsigma_syst, marker_color=get_color(3), fill_color_alpha=(get_color(3), 0.3), line_color=get_color(3), marker_style=20, marker_size=1.7)
+    ### h_nsigma_model_syst = file.Get('model/nsigma_model_syst')
+    ### set_root_object(h_nsigma_model_syst, marker_color=get_color(1), fill_color_alpha=(get_color(1), 0.3), line_color=get_color(1), marker_style=20, marker_size=1.7)
 
     x_step = h_nsigma.GetBinWidth(1)
     nbins = int((x_limits[1] - x_limits[0])/x_step)
@@ -215,8 +216,8 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
                     x_title_offset=0.8, y_title_offset=0.3, x_label_size=0.1, y_label_size=0.1)
     
     lower_pad.cd()
-    minimum_nsigma_canvas = h_nsigma_canvas.GetMinimum() * 0.9 if h_nsigma_canvas.GetMinimum() > 0 else h_nsigma_canvas.GetMinimum() * 1.1
-    maximum_nsigma_canvas = h_nsigma_canvas.GetMaximum() * 1.1 if h_nsigma_canvas.GetMaximum() > 0 else h_nsigma_canvas.GetMaximum() * 0.9
+    minimum_nsigma_canvas = h_nsigma_canvas.GetMinimum() * 0.7 if h_nsigma_canvas.GetMinimum() > 0 else h_nsigma_canvas.GetMinimum() * 1.3
+    maximum_nsigma_canvas = h_nsigma_canvas.GetMaximum() * 1.3 if h_nsigma_canvas.GetMaximum() > 0 else h_nsigma_canvas.GetMaximum() * 0.7
     hframe = lower_pad.DrawFrame(x_limits[0], minimum_nsigma_canvas, x_limits[1], maximum_nsigma_canvas, 
                                  f';{h_nsigma.GetXaxis().GetTitle()};Pull')
     hframe.GetYaxis().SetNdivisions(5)
@@ -241,13 +242,13 @@ def plot_correlation_over_nsigma(file:TFile, pdf_path:str, x_limits:list, sign:s
 
 
     line.Draw('same')
-    #h_nsigma_canvas.Draw('p0 same')
-    if use_systematics:
-        h_nsigma_syst.Draw('p0 same')
-        h_nsigma_model_syst.Draw('p0 same')
-    else:
-        h_nsigma.Draw('p0 same')
-        h_nsigma_model.Draw('p0 same')
+
+    ### if use_systematics:
+    ###     h_nsigma_syst.Draw('p0 same')
+    ###     h_nsigma_model_syst.Draw('p0 same')
+    ### else:
+    h_nsigma.Draw('p0 same')
+    h_nsigma_model.Draw('p0 same')
 
     canvas.SaveAs(pdf_path)
     
