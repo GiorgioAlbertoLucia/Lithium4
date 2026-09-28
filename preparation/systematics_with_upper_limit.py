@@ -1,6 +1,12 @@
+import os
+import subprocess
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import multiprocessing as mp
+
 import sys
 import yaml
 import numpy as np
+from scipy.special import erf, erfinv
 import ROOT
 from ROOT import TFile, TChain, gInterpreter, RDataFrame, RooWorkspace, TH1F, TF1, RooMsgService, RooMinimizer, TH1, gROOT
 from tqdm import tqdm
@@ -28,12 +34,6 @@ gInterpreter.ProcessLine(f'#include "../include/Common.h"')
 gInterpreter.ProcessLine(f'#include "../include/Variation.h"')
 gInterpreter.ProcessLine(f'#include "../include/Systematics.h"')
 from ROOT import ComputeAllSystematics
-
-ROOT.EnableImplicitMT(10)
-ROOT.gROOT.SetBatch(True)
-
-SIGNAL_HIST_LOAD_INFO = HistLoadInfo('/home/galucia/Lithium4/femto/models/li4_contribution_proper_sill.root', 'hCkHist')
-H_SIGNAL_CACHED = load_hist(SIGNAL_HIST_LOAD_INFO)
 
 PARAMETRISATIONS = {
     '2023': {
@@ -121,7 +121,7 @@ selections = [
 base_selection = selections[0]
 for sel in selections[1:]:
     base_selection += (' && ' + sel)
-print(f'Selection: {base_selection}')
+#print(f'Selection: {base_selection}')
 
 def prepare_input_tchain(config:dict):
 
@@ -395,60 +395,70 @@ def correlation_function_centrality_integrated(h_sames, h_mixeds, suffix:str):
 
     return h_corr
 
-def fitting_routine(outfile, workspace: RooWorkspace, bkg_input_path:str, h_bkg_name:str,
-                    h_data:TH1F, h_mixed_event:TH1F, 
-                    sign:str, centrality:str, use_smoothening:bool=False):
-
-    h_bkg = load_hist(bkg_input_path, h_bkg_name)
+def fitting_routine(outfile, workspace: RooWorkspace, 
+                    h_signal:TH1F,
+                    h_bkg:TH1F,
+                    h_data:TH1F, h_same_event:TH1F, h_mixed_event:TH1F, 
+                    sign:str, centrality:str, use_smoothening:bool=False, 
+                    tree_name:str='tree', id:str=''):
     h_correlation_function = h_data
+    h_signal_local = h_signal.Clone()
+    h_bkg_local = h_bkg.Clone()
 
-    KSTAR_MIN, KSTAR_MAX = (0.01, 0.4) if h_correlation_function.GetBinWidth(1) > 1e-5 else (0.02, 0.4)
+    KSTAR_MIN, KSTAR_MAX = (0.0, 0.4) if h_correlation_function.GetBinWidth(1) > 1e-5 else (0.02, 0.4)
     kstar_spec = AxisSpec(100, KSTAR_MIN, KSTAR_MAX, 'kstar', '#it{k}* (GeV/#it{c})')
     
-    signal_fitter = SignalFitter('signal', kstar_spec, outfile, workspace)
+    signal_fitter = SignalFitter(f'signal{id}', kstar_spec, outfile, workspace)
     signal_init_mode = 'from_mc' if not use_smoothening else 'from_kde'
-    signal_fitter.init_signal(signal_init_mode, H_SIGNAL_CACHED)
+    signal_fitter.init_signal(signal_init_mode, h_signal_local, tree_name=f'signal_{tree_name}',
+                              name=f'signal{id}_pdf') #, extended=True)
     signal_fitter.title = '^{4}Li'
     signal_fitter.save_to_workspace()
 
-    bkg_fitter = BkgFitter('bkg', kstar_spec, outfile, workspace)
+    bkg_fitter = BkgFitter(f'bkg{id}', kstar_spec, outfile, workspace)
     bkg_init_mode = 'from_mc' if not use_smoothening else 'from_kde'
-    bkg_fitter.init_bkg(bkg_init_mode, h_bkg, rho=(0.05 if '010' not in centrality else 0.1)) #, extended=True)
+    bkg_fitter.init_bkg(bkg_init_mode, h_bkg_local, rho=(0.05 if '010' not in centrality else 0.1), tree_name=f'bkg_{tree_name}',
+                        name=f'bkg{id}_pdf') #, extended=True)
     bkg_fitter.title = 'Full model' 
     bkg_fitter.save_to_workspace()
 
-    model_fitter = ModelFitter('model', kstar_spec, outfile, ['signal_pdf'], ['bkg_pdf'], workspace, extended=True)
+    model_fitter = ModelFitter(f'model{id}', kstar_spec, outfile, [f'signal{id}_pdf'], [f'bkg{id}_pdf'], workspace, extended=True)
     #model_fitter.fractions['signal_pdf'].setRange(0., 1.)
     model_fitter.load_data(h_correlation_function, h_correlation_function.GetName())
     model_fitter.prefit_background(h_correlation_function, range_limits=(0.2, 0.4), range_name='bkg_fit_range',
                                    save_normalisation_value=True) #, use_chi2_method=False)
-    model_fitter.fractions['signal_pdf'].setVal(0.3)
-    model_fitter.fractions['signal_pdf'].setRange(-1e4, 1e4)
-    model_fitter.fit_model(h_correlation_function, signal_name='signal_pdf', norm_range='bkg_fit_range')
+    model_fitter.fractions[f'signal{id}_pdf'].setVal(0.3)
+    model_fitter.fractions[f'signal{id}_pdf'].setRange(-1e4, 1e4)
+    model_fitter.fit_model(h_correlation_function, signal_name=f'signal{id}_pdf', norm_range='bkg_fit_range')
     model_fitter.save_to_workspace()
-    model_fitter.compute_chi2(h_correlation_function)
+    #model_fitter.compute_chi2(h_correlation_function)
     xvar = workspace.obj(kstar_spec.name)
     xvar.setRange(KSTAR_MIN, 0.39)
-    raw_yield_value = model_fitter.compute_raw_yield(h_mixed_event, 'signal_pdf', 'bkg_pdf')
+    raw_yield_value = model_fitter.compute_raw_yield(h_same_event, h_mixed_event, f'signal{id}_pdf', f'bkg{id}_pdf')
     
-    for obj in (h_bkg, h_correlation_function):
+    import faulthandler
+    faulthandler.enable()
+
+    signal_fitter.cleanup(keep_histograms=True)
+    bkg_fitter.cleanup(keep_histograms=True)
+    model_fitter.cleanup(keep_histograms=True)
+    del signal_fitter, bkg_fitter, model_fitter
+
+    for obj in (h_signal_local, h_bkg_local):
         obj.ResetBit(ROOT.kMustCleanup)
         del obj
-        
-    #import faulthandler
-    #faulthandler.enable()
 
-    signal_fitter.cleanup()
-    bkg_fitter.cleanup()
-    model_fitter.cleanup()
-    del signal_fitter, bkg_fitter, model_fitter
     gc.collect()
+    
 
     return raw_yield_value
 
 
 
 def prepare_histograms():
+
+    ROOT.EnableImplicitMT(10)
+    ROOT.gROOT.SetBatch(True)
 
     prepare_years = False
     rdf_same = load_same(prepare_years)
@@ -524,42 +534,107 @@ def prepare_histograms():
     
     outFile.Close()
 
-def upper_limit_systematic_routine():
+
+def _hist_to_arrays(h):
+    nbins = h.GetNbinsX()
+    contents = np.array([h.GetBinContent(i) for i in range(1, nbins + 1)])
+    errors   = np.array([h.GetBinError(i)   for i in range(1, nbins + 1)])
+    return contents, errors, nbins, h.GetBinLowEdge(1), h.GetBinLowEdge(nbins + 1)
+
+def _arrays_to_hist(name, contents, errors, nbins, xlow, xhigh):
+    h = TH1F(name, name, nbins, xlow, xhigh)
+    for i in range(nbins):
+        h.SetBinContent(i + 1, contents[i])
+        h.SetBinError(i + 1, errors[i])
+    h.SetDirectory(0)
+    return h
+
+def _run_single_upper_fit(same_data, mixed_data, signal_data, bkg_data, sign, centrality, tag):
+    """
+    One resampled fit, fully isolated: fresh process, fresh RooWorkspace,
+    nothing carried over from any previous fit. No diagnostic output is
+    written here (outdir=None) — only the scalar raw yield is returned.
+    """
+    ROOT.gROOT.SetBatch(True)
+    RooMsgService.instance().setGlobalKillBelow(5)
+
+    h_same  = _arrays_to_hist('h_same', *same_data)
+    h_mixed = _arrays_to_hist('h_mixed', *mixed_data)
+    h_correlation = h_same.Clone('h_correlation')
+    h_correlation.Divide(h_mixed)
+    h_signal = _arrays_to_hist('h_signal', *signal_data)
+    h_bkg    = _arrays_to_hist('h_bkg', *bkg_data)
+
+    workspace = RooWorkspace(f'roows_{tag}')
+    raw_yield = fitting_routine(None, workspace,
+                                h_signal=h_signal, h_bkg=h_bkg,
+                                h_data=h_correlation,
+                                h_same_event=h_same, h_mixed_event=h_mixed,
+                                sign=sign, centrality=centrality, use_smoothening=True,
+                                tree_name=f'tree_{tag}')
+    return raw_yield
+
+
+
+def upper_limit_systematic_routine(n_workers=20):
 
     N_ITERATIONS = 100
+    #N_ITERATIONS = 20
     N_UPPER_LIMIT_ITERATIONS = 500
-    TH1.AddDirectory(False)
+    #TH1.AddDirectory(False)
 
     infile = TFile.Open("output/hist_systematics_with_upper_limit.root")
-    outFile = TFile.Open("output/systematics_with_upper_limit_Both_1030.root", "RECREATE")
-    workspace = RooWorkspace('roows')
-
-    # (nominal, upper, lower): radius variations
-    # (-blank-, higher, lower): lambda variations
-    AVAILABLE_BKGS = [
-        f'nominal/hLambdaSigmaCorrectedCk_Smeared_nominal',
-        f'nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_higher',
-        f'nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_lower',
-        f'upper/hLambdaSigmaCorrectedCk_Smeared_upper',
-        f'upper/hLambdaSigmaCorrectedCk_Smeared_upper_higher',
-        f'upper/hLambdaSigmaCorrectedCk_Smeared_upper_lower',
-        f'lower/hLambdaSigmaCorrectedCk_Smeared_lower',
-        f'lower/hLambdaSigmaCorrectedCk_Smeared_lower_higher',
-        f'lower/hLambdaSigmaCorrectedCk_Smeared_lower_lower',
-        ]
-    BKG_PATH = '/home/galucia/Lithium4/femto/models/LHC25_PbPb_pass1_lambda_models.root'
+    #outFile = TFile.Open("output/systematics_with_upper_limit_Both_010.root", "RECREATE")
+    outFile = TFile.Open("output/systematics_with_upper_limit_Both_010_LL.root", "RECREATE")
+    
+    inner_pool = ProcessPoolExecutor(
+        max_workers=n_workers,
+        mp_context=mp.get_context('spawn'),
+        max_tasks_per_child=1,   # fresh process per resampled fit
+    )
+    
+    AVAILABLE_SIGNALS = [
+        f'hCkHist',
+        f'hCkHist_SigmaUp',
+        f'hCkHist_SigmaDown',
+    ]
+    SIGNAL_PATH = '/home/galucia/Lithium4/femto/models/li4_contribution_proper_sill.root'
+    AVAILABLE_SIGNAL_HISTS = [load_hist(SIGNAL_PATH, signal_name) for signal_name in AVAILABLE_SIGNALS]
+    print(AVAILABLE_SIGNAL_HISTS)
+    NOMINAL_SIGNAL_HIST = load_hist(SIGNAL_PATH, 'hCkHist')
 
     #for sign in ['Matter', 'Antimatter', 'Both']:
     for sign in ['Both']:
 
         inDir = infile.Get(sign)
         outDir = outFile.mkdir(sign)
+        
+        count = 0
 
         # --- new: centrality dict, same pattern as prepare_histograms ---
         h_upper_limits = {}
         h_raw_yields = {}
         #for centrality in ['010', '1030', '3050', '5080']:
-        for centrality in ['1030']:
+        for centrality in ['010']:
+            
+            # (nominal, upper, lower): radius variations
+            # (-blank-, higher, lower): lambda variations
+            AVAILABLE_BKGS = [
+                f'{sign}/{centrality}/nominal/hLambdaSigmaCorrectedCk_Smeared_nominal',
+                f'{sign}/{centrality}/nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_higher',
+                f'{sign}/{centrality}/nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_lower',
+                f'{sign}/{centrality}/upper/hLambdaSigmaCorrectedCk_Smeared_upper',
+                f'{sign}/{centrality}/upper/hLambdaSigmaCorrectedCk_Smeared_upper_higher',
+                f'{sign}/{centrality}/upper/hLambdaSigmaCorrectedCk_Smeared_upper_lower',
+                f'{sign}/{centrality}/lower/hLambdaSigmaCorrectedCk_Smeared_lower',
+                f'{sign}/{centrality}/lower/hLambdaSigmaCorrectedCk_Smeared_lower_higher',
+                f'{sign}/{centrality}/lower/hLambdaSigmaCorrectedCk_Smeared_lower_lower',
+                ]
+            #BKG_PATH = '/home/galucia/Lithium4/femto/models/lambda_models_10.root'
+            BKG_PATH = '/home/galucia/Lithium4/femto/models/lambda_models_LL_10.root'
+            AVAILABLE_BKG_HISTS = [load_hist(BKG_PATH, bkg_name) for bkg_name in AVAILABLE_BKGS]
+            
+            NOMINAL_BKG_HIST = load_hist(BKG_PATH, f'{sign}/{centrality}/hLambdaSigmaCorrectedCk')
 
             h_upper_limits[centrality] = TH1F(f'hUpperLimits_{centrality}', ';[#it{N}_{^{4}Li}^{raw}]_{upper limit};', 1600, 0, 1600)
             h_raw_yields[centrality] = TH1F(f'hRawYields_{centrality}', ';#it{N}_{^{4}Li}^{raw};', 1600, -400, 1200)
@@ -595,15 +670,20 @@ def upper_limit_systematic_routine():
                 h_correlation.Divide(h_mixed_normalised)
 
                 outDirNominal = outDirIter.mkdir('nominal')
-                random_bkg_name = np.random.choice(AVAILABLE_BKGS)
+                
 
-                nominal_raw_yield = fitting_routine(outDirNominal, workspace,
-                                bkg_input_path=BKG_PATH,
-                                h_bkg_name=f'{sign}/{centrality}/{random_bkg_name}',
-                                h_data=h_correlation, h_mixed_event=h_mixed_normalised,
-                                sign=sign, centrality=centrality, use_smoothening=True)
+                nominal_raw_yield = fitting_routine(outDirNominal, RooWorkspace(f'roows_nominal_{centrality}_{iter}'),
+                                                    h_signal=NOMINAL_SIGNAL_HIST,
+                                                    h_bkg=NOMINAL_BKG_HIST,
+                                                    h_data=h_correlation,
+                                                    h_same_event=h_same,
+                                                    h_mixed_event=h_mixed_normalised,
+                                                    sign=sign, centrality=centrality, use_smoothening=True)
 
                 h_raw_yields_iter = TH1F(f'hRawYields_{centrality}_Iter_{iter}', ';Raw yield;', 1600, -400, 1200)
+
+                futures = {}
+                resample_hists = {}  # keep clones alive until each future resolves
 
                 for iter_upper in range(N_UPPER_LIMIT_ITERATIONS):
 
@@ -612,32 +692,44 @@ def upper_limit_systematic_routine():
 
                     h_same_iter_upper             = poisson_sampling(h_same_iter_upper)
                     h_mixed_normalised_iter_upper = poisson_sampling(h_mixed_normalised_iter_upper)
+                    random_bkg_hist = AVAILABLE_BKG_HISTS[np.random.randint(len(AVAILABLE_BKG_HISTS))]
+                    random_signal_hist = AVAILABLE_SIGNAL_HISTS[np.random.randint(len(AVAILABLE_SIGNAL_HISTS))]
 
-                    h_correlation_iter_upper = h_same_iter_upper.Clone(f'hCorrelation_{centrality}_Iter_Upper_{iter_upper}')
-                    h_correlation_iter_upper.Divide(h_mixed_normalised_iter_upper)
+                    count += 1
 
-                    outDir_to_pass = outDirIter.mkdir(f'inner_iter_{iter_upper}') if iter_upper == 0 else None
-                    raw_yield = fitting_routine(outDir_to_pass, workspace,
-                                    bkg_input_path=BKG_PATH,
-                                    h_bkg_name=f'{sign}/{centrality}/hLambdaSigmaCorrectedCk',
-                                    h_data=h_correlation_iter_upper, h_mixed_event=h_mixed_normalised_iter_upper,
-                                    sign=sign, centrality=centrality, use_smoothening=True)
+                    future = inner_pool.submit(_run_single_upper_fit,
+                                                _hist_to_arrays(h_same_iter_upper),
+                                                _hist_to_arrays(h_mixed_normalised_iter_upper),
+                                                _hist_to_arrays(random_signal_hist),
+                                                _hist_to_arrays(random_bkg_hist),
+                                                sign, centrality, f'{iter}_{count}')
+                    futures[future] = (h_same_iter_upper, h_mixed_normalised_iter_upper)
 
-                    h_raw_yields_iter.Fill(raw_yield)
-                    h_raw_yields[centrality].Fill(raw_yield)
-                    for obj in (h_same_iter_upper, h_mixed_normalised_iter_upper, h_correlation_iter_upper):
-                        obj.ResetBit(ROOT.kMustCleanup)
-                        del obj
-                        #obj.Delete()
+                for future in tqdm(as_completed(futures), total=len(futures), desc=f'Fitting resamples (iter {iter})'):
+                    h_same_iter_upper, h_mixed_normalised_iter_upper = futures[future]
+                    try:
+                        raw_yield = future.result(timeout=120)
+                        h_raw_yields_iter.Fill(raw_yield)
+                        h_raw_yields[centrality].Fill(raw_yield)
+                    except Exception as e:
+                        print(f"fit failed at iter {iter}: {e}")
+                    finally:
+                        for obj in (h_same_iter_upper, h_mixed_normalised_iter_upper):
+                            obj.SetDirectory(0)
+                            del obj
 
                 fit_func = TF1(f'fit_func_{centrality}_{iter}', 'gaus', -400, 1200)
                 fit_func.SetParameters(h_raw_yields_iter.GetMaximum(), h_raw_yields_iter.GetMean(), h_raw_yields_iter.GetRMS())
                 h_raw_yields_iter.Fit('gaus', 'RMS+', '', -400, 1200)
 
+
                 outDirIter.cd()
                 h_raw_yields_iter.Write()
-
-                upper_limit = nominal_raw_yield + 1.96 * fit_func.GetParameter(2)
+                
+                upper_limit = (nominal_raw_yield + 
+                               np.sqrt(2) * fit_func.GetParameter(2) * 
+                               erfinv(0.95 - 0.05 * erf(nominal_raw_yield/(np.sqrt(2) * fit_func.GetParameter(2)))) )  # 95% confidence level 
+                #upper_limit = nominal_raw_yield + 1.96 * fit_func.GetParameter(2)
                 h_upper_limits[centrality].Fill(upper_limit)
 
                 for obj in (h_same, h_mixed_normalised, h_correlation, h_raw_yields_iter, fit_func):
@@ -649,6 +741,7 @@ def upper_limit_systematic_routine():
             outDir.cd()
             h_upper_limits[centrality].Write()
 
+    inner_pool.shutdown(wait=True)
     outFile.Close()
     infile.Close()
 
@@ -662,6 +755,10 @@ if __name__ == "__main__":
 
     #prepare_histograms()
 
-    upper_limit_systematic_routine()
+    upper_limit_systematic_routine(n_workers=20)
+    #upper_limit_systematic_routine_parallel(n_workers=1)
 
     print("Systematics analysis completed successfully.")
+    
+    import os
+    os._exit(0)
