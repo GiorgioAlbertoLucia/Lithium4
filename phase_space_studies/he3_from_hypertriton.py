@@ -1,9 +1,11 @@
 import numpy as np
 
-from ROOT import TFile, TH1F
+from ROOT import TFile, TH1F, TCanvas
 
 
 from torchic.core.histogram import load_hist, build_efficiency
+from torchic.utils.root import init_legend, set_root_object, set_alice_global_style
+from torchic.utils.colors import get_color
 
 def histogram_division(h_numerator:TH1F, h_denominator:TH1F):
     '''
@@ -86,6 +88,8 @@ def interpolate_hist_two_bins(hist:TH1F, x):
 
 
 if __name__ == '__main__':
+    
+    set_alice_global_style()
 
     outfile = TFile.Open('output/he3_from_hypertriton.root', 'recreate')
 
@@ -99,8 +103,8 @@ if __name__ == '__main__':
     ### 
     ### h_efficiency_he3 = build_efficiency(h_pt_he3_gen, h_pt_he3_rec, name='h_efficiency_he3', ytitle='Efficiency')
     
-    h_efficiency_he3 = load_hist('/home/galucia/Efficiency/nucleiQC/output/efficiency/He/efficiency_LHC25g11.root',
-                                 'efficiency')
+    h_efficiency_he3 = load_hist('/home/galucia/Efficiency/nucleiQC/output/efficiency/He/efficiency_LHC25g11_li4cuts.root',
+                                 'efficiency_from_primaries')
 
     ### h_pt_he3_from_h3l_gen = load_hist('/home/galucia/Lithium4/phase_space_studies/output/single_track_efficiency.root',
     ###                          'He/hPtGenFromHypertritonHe')
@@ -110,7 +114,7 @@ if __name__ == '__main__':
     ### h_efficiency_he3_from_h3l = build_efficiency(h_pt_he3_from_h3l_gen, h_pt_he3_from_h3l_rec,
     ###                                              name='h_efficiency_he3_from_h3l', ytitle='Efficiency')
     
-    h_efficiency_he3_from_h3l = load_hist('/home/galucia/Efficiency/nucleiQC/output/efficiency/He/efficiency_LHC25g11.root',
+    h_efficiency_he3_from_h3l = load_hist('/home/galucia/Efficiency/nucleiQC/output/efficiency/He/efficiency_LHC25g11_li4cuts.root',
                                  'efficiency_from_h3l')
     
     # only for visualisation, will not be used for computation
@@ -220,8 +224,29 @@ if __name__ == '__main__':
 
         fraction_spectrum.SetBinContent(ibin, value)
         fraction_spectrum.SetBinError(ibin, error)
-
+        
+    canvas_efficiency = TCanvas('canvas_efficiency', 'Efficiency', 800, 600)
+    set_root_object(h_efficiency_he3, name='h_efficiency_he3', title='^{3}He efficiency; #it{p}_{T} (GeV/#it{c}); #varepsilon #times #it{A}', 
+                    line_width=1, line_color=get_color(1), marker_color=get_color(1), marker_style=0, marker_size=1.5)
+    set_root_object(h_efficiency_he3_from_h3l, name='h_efficiency_he3_from_h3l', title='^{3}He from ^{3}_{#Lambda}H efficiency; #it{p}_{T} (GeV/#it{c}); #varepsilon #times #it{A}',
+                    line_width=1, line_color=get_color(2), marker_color=get_color(2), marker_style=0, marker_size=1.5)
+    legend_efficiency = init_legend(0.4, 0.72, 0.65, 0.82)
+    legend_efficiency.AddEntry(h_efficiency_he3, 'Primary ^{3}He', 'pe')
+    legend_efficiency.AddEntry(h_efficiency_he3_from_h3l, '^{3}He #leftarrow ^{3}_{#Lambda}H', 'pe')
     
+    h_efficiency_he3.Draw('E0')
+    h_efficiency_he3_from_h3l.Draw('E0 same')
+    legend_efficiency.Draw()
+    canvas_efficiency.SaveAs('output/efficiency_comparison.pdf')
+    
+    canvas_fraction = TCanvas('canvas_fraction', 'fraction', 800, 600)
+    set_root_object(fraction_spectrum, name='fraction_spectrum', title='^{3}He from ^{3}_{#Lambda}H fraction; #it{p}_{T} (GeV/#it{c}); d#it{N}/d#it{p}_{T}(^{3}He #leftarrow ^{3}_{#Lambda}H) / d#it{N}/d#it{p}_{T}(^{3}He)_{primary}',
+                    line_width=1, line_color=get_color(1), marker_color=get_color(1), marker_style=20, marker_size=1.5)
+    fraction_spectrum.Draw('E0')
+    canvas_fraction.SetLeftMargin(0.15)
+    canvas_fraction.SetRightMargin(0.05)
+    canvas_fraction.SaveAs('output/fraction_spectrum.pdf')
+
     outfile.cd()
     
     h_efficiency_he3.Write()
@@ -239,3 +264,4 @@ if __name__ == '__main__':
     ratio_spectrum.Write()
     fraction_spectrum.Write()
     h_efficiency_he3_from_h3l.Write()
+    canvas_efficiency.Write()
