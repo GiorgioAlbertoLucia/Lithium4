@@ -78,7 +78,7 @@ class HistogramRegistry:
                                                             entry.xvar)
                 self.set_histogram_labels(hist, entry.labels_x)
                 
-            self._registry[entry.name] = hist
+            self._registry[entry.name] = hist.GetValue()
 
     def prepare_directories(self, output_file: TFile):
         if not self._registry_entries:
