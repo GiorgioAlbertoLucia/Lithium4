@@ -96,10 +96,10 @@ class Sampler:
         self._outfile.cd()
         canvas.Write()
 
-    def sample(self, shape: str, n_samples: int = 1_000_000):
-        if shape == 'sill_gaus_conv_numpy': self._sample_sill_gaus_conv_numpy(n_samples)
+    def sample(self, shape: str, n_samples: int = 1_000_000, sigma_scale: float = 1.0):
+        if shape == 'sill_gaus_conv_numpy': self._sample_sill_gaus_conv_numpy(n_samples, sigma_scale)
 
-    def _sample_sill_gaus_conv_numpy(self, n_samples: int):
+    def _sample_sill_gaus_conv_numpy(self, n_samples: int, sigma_scale: float):
 
         if self._shape_pdf is None:
             raise ValueError('You must first initialise the shape with "init_shape_from_mc".')
@@ -114,7 +114,7 @@ class Sampler:
 
         pdf_pars_intrinsic_resolution = {
             'mass': RooRealVar('mass', 'mass', self._mass),
-            'gamma': RooRealVar('gamma', 'gamma', self._intrinsic_width),
+            'gamma': RooRealVar('gamma', 'gamma', self._intrinsic_width * sigma_scale),
             'mass_daughter_1': RooRealVar('mass_daughter_1', 'mass_daughter_1', self._mass_daughter_1),
             'mass_daughter_2': RooRealVar('mass_daughter_2', 'mass_daughter_2', self._mass_daughter_2),
             'l': RooRealVar('l', 'l', self._l),
@@ -237,7 +237,8 @@ def smoothen_histogram(hist, outfile, xmin:float=0.0, xmax:float=0.42, rho:float
     
     weight_var = RooRealVar('weight', 'weight', 0, 1e6)
     dataset = RooDataSet(hist.GetName()+'_roodata', hist.GetName()+'_roodata', 
-                         tree, [kstar, weight_var], '', 'weight')
+                         [kstar, weight_var],
+                         RooFit.Import(tree), RooFit.WeightVar('weight'))
     
     keys_pdf = RooKeysPdf(f'{hist.GetName()}_keys', f'{hist.GetName()}_keys', 
                           kstar, dataset, RooKeysPdf.NoMirror, rho)
@@ -267,7 +268,7 @@ def smoothen_histogram(hist, outfile, xmin:float=0.0, xmax:float=0.42, rho:float
 def draw_ck_profile_from_hist(h_signal:TH1F, h_mixed_event:TH1F, outfile:TFile, 
                               h_correlation_function_reference:TH1F=None) -> None:
 
-    h_ck = h_mixed_event.Clone('hCkHist')
+    h_ck = h_mixed_event.Clone(h_signal.GetName().replace('hKstar', 'hCkHist'))
     h_ck.SetTitle(';#it{k}* (GeV/#it{c});#it{C}_{^{4}Li}(#it{k}*)')
 
     for ibin in range(1, h_mixed_event.GetNbinsX()+1):
@@ -354,57 +355,77 @@ if __name__ == '__main__':
                   'ex. 2': nucleus(mass=3.75281, width=0.00935, l=0, normalization=1.5490),
                   'ex. 3': nucleus(mass=3.75358, width=0.01351, l=1, normalization=4.6255)}
 
+    sigma_variations = {'Nominal': 1.0, 'SigmaDown': 0.9, 'SigmaUp': 1.1}
+
     outfile = TFile.Open('models/li4_contribution_proper_sill.root', 'recreate')
-    h_kstars = []
+    h_kstars = {var_name: [] for var_name in sigma_variations}
 
     for state_name, state in li4_states.items():
-        outdir = outfile.mkdir(state_name)
         print(f'Sampling {state_name} state...')
         mass, width, l = state.mass, state.width, state.l
         sampler = Sampler(mass=mass, intrinsic_width=width, experimental_width=0., 
                           mass_daughter_1=MASS_PROTON, mass_daughter_2=MASS_HE3, l=l,
-                          outfile=outdir)
+                          outfile=outfile)
 
         h_mc_signal = load_hist('/home/galucia/Lithium4/preparation/output/PbPb/LHC26e6_efficiency.root', 
                                 'Reconstructed/QA/hInvariantMass')
         sampler.init_shape_from_mc_in_kstar(h_mc_signal, 'crystal_ball')
-        sampler.sample('sill_gaus_conv_numpy', 10_000_000)
 
-        sampler.save_sampling()
-        h_kstar = draw_profile(sampler.sampled_roo_dataset, outfile, state_name)
-        h_kstars.append(h_kstar)
+        for var_name, sigma_scale in sigma_variations.items():
+            outdir = outfile.mkdir(f'{state_name}/{var_name}')
+            sampler._outfile = outdir   # redirect canvas output for this variation
+
+            sampler.sample('sill_gaus_conv_numpy', 10_000_000, sigma_scale=sigma_scale)
+            sampler.save_sampling()
+
+            suffix = '' if var_name == 'Nominal' else f'_{var_name}'
+            h_kstar_state = draw_profile(sampler.sampled_roo_dataset, outfile, f'{state_name}{suffix}')
+            h_kstars[var_name].append(h_kstar_state)
 
     GROUND_STATE_NAME = 'g.s.'
     state_names = list(li4_states.keys())
 
-    h_kstar = None
-    h_kstar_ground_state = None
-    for ihist, (state_name, hist, states) in enumerate(zip(state_names, h_kstars, li4_states.values())):
-        hist.Scale(states.normalization)
-        if state_name == GROUND_STATE_NAME:
-            h_kstar_ground_state = hist.Clone('hKstar_GroundStateOnly')
-        if ihist == 0:
-            h_kstar = hist.Clone('hKstar')
-        else:
-            h_kstar.Add(hist)
-    outfile.cd()
-    h_kstar.Write('hKstar')
-    h_kstar_ground_state.Write('hKstar_GroundStateOnly')
+    h_kstar_by_variation = {}
+    h_kstar_ground_state_by_variation = {}
 
-    h_mixed_event = load_hist('/home/galucia/Lithium4/preparation/checks/mixed_event_hadronpid_pass1_pass4_refined_dca_finer_binning.root', 'kstar/hKstar050FinerBinning')
-    h_correlation_reference = load_hist('/home/galucia/Lithium4/preparation/checks/correlation_hadronpid_pass1_pass4_refined_dca.root', 'Correlation/Default/hCorrelation050')
-    h_kstar = load_hist('models/li4_contribution_proper_sill.root', 'hKstar')
-    draw_ck_profile_from_hist(h_kstar, h_mixed_event, outfile, h_correlation_reference)
-    
+    for var_name in sigma_variations:
+        suffix = '' if var_name == 'Nominal' else f'_{var_name}'
+        h_kstar = None
+        h_kstar_ground_state = None
+        for ihist, (state_name, hist, states) in enumerate(zip(state_names, h_kstars[var_name], li4_states.values())):
+            hist.Scale(states.normalization)
+            if state_name == GROUND_STATE_NAME:
+                h_kstar_ground_state = hist.Clone(f'hKstar_GroundStateOnly{suffix}')
+            if ihist == 0:
+                h_kstar = hist.Clone(f'hKstar{suffix}')
+            else:
+                h_kstar.Add(hist)
+        outfile.cd()
+        h_kstar.Write()
+        h_kstar_ground_state.Write()
+        h_kstar_by_variation[var_name] = h_kstar
+        h_kstar_ground_state_by_variation[var_name] = h_kstar_ground_state
+
+    h_mixed_event = load_hist('/home/galucia/Lithium4/preparation/output/PbPb/LHC25_PbPb_pass1_hadronpid_event_mixing.root', 'kstar/hKstar050FinerBinning')
+    h_correlation_reference = None
+
+    for var_name in sigma_variations:
+        suffix = '' if var_name == 'Nominal' else f'_{var_name}'
+        h_kstar = load_hist('models/li4_contribution_proper_sill.root', f'hKstar{suffix}')
+        h_kstar_ground_state = load_hist('models/li4_contribution_proper_sill.root', f'hKstar_GroundStateOnly{suffix}')
+
+        draw_ck_profile_from_hist(h_kstar, h_mixed_event, outfile, h_correlation_reference)
+        draw_ck_profile_from_hist(h_kstar_ground_state, h_mixed_event, outfile, h_correlation_reference)
+
     canvas = TCanvas('cAllStates', 'cAllStates', 800, 600)
     legend = init_legend(0.6, 0.4, 0.8, 0.6)
-    for ihist, hist in enumerate(h_kstars):
+    for ihist, hist in enumerate(h_kstars['Nominal']):
         hist.SetLineColor(get_color(ihist))
         hist.Draw('hist same')
         legend.AddEntry(hist, f'{list(li4_states.keys())[ihist]}', 'l')
     legend.Draw('same')
     outfile.cd()
     canvas.Write()
-    
+
     if outfile is not None:
         outfile.Close()
