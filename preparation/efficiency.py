@@ -100,6 +100,8 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
         .Filter(base_selection) 
         .Define('fSignHe3', 'fPtMCHe3/std::abs(fPtMCHe3)') 
         .Define('fPtLiMC', 'std::abs(fSignedPtMC)')
+        # filter in the region to inspect
+        #.Filter('fEtaMCHe3 < 0.66 && fEtaMCHe3 > 0.64')
     )
       
       
@@ -135,6 +137,8 @@ def prepare_rdataframe(chain_data: TChain, base_selection: str, selection: str):
       .Define('fELi', 'fEHe3 + fEHad')
       .Define('fPLi', 'sqrt(fPxLi*fPxLi + fPyLi*fPyLi + fPzLi*fPzLi)')
       .Define('fMassInvLi', 'std::sqrt(fELi*fELi - fPLi*fPLi)')
+      # filter in the region to inspect
+      #.Filter('fEtaMCHe3 < 0.66 && fEtaMCHe3 > 0.64')
     )
       
     return rdf_rec, rdf_gen
@@ -187,10 +191,10 @@ def efficiency_histograms(rdf_rec, rdf_gen, output_file: TFile):
     hPtLiMCAntimatter = rdf_gen.Filter('fSignHe3 < 0').Histo1D(("hPtLiMCAntimatter", ";#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", pt_bins, pt_min, pt_max), "fPtLiMC").GetValue()
     
     hPtLi = rdf_rec.Histo1D(("hPtLi", ";#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtLi").GetValue()
-    hPtLi010 = rdf_rec.Filter('fCentralityFT0C < 10').Histo1D(("hPtLi010", "0-10% FT0C;#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtLi").GetValue()
+    hPtLi010 = rdf_rec.Filter('0 < fCentralityFT0C && fCentralityFT0C < 10').Histo1D(("hPtLi010", "0-10% FT0C;#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtLi").GetValue()
     hPtLi1050 = rdf_rec.Filter('10 < fCentralityFT0C && fCentralityFT0C < 50').Histo1D(("hPtLi1050", "10-50% FT0C;#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtLi").GetValue()
     hPtLiMC = rdf_gen.Histo1D(("hPtLiMC", ";#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtMC").GetValue()
-    hPtLiMC010 = rdf_gen.Filter('fCentralityFT0C < 10').Histo1D(("hPtLiMC010", "0-10% FT0C;#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtMC").GetValue()
+    hPtLiMC010 = rdf_gen.Filter('0 < fCentralityFT0C && fCentralityFT0C < 10').Histo1D(("hPtLiMC010", "0-10% FT0C;#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtMC").GetValue()
     hPtLiMC1050 = rdf_gen.Filter('10 < fCentralityFT0C && fCentralityFT0C < 50').Histo1D(("hPtLiMC1050", "10-50% FT0C;#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtMC").GetValue()
 
     hEfficiencyMatter = produce_efficiency_histogram(hPtLiMatter, hPtLiMCMatter, "hEfficiencyMatter")
@@ -199,12 +203,37 @@ def efficiency_histograms(rdf_rec, rdf_gen, output_file: TFile):
     hEfficiency010 = produce_efficiency_histogram(hPtLi010, hPtLiMC010, "hEfficiency010")
     hEfficiency1050 = produce_efficiency_histogram(hPtLi1050, hPtLiMC1050, "hEfficiency1050")
     
+    ## for only reconstructed events
+    if 'tchain_friend_1.fCollisionId' in rdf_rec.GetColumnNames():
+        hPtLiMatterRecoEvents = rdf_rec.Filter('fSignHe3 > 0 && fCollisionId > 0').Histo1D(("hPtLiMatterRecoEvents", ";#it{p}_{T} (^{4}Li) (GeV/#it{c});", pt_bins, pt_min, pt_max), "fPtLi").GetValue()
+        hPtLiAntimatterRecoEvents = rdf_rec.Filter('fSignHe3 < 0 && fCollisionId > 0').Histo1D(("hPtLiAntimatterRecoEvents", ";#it{p}_{T} (^{4}Li) (GeV/#it{c});", pt_bins, pt_min, pt_max), "fPtLi").GetValue()
+        hPtLiMCMatterRecoEvents = rdf_gen.Filter('fSignHe3 > 0 && fCollisionId > 0').Histo1D(("hPtLiMCMatterRecoEvents", ";#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", pt_bins, pt_min, pt_max), "fPtLiMC").GetValue()
+        hPtLiMCAntimatterRecoEvents = rdf_gen.Filter('fSignHe3 < 0 && fCollisionId > 0').Histo1D(("hPtLiMCAntimatterRecoEvents", ";#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", pt_bins, pt_min, pt_max), "fPtLiMC").GetValue()
+            
+        hPtLiRecoEvents = rdf_rec.Filter('fCollisionId > 0').Histo1D(("hPtLiRecoEvents", ";#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtLi").GetValue()
+        hPtLi010RecoEvents = rdf_rec.Filter('0 < fCentralityFT0C && fCentralityFT0C < 10 && fCollisionId > 0').Histo1D(("hPtLi010RecoEvents", "0-10% FT0C;#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtLi").GetValue()
+        hPtLi1050RecoEvents = rdf_rec.Filter('10 < fCentralityFT0C && fCentralityFT0C < 50 && fCollisionId > 0').Histo1D(("hPtLi1050RecoEvents", "10-50% FT0C;#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtLi").GetValue()
+        hPtLiMCRecoEvents = rdf_gen.Filter('fCollisionId > 0').Histo1D(("hPtLiMCRecoEvents", ";#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtMC").GetValue()
+        hPtLiMC010RecoEvents = rdf_gen.Filter('0 < fCentralityFT0C && fCentralityFT0C < 10 && fCollisionId > 0').Histo1D(("hPtLiMC010RecoEvents", "0-10% FT0C;#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtMC").GetValue()
+        hPtLiMC1050RecoEvents = rdf_gen.Filter('10 < fCentralityFT0C && fCentralityFT0C < 50 && fCollisionId > 0').Histo1D(("hPtLiMC1050RecoEvents", "10-50% FT0C;#it{p}_{T} (^{4}#bar{Li}) (GeV/#it{c});", 2*pt_bins, -pt_max, pt_max), "fSignedPtMC").GetValue()
+        
+        hEfficiencyMatterRecoEvents = produce_efficiency_histogram(hPtLiMatter, hPtLiMCMatter, "hEfficiencyMatterRecoEvents")
+        hEfficiencyAntimatterRecoEvents = produce_efficiency_histogram(hPtLiAntimatter, hPtLiMCAntimatter, "hEfficiencyAntimatterRecoEvents")
+        hEfficiencyRecoEvents = produce_efficiency_histogram(hPtLi, hPtLiMC, "hEfficiencyRecoEvents")
+        hEfficiency010RecoEvents = produce_efficiency_histogram(hPtLi010, hPtLiMC010, "hEfficiency010RecoEvents")
+        hEfficiency1050RecoEvents = produce_efficiency_histogram(hPtLi1050, hPtLiMC1050, "hEfficiency1050RecoEvents")
+    
 
     output_file.mkdir('Efficiency')
     output_file.cd('Efficiency')
     for hist in [hPtLiMatter, hPtLiAntimatter, hPtLiMCMatter, hPtLiMCAntimatter, hPtLi, hPtLi010, hPtLi1050, hPtLiMC, hPtLiMC010, hPtLiMC1050,
                  hEfficiencyMatter, hEfficiencyAntimatter, hEfficiency, hEfficiency010, hEfficiency1050]:
         hist.Write()
+    if 'fCollisionId' in rdf_rec.GetColumnNames():
+        for hist in [hPtLiMatterRecoEvents, hPtLiAntimatterRecoEvents, hPtLiMCMatterRecoEvents, hPtLiMCAntimatterRecoEvents,
+                     hPtLiRecoEvents, hPtLi010RecoEvents, hPtLi1050RecoEvents, hPtLiMCRecoEvents, hPtLiMC010RecoEvents, hPtLiMC1050RecoEvents,
+                     hEfficiencyMatterRecoEvents, hEfficiencyAntimatterRecoEvents, hEfficiencyRecoEvents, hEfficiency010RecoEvents, hEfficiency1050RecoEvents]:
+            hist.Write()
 
 
 if __name__ == '__main__':
