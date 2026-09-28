@@ -17,7 +17,12 @@ gInterpreter.ProcessLine(f'#include "../include/LambdaUtils.h"')
 
 ROOT.EnableImplicitMT(10)
 ROOT.gROOT.SetBatch(True)
+DECLARED_GRAPHS = False
 
+CENTRALITY_CLASSES = {
+    'centrality_0_10':  (0., 10.),
+    'centrality_10_50': (10., 50.),
+}
 
 PARAMETRISATIONS = {
     '2023': {
@@ -223,29 +228,55 @@ def load_same(prepare_years:bool=True):
         
     return RDataFrame('rdf_same', [f'/data/galucia/lithium/tmp/rdf_same_{year}.root' for year in config_same.keys()])
 
-def purity_and_primary_fraction_histograms(rdf:RDataFrame, outfile:TFile, input_file:str):
+def declare_graphs():
+    
+    global DECLARED_GRAPHS
+    if DECLARED_GRAPHS:
+        return
+    
+    ROOT.gInterpreter.Declare('''
+        TGraph * graph_purity_he3_matter = nullptr;
+        TGraph * graph_purity_p_tpc_matter = nullptr;
+        TGraph * graph_purity_p_tof_matter = nullptr;
+        TGraph * graph_primary_he3_matter = nullptr;
+        TGraph * graph_primary_p_matter = nullptr;
+        TGraph * graph_secondary_p_from_weak_decay_matter = nullptr;
+        
+        TGraph * graph_purity_he3_antimatter = nullptr;
+        TGraph * graph_purity_p_tpc_antimatter = nullptr;
+        TGraph * graph_purity_p_tof_antimatter = nullptr;
+        TGraph * graph_primary_he3_antimatter = nullptr;
+        TGraph * graph_primary_p_antimatter = nullptr;
+        TGraph * graph_secondary_p_from_weak_decay_antimatter = nullptr;
+    
+        TGraph * graph_sigma_protons_to_weak_decay_protons = nullptr;
+        ''')
+    
+    DECLARED_GRAPHS = True
+
+def purity_and_primary_fraction_histograms(rdf:RDataFrame, outfile:TFile, input_file:str, centrality_dir:str):
    
     graphs = {
         'Matter': {},
         'Antimatter': {}
     }
 
-    graphs['Matter']['primary_he3'] = load_graph(input_file, 'primary_fraction/He/g_primary_fraction_matter_averaged')
-    graphs['Matter']['primary_p'] = load_graph(input_file, 'primary_fraction/Pr/g_primary_fraction_matter_averaged')
-    graphs['Matter']['secondary_p_from_weak_decay'] = load_graph(input_file, 'primary_fraction/Pr/g_weak_decay_fraction_matter_averaged')
-    graphs['Matter']['purity_he3'] = load_graph(input_file, 'purity/He3/TPC/g_purity_matter_averaged')
-    graphs['Matter']['purity_p_tpc'] = load_graph(input_file, 'purity/Had/TPC/g_purity_matter_averaged')
-    graphs['Matter']['purity_p_tof'] = load_graph(input_file, 'purity/Had/TOF/g_purity_matter_averaged')
-    graphs['Antimatter']['primary_he3'] = load_graph(input_file, 'primary_fraction/He/g_primary_fraction_antimatter_averaged')
-    graphs['Antimatter']['primary_p'] = load_graph(input_file, 'primary_fraction/Pr/g_primary_fraction_antimatter_averaged')
-    graphs['Antimatter']['secondary_p_from_weak_decay'] = load_graph(input_file, 'primary_fraction/Pr/g_weak_decay_fraction_antimatter_averaged')
-    graphs['Antimatter']['purity_he3'] = load_graph(input_file, 'purity/He3/TPC/g_purity_antimatter_averaged')
-    graphs['Antimatter']['purity_p_tpc'] = load_graph(input_file, 'purity/Had/TPC/g_purity_antimatter_averaged')
-    graphs['Antimatter']['purity_p_tof'] = load_graph(input_file, 'purity/Had/TOF/g_purity_antimatter_averaged')
+    graphs['Matter']['primary_he3'] = load_graph(input_file, f'{centrality_dir}/primary_fraction/He/g_primary_fraction_matter_averaged')
+    graphs['Matter']['primary_p'] = load_graph(input_file, f'{centrality_dir}/primary_fraction/Pr/g_primary_fraction_matter_averaged')
+    graphs['Matter']['secondary_p_from_weak_decay'] = load_graph(input_file, f'{centrality_dir}/primary_fraction/Pr/g_weak_decay_fraction_matter_averaged')
+    graphs['Matter']['purity_he3'] = load_graph(input_file, f'{centrality_dir}/purity/He3/TPC/g_purity_matter_averaged')
+    graphs['Matter']['purity_p_tpc'] = load_graph(input_file, f'{centrality_dir}/purity/Had/TPC/g_purity_matter_averaged')
+    graphs['Matter']['purity_p_tof'] = load_graph(input_file, f'{centrality_dir}/purity/Had/TOF/g_purity_matter_averaged')
+    graphs['Antimatter']['primary_he3'] = load_graph(input_file, f'{centrality_dir}/primary_fraction/He/g_primary_fraction_antimatter_averaged')
+    graphs['Antimatter']['primary_p'] = load_graph(input_file, f'{centrality_dir}/primary_fraction/Pr/g_primary_fraction_antimatter_averaged')
+    graphs['Antimatter']['secondary_p_from_weak_decay'] = load_graph(input_file, f'{centrality_dir}/primary_fraction/Pr/g_weak_decay_fraction_antimatter_averaged')
+    graphs['Antimatter']['purity_he3'] = load_graph(input_file, f'{centrality_dir}/purity/He3/TPC/g_purity_antimatter_averaged')
+    graphs['Antimatter']['purity_p_tpc'] = load_graph(input_file, f'{centrality_dir}/purity/Had/TPC/g_purity_antimatter_averaged')
+    graphs['Antimatter']['purity_p_tof'] = load_graph(input_file, f'{centrality_dir}/purity/Had/TOF/g_purity_antimatter_averaged')
     
-    h_protons_from_sigma = load_hist('/home/galucia/Lithium4/calibration/output/dca/dca_mc_template_check.root',
+    h_protons_from_sigma = load_hist('/home/galucia/Lithium4/calibration/output/dca/dca_mc_template.root',
                                      'Pr/hPtPr_IsFromSigmaPlus')
-    h_protons_from_lambda = load_hist('/home/galucia/Lithium4/calibration/output/dca/dca_mc_template_check.root',
+    h_protons_from_lambda = load_hist('/home/galucia/Lithium4/calibration/output/dca/dca_mc_template.root',
                                      'Pr/hPtPr_IsFromLambda0')
     h_sigma_protons_to_weak_decay_protons = h_protons_from_sigma.Clone('h_sigma_to_weak_decay_protons_ratio')
     
@@ -255,23 +286,7 @@ def purity_and_primary_fraction_histograms(rdf:RDataFrame, outfile:TFile, input_
     h_sigma_protons_to_weak_decay_protons.Divide(h_weak_decay_protons)
     g_sigma_protons_to_weak_decay_protons = hist_to_graph(h_sigma_protons_to_weak_decay_protons, 'g_sigma_to_weak_decay_protons_ratio')
     
-    ROOT.gInterpreter.Declare('''
-                              TGraph * graph_purity_he3_matter = nullptr;
-                              TGraph * graph_purity_p_tpc_matter = nullptr;
-                              TGraph * graph_purity_p_tof_matter = nullptr;
-                              TGraph * graph_primary_he3_matter = nullptr;
-                              TGraph * graph_primary_p_matter = nullptr;
-                              TGraph * graph_secondary_p_from_weak_decay_matter = nullptr;
-                              
-                              TGraph * graph_purity_he3_antimatter = nullptr;
-                              TGraph * graph_purity_p_tpc_antimatter = nullptr;
-                              TGraph * graph_purity_p_tof_antimatter = nullptr;
-                              TGraph * graph_primary_he3_antimatter = nullptr;
-                              TGraph * graph_primary_p_antimatter = nullptr;
-                              TGraph * graph_secondary_p_from_weak_decay_antimatter = nullptr;
-
-                              TGraph * graph_sigma_protons_to_weak_decay_protons = nullptr;
-                              ''')
+    declare_graphs()
     
     ROOT.graph_purity_he3_matter = graphs['Matter']['purity_he3']
     ROOT.graph_purity_p_tpc_matter = graphs['Matter']['purity_p_tpc']
@@ -322,11 +337,15 @@ def purity_and_primary_fraction_histograms(rdf:RDataFrame, outfile:TFile, input_
         }
     ROOT.RDF.RunGraphs([h for hists in all_hists.values() for h in hists.values()])
     
+    outfile_centrality = outfile.GetDirectory(centrality_dir)
+    if not outfile_centrality:
+        outfile_centrality = outfile.mkdir(centrality_dir)
     for sign in ['Both', 'Matter', 'Antimatter']:
         
         outhists = all_hists[sign]    
-        outdir = outfile.mkdir(sign)
+        outdir = outfile_centrality.mkdir(sign)
         outdir.cd()
+        
         for name, hist in outhists.items():
             if name == 'kstar' or name == 'pt_had':
                 pass
@@ -353,7 +372,7 @@ def purity_and_primary_fraction_histograms(rdf:RDataFrame, outfile:TFile, input_
         outhists['lambda'].Write()
         outhists['lambda_sigma'].Write()
     
-    outfile.cd()
+    outfile_centrality.cd()
     graphs['Matter']['purity_he3'].Write('graph_purity_he3_matter')
     graphs['Matter']['purity_p_tpc'].Write('graph_purity_p_tpc_matter')
     graphs['Matter']['purity_p_tof'].Write('graph_purity_p_tof_matter')
@@ -371,17 +390,19 @@ def purity_and_primary_fraction_histograms(rdf:RDataFrame, outfile:TFile, input_
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Compute lambda parameters for He3-p correlation analysis.')
-    parser.add_argument('--input', type=str, default='calibration/output/average_purity_and_primary_fraction.root', help='Path to the input configuration YAML file.')
-    parser.add_argument('--output', type=str, default='calibration/output/lambda_parameters.root', help='Path to the output ROOT file.')
+    parser.add_argument('--input', type=str, default='output/average_purity_and_primary_fraction.root', help='Path to the input configuration YAML file.')
+    parser.add_argument('--output', type=str, default='output/lambda_parameters.root', help='Path to the output ROOT file.')
     args = parser.parse_args()
 
     proton_from_Sigma_to_proton_from_Lambda_ratio = 0.25
-    rdf = load_same(prepare_years=False)
-    rdf = rdf.Filter(base_selection)
+    rdf_full = load_same(prepare_years=False)
+    rdf_full = rdf_full.Filter(base_selection)
 
     output_file = ROOT.TFile(args.output, "RECREATE")
 
-    purity_and_primary_fraction_histograms(rdf, output_file, args.input)
+    for centrality_dir, (cent_min, cent_max) in CENTRALITY_CLASSES.items():
+        rdf_cent = rdf_full.Filter(f'fCentralityFT0C >= {cent_min} && fCentralityFT0C < {cent_max}')
+        purity_and_primary_fraction_histograms(rdf_cent, output_file, args.input, centrality_dir)
 
     output_file.Close()
 
