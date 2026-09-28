@@ -160,7 +160,8 @@ def draw_source_radius():
         watermark.AddText('#bf{ALICE Run 3}')
         watermark.AddText('#bf{Pb-Pb  #it{#sqrt{s_{NN}}} = 5.36 TeV}')
         
-        legend = init_legend(0.5, 0.68, 0.88, 0.88, text_size=0.03, n_columns=3)
+        legend = init_legend(0.5, 0.58, 0.88, 0.88, text_size=0.04, n_columns=2)
+        legend_curves = init_legend(0.5, 0.38, 0.88, 0.54, text_size=0.04, n_columns=1)
         
         results_panel = TPaveText(0.38, 0.48, 0.88, 0.64, 'NDC')
         results_panel.SetFillColor(0)
@@ -171,7 +172,7 @@ def draw_source_radius():
         for icentrality, centrality in enumerate(['0-10%', '10-30%', '30-50%']):
 
             #bands[centrality].SetFillColor(color)
-            #bands[centrality].SetFillStyle(3001)
+            #bands[centrality].SetFillStyle(1001)
             #bands[centrality].Draw('3 same')
             
             set_root_object(funcs[centrality], line_color=get_color(icentrality), line_width=2)
@@ -182,19 +183,21 @@ def draw_source_radius():
             set_root_object(points['He'][centrality], marker_color=get_color(icentrality), marker_size=2, marker_style=33)
             points['He'][centrality].Draw('p same')
             
-            set_root_object(bands[centrality], fill_color=get_color(icentrality), line_color=0, fill_style=3001, fill_color_alpha=(get_color(icentrality), 0.3))
+            set_root_object(bands[centrality], fill_color=get_color(icentrality), line_color=0, fill_style=1001, fill_color_alpha=(get_color(icentrality), 0.3))
             bands[centrality].Draw('3 same')
             
             #legend.AddEntry(bands[centrality], centrality, 'f')
             legend.AddEntry(points['Pr'][centrality], f'#it{{R}}_{{p}}', 'p')
             legend.AddEntry(points['He'][centrality], f'#it{{R}}_{{^{{3}}He}}', 'p')
+            legend_curves.AddEntry(funcs[centrality], f'{centrality}', 'l')
 
             results_panel.AddText(f'#bf{{{centrality}:}}   #bf{{{points['Pr'][centrality].GetY()[0]:.2f}}}    #bf{{{points['He'][centrality].GetY()[0]:.2f}}}')
             print(f'Centrality {centrality}: Rp = {points["Pr"][centrality].GetY()[0]:.2f} fm, Rhe3 = {points["He"][centrality].GetY()[0]:.2f} fm, Rsource = {np.sqrt((points["Pr"][centrality].GetY()[0])**2 + (points["He"][centrality].GetY()[0])**2):.2f} fm')
 
         watermark.Draw()
-        results_panel.Draw()
+        #results_panel.Draw()
         legend.Draw('same')
+        legend_curves.Draw('same')
         canvas.SaveAs(f'source_radius_parameterisation_{centrality_to_draw}.pdf')
         outfile.cd()
         canvas.Write(f'canvas_{centrality_to_draw}')
@@ -258,7 +261,7 @@ def draw_source_radius():
             #run3_points[particle].SetPointError(icentrality, nch.s * (1/3) * nch.n**(-2/3), nch.s * (1/3) * nch.n**(-2/3), radius - min_y, max_y - radius)
             #print(f'Centrality {centrality}: Nch = {nch.n:.0f}, Radius = {radius:.2f} + {max_y - radius:.2f} / - {radius - min_y:.2f} fm')
             
-            radius_err = np.sqrt( (funcs_nch[particle].GetParError(0))**2 + (nch.n**(1/3) * funcs_nch[particle].GetParError(1))**2 - 2 * nch.n**(1/3) * covariance )
+            radius_err = np.sqrt( (funcs_nch[particle].GetParError(0))**2 + (nch.n**(1/3) * funcs_nch[particle].GetParError(1))**2 + 2 * nch.n**(1/3) * covariance )
             run3_points[particle].SetPoint(0, nch.n**(1/3), radius)
             run3_points[particle].SetPointError(0, nch.s * (1/3) * nch.n**(-2/3), nch.s * (1/3) * nch.n**(-2/3), radius_err, radius_err)
             print(f'Centrality {centrality_to_draw}: Nch = {nch.n:.0f}, (Nch)^{{1/3}} = {nch.n**(1/3):.2f}, Radius = {radius:.2f} ± {radius_err:.2f} fm')
@@ -280,7 +283,7 @@ def draw_source_radius():
                 #bands[particle].SetPoint(i, nch, y)
                 #bands[particle].SetPointError(i, 0, 0, y - min_y, max_y - y)
                 
-                y_err = np.sqrt( (funcs_nch[particle].GetParError(0))**2 + (nch_cuberoot * funcs_nch[particle].GetParError(1))**2 - 2 * nch_cuberoot * covariance )
+                y_err = np.sqrt( (funcs_nch[particle].GetParError(0))**2 + (nch_cuberoot * funcs_nch[particle].GetParError(1))**2 + 2 * nch_cuberoot * covariance )
                 bands[particle].SetPoint(i, nch_cuberoot, y)
                 bands[particle].SetPointError(i, 0, 0, y_err, y_err)
             
@@ -289,7 +292,7 @@ def draw_source_radius():
             set_root_object(funcs_nch[particle], line_color=get_color(iparticle), line_width=2)
             set_root_object(run3_points[particle], marker_color=get_color(iparticle), marker_size=(1.5 if particle == 'Pr' else 2), 
                             marker_style=24 if particle == 'Pr' else 27, line_color=get_color(iparticle))
-            set_root_object(bands[particle], fill_color=get_color(iparticle), line_color=0, fill_style=3001, fill_color_alpha=(get_color(iparticle), 0.3))
+            set_root_object(bands[particle], fill_color=get_color(iparticle), line_color=0, fill_style=1001, fill_color_alpha=(get_color(iparticle), 0.3))
             
             graph.Draw('p same')
             funcs_nch[particle].Draw('same')
@@ -309,6 +312,9 @@ def draw_source_radius():
         text_nch.Draw()
         legend_nch.Draw('same')
         canvas_nch.SaveAs(f'source_radius_parameterisation_nch_{centrality_to_draw}.pdf')
+        
+        outfile.cd()
+        canvas_nch.Write(f'canvas_nch_{centrality_to_draw}')
 
 
 if __name__ == '__main__':
