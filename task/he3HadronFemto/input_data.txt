@@ -1,1 +1,8 @@
-/data/galucia/lithium/raw/LHC25an_pass1.root
+/data/galucia/lithium/MC/raw/LHC26e6_AOD_001_raw.root
+/data/galucia/lithium/MC/raw/LHC26e6_AOD_002_raw.root
+/data/galucia/lithium/MC/raw/LHC26e6_AOD_003_raw.root
+/data/galucia/lithium/MC/raw/LHC26e6_AOD_004_raw.root
+/data/galucia/lithium/MC/raw/LHC26e6_AOD_005_raw.root
+/data/galucia/lithium/MC/raw/LHC26e6_AOD_006_raw.root
+/data/galucia/lithium/MC/raw/LHC26e6_AOD_007_raw.root
+/data/galucia/lithium/MC/raw/LHC26e6_AOD_008_raw.root
