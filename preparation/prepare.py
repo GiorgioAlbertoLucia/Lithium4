@@ -10,8 +10,9 @@ from torchic.utils.terminal_colors import TerminalColors as tc
 sys.path.append('..')
 from utils.particles import ParticleMasses
 from utils.histogram_registry import HistogramRegistry
-from utils.histogram_archive import register_qa_histograms, register_kstar_histograms, register_kstar_matter_histograms, \
-    register_kstar_antimatter_histograms, register_invmass_histograms, register_invmass_matter_histograms, register_invmass_antimatter_histograms
+from utils.histogram_archive import (register_qa_histograms, register_qa_problematic_kstar_bin_histograms,
+                                     register_kstar_histograms, register_kstar_matter_histograms, register_kstar_antimatter_histograms, 
+                                     register_invmass_histograms, register_invmass_matter_histograms, register_invmass_antimatter_histograms)
     
 from include.load_parameters import load_parametrisation
 gInterpreter.ProcessLine(f'#include "../include/Common.h"')
@@ -159,11 +160,14 @@ def visualise(rdf, output_file: TFile):
     register_kstar_histograms(histogram_registry)
     print(f'\t(anti)matter histograms created!')
 
-    register_kstar_matter_histograms(histogram_registry)
-    print(f'\tmatter histograms created!')
-
-    register_kstar_antimatter_histograms(histogram_registry)
-    print(f'\tantimatter histograms created!')
+    #### register_kstar_matter_histograms(histogram_registry)
+    #### print(f'\tmatter histograms created!')
+    #### 
+    #### register_kstar_antimatter_histograms(histogram_registry)
+    #### print(f'\tantimatter histograms created!')
+    
+    #register_qa_problematic_kstar_bin_histograms(histogram_registry)
+    #print(f'\tQA problematic kstar bin histograms created!')
 
     histogram_registry.prepare_directories(output_file)
     histogram_registry.draw_histogram(rdf)
