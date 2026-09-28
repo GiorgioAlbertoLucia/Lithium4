@@ -6,7 +6,7 @@ outPath: /home/galucia/Lithium4/figures/root/primary_fraction.root
 
 plots:
   [
-    {
+    { # he3 0-10%
       axisSpecs: 
         [
           # x axis
@@ -14,16 +14,16 @@ plots:
             nbins: 100,
             xmin: 0.,
             xmax: 5.05,
-            name: 'primary_fraction_he3',
-            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}He)',
+            name: 'primary_fraction_he3_0_10',
+            title: '^{3}He, FT0C Centrality 0-10%; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}He)',
           },
           # y axis
           {
             nbins: 0,
             xmin: -0.05,
             xmax: 1.05,
-            name: 'primary_fraction_he3',
-            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}He)',
+            name: 'primary_fraction_he3_0_10',
+            title: '^{3}He, FT0C Centrality 0-10%; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}He)',
           },
         ],
       canvas:
@@ -35,8 +35,8 @@ plots:
         [
           {
             inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
-            graphName: He/DCAxy/g_primary_fraction_matter,
-            graphLabel: 'primaries',
+            graphName: He/DCAxy_centrality_0_10/g_primary_fraction_matter,
+            graphLabel: 'primaries (2023)',
             kwargs: {
                       line_color: 797, line_width: 1, line_style: 1,
                       marker_color: 797, marker_style: 20, marker_size: 1,
@@ -45,20 +45,88 @@ plots:
                     }
           },
           {
-            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
-            graphName: He/DCAxy/g_weak_decay_fraction_matter,
-            graphLabel: 'weak decays',
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: He/DCAxy_centrality_0_10/g_primary_fraction_matter,
+            graphLabel: 'primaries (2024)',
             kwargs: {
-                      line_color: 601, line_width: 1, line_style: 1,
-                      marker_color: 601, marker_style: 21, marker_size: 1,
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 25, marker_size: 1,
                       draw_option: 'pl same',
                       leg_option: 'pl',
                     }
           },
           {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: He/DCAxy_centrality_0_10/g_primary_fraction_matter,
+            graphLabel: 'primaries (2025)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+
+          {
             inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
-            graphName: He/DCAxy/g_material_fraction_matter,
-            graphLabel: 'material',
+            graphName: He/DCAxy_centrality_0_10/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays (2023)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: He/DCAxy_centrality_0_10/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays (2024)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: He/DCAxy_centrality_0_10/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays (2025)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: He/DCAxy_centrality_0_10/g_material_fraction_matter,
+            graphLabel: 'material (2023)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: He/DCAxy_centrality_0_10/g_material_fraction_matter,
+            graphLabel: 'material (2024)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: He/DCAxy_centrality_0_10/g_material_fraction_matter,
+            graphLabel: 'material (2025)',
             kwargs: {
                       line_color: 428, line_width: 1, line_style: 1,
                       marker_color: 428, marker_style: 22, marker_size: 1,
@@ -76,17 +144,17 @@ plots:
           {
           bool: 1,
           xmin: 0.52, xmax: 0.82,
-          ymin: 0.27, ymax: 0.52,
+          ymin: 0.22, ymax: 0.72,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
                   }
           },
         ],
-      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_he3.pdf
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_he3_0_10.pdf
     },
 
-    {
+    { # he3 10-50%
       axisSpecs: 
         [
           # x axis
@@ -94,16 +162,16 @@ plots:
             nbins: 100,
             xmin: 0.,
             xmax: 5.05,
-            name: 'primary_fraction_he3_methods',
-            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); #it{f}_{primary}(^{3}He)',
+            name: 'primary_fraction_he3_10_50',
+            title: '^{3}He, FT0C Centrality 10-50%; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}He)',
           },
           # y axis
           {
             nbins: 0,
             xmin: -0.05,
             xmax: 1.05,
-            name: 'primary_fraction_he3_methods',
-            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); #it{f}_{primary}(^{3}He)',
+            name: 'primary_fraction_he3_10_50',
+            title: '^{3}He, FT0C Centrality 10-50%; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}He)',
           },
         ],
       canvas:
@@ -115,7 +183,155 @@ plots:
         [
           {
             inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
-            graphName: He/DCAxy/g_primary_fraction_matter,
+            graphName: He/DCAxy_centrality_10_50/g_primary_fraction_matter,
+            graphLabel: 'primaries (2023)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: He/DCAxy_centrality_10_50/g_primary_fraction_matter,
+            graphLabel: 'primaries (2024)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: He/DCAxy_centrality_10_50/g_primary_fraction_matter,
+            graphLabel: 'primaries (2025)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: He/DCAxy_centrality_10_50/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays (2023)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: He/DCAxy_centrality_10_50/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays (2024)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: He/DCAxy_centrality_10_50/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays (2025)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: He/DCAxy_centrality_10_50/g_material_fraction_matter,
+            graphLabel: 'material (2023)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: He/DCAxy_centrality_10_50/g_material_fraction_matter,
+            graphLabel: 'material (2024)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: He/DCAxy_centrality_10_50/g_material_fraction_matter,
+            graphLabel: 'material (2025)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.22, ymax: 0.72,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_he3_10_50.pdf
+    },
+
+    { # he3 methods - 0-10%
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 5.05,
+            name: 'primary_fraction_he3_methods',
+            title: '^{3}He - FT0C Centrality 0-10%; #it{p}_{T} (GeV/#it{c}); #it{f}_{primary}(^{3}He)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: -0.05,
+            xmax: 1.05,
+            name: 'primary_fraction_he3_methods',
+            title: '^{3}He - FT0C Centrality 0-10%; #it{p}_{T} (GeV/#it{c}); #it{f}_{primary}(^{3}He)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: He/DCAxy_centrality_0_10/g_primary_fraction_matter,
             graphLabel: 'fits',
             kwargs: {
                       line_color: 797, line_width: 1, line_style: 1,
@@ -127,7 +343,7 @@ plots:
           },
           #{
           #  inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
-          #  graphName: He/DCAxy/g_primary_fraction_matter_subtraction,
+          #  graphName: He/DCAxy_centrality_0_10/g_primary_fraction_matter_subtraction,
           #  graphLabel: 'subtraction',
           #  kwargs: {
           #            line_color: 797, line_width: 1, line_style: 1,
@@ -153,10 +369,10 @@ plots:
                   }
           },
         ],
-      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_he3_methods.pdf
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_he3_methods_0_10.pdf
     },
 
-    {
+    { # antihe3 0-10%
       axisSpecs: 
         [
           # x axis
@@ -164,16 +380,16 @@ plots:
             nbins: 100,
             xmin: 0.,
             xmax: 5.05,
-            name: 'primary_fraction_antihe3',
-            title: '^{3}#bar{He}; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}#bar{He})',
+            name: 'primary_fraction_antihe3_0_10',
+            title: '^{3}#bar{He} - FT0C Centrality 0-10%; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}#bar{He})',
           },
           # y axis
           {
             nbins: 0,
             xmin: -0.05,
             xmax: 1.05,
-            name: 'primary_fraction_antihe3',
-            title: '^{3}#bar{He}; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}#bar{He})',
+            name: 'primary_fraction_antihe3_0_10',
+            title: '^{3}#bar{He} - FT0C Centrality 0-10%; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}#bar{He})',
           },
         ],
       canvas:
@@ -185,8 +401,8 @@ plots:
         [
           {
             inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
-            graphName: He/DCAxy/g_primary_fraction_antimatter,
-            graphLabel: 'primaries',
+            graphName: He/DCAxy_centrality_0_10/g_primary_fraction_antimatter,
+            graphLabel: 'primaries (2023)',
             kwargs: {
                       line_color: 797, line_width: 1, line_style: 1,
                       marker_color: 797, marker_style: 20, marker_size: 1,
@@ -195,12 +411,57 @@ plots:
                     }
           },
           {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: He/DCAxy_centrality_0_10/g_primary_fraction_antimatter,
+            graphLabel: 'primaries (2024)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: He/DCAxy_centrality_0_10/g_primary_fraction_antimatter,
+            graphLabel: 'primaries (2025)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+
+          {
             inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
-            graphName: He/DCAxy/g_weak_decay_fraction_antimatter,
-            graphLabel: 'weak decays',
+            graphName: He/DCAxy_centrality_0_10/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays (2023)',
             kwargs: {
                       line_color: 601, line_width: 1, line_style: 1,
-                      marker_color: 601, marker_style: 21, marker_size: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: He/DCAxy_centrality_0_10/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays (2024)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: He/DCAxy_centrality_0_10/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays (2025)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 22, marker_size: 1,
                       draw_option: 'pl same',
                       leg_option: 'pl',
                     }
@@ -215,17 +476,17 @@ plots:
           {
           bool: 1,
           xmin: 0.52, xmax: 0.82,
-          ymin: 0.27, ymax: 0.52,
+          ymin: 0.22, ymax: 0.72,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
                   }
           },
         ],
-      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_antihe3.pdf
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_antihe3_0_10.pdf
     },
 
-    {
+    { # antihe3 10-50%
       axisSpecs: 
         [
           # x axis
@@ -233,16 +494,16 @@ plots:
             nbins: 100,
             xmin: 0.,
             xmax: 5.05,
-            name: 'primary_fraction_p',
-            title: 'p; #it{p}_{T} (GeV/#it{c}); #it{f}(p)',
+            name: 'primary_fraction_antihe3_10_50',
+            title: '^{3}#bar{He} - FT0C Centrality 10-50%; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}#bar{He})',
           },
           # y axis
           {
             nbins: 0,
             xmin: -0.05,
             xmax: 1.05,
-            name: 'primary_fraction_p',
-            title: 'p; #it{p}_{T} (GeV/#it{c}); #it{f}(p)',
+            name: 'primary_fraction_antihe3_10_50',
+            title: '^{3}#bar{He} - FT0C Centrality 10-50%; #it{p}_{T} (GeV/#it{c}); #it{f}(^{3}#bar{He})',
           },
         ],
       canvas:
@@ -254,7 +515,7 @@ plots:
         [
           {
             inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
-            graphName: Pr/DCAxy/g_primary_fraction_matter,
+            graphName: He/DCAxy_centrality_10_50/g_primary_fraction_antimatter,
             graphLabel: 'primaries',
             kwargs: {
                       line_color: 797, line_width: 1, line_style: 1,
@@ -264,25 +525,216 @@ plots:
                     }
           },
           {
-            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
-            graphName: Pr/DCAxy/g_weak_decay_fraction_matter,
-            graphLabel: 'weak decays',
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: He/DCAxy_centrality_10_50/g_primary_fraction_antimatter,
+            graphLabel: 'primaries (2024)',
             kwargs: {
-                      line_color: 601, line_width: 1, line_style: 1,
-                      marker_color: 601, marker_style: 21, marker_size: 1,
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 25, marker_size: 1,
                       draw_option: 'pl same',
                       leg_option: 'pl',
                     }
           },
           {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: He/DCAxy_centrality_10_50/g_primary_fraction_antimatter,
+            graphLabel: 'primaries (2025)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+
+          {
             inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
-            graphName: Pr/DCAxy/g_material_fraction_matter,
-            graphLabel: 'material',
+            graphName: He/DCAxy_centrality_10_50/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: He/DCAxy_centrality_10_50/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays (2024)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: He/DCAxy_centrality_10_50/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays (2025)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.22, ymax: 0.72,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_antihe3_10_50.pdf
+    },
+
+    { # p 0-10%
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 3.05,
+            name: 'primary_fraction_p_0_10',
+            title: 'p - FT0C Centrality 0-10%; #it{p}_{T} (GeV/#it{c}); #it{f}(p)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: -0.05,
+            xmax: 1.05,
+            name: 'primary_fraction_p_0_10',
+            title: 'p - FT0C Centrality 0-10%; #it{p}_{T} (GeV/#it{c}); #it{f}(p)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_primary_fraction_matter,
+            graphLabel: 'primaries (2023)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_primary_fraction_matter,
+            graphLabel: 'primaries (2024)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_primary_fraction_matter,
+            graphLabel: 'primaries (2025)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays (2023)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays (2024)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays (2025)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_material_fraction_matter,
+            graphLabel: 'material (2023)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_material_fraction_matter,
+            graphLabel: 'material (2024)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_material_fraction_matter,
+            graphLabel: 'material (2025)',
             kwargs: {
                       line_color: 428, line_width: 1, line_style: 1,
                       marker_color: 428, marker_style: 22, marker_size: 1,
                       draw_option: 'pl same',
                       leg_option: 'pl',
+                      xmax: 3,
                     }
           },
         ],
@@ -295,17 +747,17 @@ plots:
           {
           bool: 1,
           xmin: 0.52, xmax: 0.82,
-          ymin: 0.27, ymax: 0.52,
+          ymin: 0.27, ymax: 0.67,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
                   }
           },
         ],
-      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_p.pdf
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_p_0_10.pdf
     },
 
-    {
+    { # p 10-50%
       axisSpecs: 
         [
           # x axis
@@ -313,16 +765,16 @@ plots:
             nbins: 100,
             xmin: 0.,
             xmax: 5.05,
-            name: 'primary_fraction_antip',
-            title: '#bar{p}; #it{p}_{T} (GeV/#it{c}); #it{f}(#bar{p})',
+            name: 'primary_fraction_p_10_50',
+            title: 'p - FT0C Centrality 10-50%; #it{p}_{T} (GeV/#it{c}); #it{f}(p)',
           },
           # y axis
           {
             nbins: 0,
             xmin: -0.05,
             xmax: 1.05,
-            name: 'primary_fraction_antip',
-            title: '#bar{p}; #it{p}_{T} (GeV/#it{c}); #it{f}(#bar{p})',
+            name: 'primary_fraction_p_10_50',
+            title: 'p - FT0C Centrality 10-50%; #it{p}_{T} (GeV/#it{c}); #it{f}(p)',
           },
         ],
       canvas:
@@ -334,24 +786,112 @@ plots:
         [
           {
             inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
-            graphName: Pr/DCAxy/g_primary_fraction_antimatter,
-            graphLabel: 'primaries',
+            graphName: Pr/DCAxy_centrality_10_50/g_primary_fraction_matter,
+            graphLabel: 'primaries (2023)',
             kwargs: {
                       line_color: 797, line_width: 1, line_style: 1,
                       marker_color: 797, marker_style: 20, marker_size: 1,
                       draw_option: 'pl same',
                       leg_option: 'pl',
+                      xmax: 3,
                     }
           },
           {
-            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
-            graphName: Pr/DCAxy/g_weak_decay_fraction_antimatter,
-            graphLabel: 'weak decays',
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_primary_fraction_matter,
+            graphLabel: 'primaries (2024)',
             kwargs: {
-                      line_color: 601, line_width: 1, line_style: 1,
-                      marker_color: 601, marker_style: 21, marker_size: 1,
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 25, marker_size: 1,
                       draw_option: 'pl same',
                       leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_primary_fraction_matter,
+            graphLabel: 'primaries (2025)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays (2023)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays (2024)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_weak_decay_fraction_matter,
+            graphLabel: 'weak decays (2025)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_material_fraction_matter,
+            graphLabel: 'material (2023)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_material_fraction_matter,
+            graphLabel: 'material (2024)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_material_fraction_matter,
+            graphLabel: 'material (2025)',
+            kwargs: {
+                      line_color: 428, line_width: 1, line_style: 1,
+                      marker_color: 428, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
                     }
           },
         ],
@@ -364,17 +904,17 @@ plots:
           {
           bool: 1,
           xmin: 0.52, xmax: 0.82,
-          ymin: 0.27, ymax: 0.52,
+          ymin: 0.27, ymax: 0.67,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
                   }
           },
         ],
-      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_antip.pdf
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_p_10_50.pdf
     },
 
-    {
+    { # antip 0-10%
       axisSpecs: 
         [
           # x axis
@@ -382,16 +922,256 @@ plots:
             nbins: 100,
             xmin: 0.,
             xmax: 5.05,
-            name: 'ratio_antimatter_matter',
-            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); ^{3}#bar{He} / ^{3}He',
+            name: 'primary_fraction_antip_0_10',
+            title: '#bar{p} - FT0C Centrality 0-10%; #it{p}_{T} (GeV/#it{c}); #it{f}(#bar{p})',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: -0.05,
+            xmax: 1.05,
+            name: 'primary_fraction_antip_0_10',
+            title: '#bar{p} - FT0C Centrality 0-10%; #it{p}_{T} (GeV/#it{c}); #it{f}(#bar{p})',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_primary_fraction_antimatter,
+            graphLabel: 'primaries (2023)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_primary_fraction_antimatter,
+            graphLabel: 'primaries (2024)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_primary_fraction_antimatter,
+            graphLabel: 'primaries (2025)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays (2023)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays (2024)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: Pr/DCAxy_centrality_0_10/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays (2025)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.67,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_antip_0_10.pdf
+    },
+
+    { # antip 10-50%
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 5.05,
+            name: 'primary_fraction_antip_10_50',
+            title: '#bar{p} - FT0C Centrality 10-50%; #it{p}_{T} (GeV/#it{c}); #it{f}(#bar{p})',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: -0.05,
+            xmax: 1.05,
+            name: 'primary_fraction_antip_10_50',
+            title: '#bar{p} - FT0C Centrality 10-50%; #it{p}_{T} (GeV/#it{c}); #it{f}(#bar{p})',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      graphs:
+        [
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_primary_fraction_antimatter,
+            graphLabel: 'primaries (2023)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_primary_fraction_antimatter,
+            graphLabel: 'primaries (2024)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_primary_fraction_antimatter,
+            graphLabel: 'primaries (2025)',
+            kwargs: {
+                      line_color: 797, line_width: 1, line_style: 1,
+                      marker_color: 797, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays (2023)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC24ar_pass3.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays (2024)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 25, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+          {
+            inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC25_PbPb_pass1.root,
+            graphName: Pr/DCAxy_centrality_10_50/g_weak_decay_fraction_antimatter,
+            graphLabel: 'weak decays (2025)',
+            kwargs: {
+                      line_color: 601, line_width: 1, line_style: 1,
+                      marker_color: 601, marker_style: 22, marker_size: 1,
+                      draw_option: 'pl same',
+                      leg_option: 'pl',
+                      xmax: 3,
+                    }
+          },
+        ],
+      multigraph: 
+        { 
+          kwargs: { draw_option: 'same'}  
+        },
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.67,
+          kwargs: {
+                    border_size: 0, nColumns: 1, textSize: 600,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/primary_fraction_antip_10_50.pdf
+    },
+
+    { # ratio antihe3/he3 0-10%
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 5.05,
+            name: 'ratio_antimatter_matter_0_10',
+            title: '^{3}He - FT0C Centrality 0-10%; #it{p}_{T} (GeV/#it{c}); ^{3}#bar{He} / ^{3}He',
           },
           # y axis
           {
             nbins: 0,
             xmin: .75,
             xmax: 2.55,
-            name: 'ratio_antimatter_matter',
-            title: '^{3}He; #it{p}_{T} (GeV/#it{c}); ^{3}#bar{He} / ^{3}He',
+            name: 'ratio_antimatter_matter_0_10',
+            title: '^{3}He - FT0C Centrality 0-10%; #it{p}_{T} (GeV/#it{c}); ^{3}#bar{He} / ^{3}He',
           },
         ],
       canvas:
@@ -403,7 +1183,7 @@ plots:
         [
           {
             inPath: /home/galucia/DetectorCalibration/output/dca/primary_fraction_LHC23_PbPb_pass5.root,
-            graphName: He/DCAxy/g_ratio,
+            graphName: He/DCAxy_centrality_0_10/g_ratio,
             graphLabel: ' ',
             kwargs: {
                       line_color: 797, line_width: 1, line_style: 1,
@@ -441,7 +1221,7 @@ plots:
                   }
           },
         ],
-      outPDF:  /home/galucia/Lithium4/figures/output/ratio_antimatter_matter.pdf
+      outPDF:  /home/galucia/Lithium4/figures/output/ratio_antimatter_matter_0_10.pdf
     },
 
   ]

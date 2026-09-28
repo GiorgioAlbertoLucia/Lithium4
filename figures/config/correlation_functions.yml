@@ -38,25 +38,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: CorrelationAntimatter/Default/hCorrelation010,
-            histLabel: '#bar{p} - ^{3}#bar{He}',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hCorrelation010,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: CorrelationAntimatter/010/hCorrelationSyst010,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 0-10%', '#bar{p}-^{3}#bar{He}'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -64,8 +103,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -105,25 +144,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: CorrelationMatter/Default/hCorrelation010,
-            histLabel: 'p - ^{3}He',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationMatter/Default/hCorrelation010,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: CorrelationMatter/010/hCorrelationSyst010,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 0-10%', 'p-^{3}He'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -131,8 +209,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -172,25 +250,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: Correlation/Default/hCorrelation010,
-            histLabel: 'p - ^{3}He #oplus #bar{p} - ^{3}#bar{He}',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: Correlation/Default/hCorrelation010,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: Correlation/010/hCorrelationSyst010,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 0-10%', 'p-^{3}He #oplus #bar{p}-^{3}#bar{He}'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -198,8 +315,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -240,25 +357,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: CorrelationAntimatter/Default/hCorrelation1030,
-            histLabel: '#bar{p} - ^{3}#bar{He}',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hCorrelation1030,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: CorrelationAntimatter/1030/hCorrelationSyst1030,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 10-30%', '#bar{p}-^{3}#bar{He}'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -266,8 +422,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -307,25 +463,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: CorrelationMatter/Default/hCorrelation1030,
-            histLabel: 'p - ^{3}He',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationMatter/Default/hCorrelation1030,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: CorrelationMatter/1030/hCorrelationSyst1030,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 10-30%', 'p - ^{3}He'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -333,8 +528,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -374,25 +569,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: Correlation/Default/hCorrelation1030,
-            histLabel: 'p - ^{3}He #oplus #bar{p} - ^{3}#bar{He}',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: Correlation/Default/hCorrelation1030,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: Correlation/1030/hCorrelationSyst1030,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 10-30%', 'p - ^{3}He #oplus #bar{p} - ^{3}#bar{He}'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -400,8 +634,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -442,25 +676,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: CorrelationAntimatter/Default/hCorrelation3050,
-            histLabel: '#bar{p} - ^{3}#bar{He}',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hCorrelation3050,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: CorrelationAntimatter/3050/hCorrelationSyst3050,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 30-50%', '#bar{p}-^{3}#bar{He}'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -468,8 +741,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -509,25 +782,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: CorrelationMatter/Default/hCorrelation3050,
-            histLabel: 'p - ^{3}He',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationMatter/Default/hCorrelation3050,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: CorrelationMatter/3050/hCorrelationSyst3050,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 30-50%', 'p-^{3}He'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -535,8 +847,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -576,25 +888,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: Correlation/Default/hCorrelation3050,
-            histLabel: 'p - ^{3}He #oplus #bar{p} - ^{3}#bar{He}',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: Correlation/Default/hCorrelation3050,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: Correlation/3050/hCorrelationSyst3050,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 30-50%', 'p-^{3}He #oplus #bar{p} - ^{3}#bar{He}'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -602,8 +953,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -644,25 +995,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: CorrelationAntimatter/Default/hCorrelation5080,
-            histLabel: '#bar{p} - ^{3}#bar{He}',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hCorrelation5080,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: CorrelationAntimatter/5080/hCorrelationSyst5080,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 50-80%', '#bar{p}-^{3}#bar{He}'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -670,8 +1060,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -711,25 +1101,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: CorrelationMatter/Default/hCorrelation5080,
-            histLabel: 'p - ^{3}He',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationMatter/Default/hCorrelation5080,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: CorrelationMatter/5080/hCorrelationSyst5080,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 50-80%', 'p-^{3}He'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -737,8 +1166,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -778,25 +1207,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: Correlation/Default/hCorrelation5080,
-            histLabel: 'p - ^{3}He #oplus #bar{p} - ^{3}#bar{He}',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: Correlation/Default/hCorrelation5080,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: Correlation/5080/hCorrelationSyst5080,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 50-80%', 'p-^{3}He #oplus #bar{p}-^{3}#bar{He}'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -804,8 +1272,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -846,25 +1314,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: CorrelationAntimatter/Default/hCorrelationDirectComputation1050,
-            histLabel: '#bar{p} - ^{3}#bar{He}',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hCorrelationDirectComputation1050,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: CorrelationAntimatter/1050/hCorrelationSyst1050,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
                       leg_option: 'p',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 10-50%', '#bar{p}-^{3}#bar{He}'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -872,8 +1379,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -913,25 +1420,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: CorrelationMatter/Default/hCorrelationDirectComputation1050,
-            histLabel: 'p - ^{3}He',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationMatter/Default/hCorrelationDirectComputation1050,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: CorrelationMatter/1050/hCorrelationSyst1050,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 10-50%', 'p-^{3}He'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -939,8 +1485,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -980,25 +1526,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: Correlation/Default/hCorrelationDirectComputation1050,
-            histLabel: 'p - ^{3}He #oplus #bar{p} - ^{3}#bar{He}',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: Correlation/Default/hCorrelationDirectComputation1050,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: Correlation/1050/hCorrelationSyst1050,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 10-50%', 'p-^{3}He #oplus #bar{p}-^{3}#bar{He}'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -1006,8 +1591,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -1048,25 +1633,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: CorrelationAntimatter/Default/hCorrelationDirectComputation050,
-            histLabel: '#bar{p} - ^{3}#bar{He}',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationAntimatter/Default/hCorrelationDirectComputation050,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: CorrelationAntimatter/050/hCorrelationSyst050,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 0-10%', '#bar{p}-^{3}#bar{He}'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -1074,8 +1698,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -1115,10 +1739,21 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: CorrelationMatter/Default/hCorrelationDirectComputation050,
-            histLabel: 'p - ^{3}He',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'p',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: CorrelationMatter/Default/hCorrelationDirectComputation050,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
@@ -1126,14 +1761,42 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: CorrelationMatter/050/hCorrelationSyst050,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 0-10%', 'p-^{3}He'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -1141,8 +1804,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',
@@ -1182,25 +1845,64 @@ plots:
           {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
             histName: Correlation/Default/hCorrelationDirectComputation050,
-            histLabel: 'p - ^{3}He #oplus #bar{p} - ^{3}#bar{He}',
+            histLabel: 'Data',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
                       draw_option: 'p e0 same',
                       leg_option: 'p',
                     }
           },
           {
+            inPath: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root,
+            histName: Correlation/Default/hCorrelationDirectComputation050,
+            histLabel: 'Stat. uncert.',
+            kwargs: {
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      draw_option: 'p e0 same',
+                      leg_option: 'l',
+                    }
+          },
+          {
             inPath: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root,
             histName: Correlation/050/hCorrelationSyst050,
-            histLabel: '',
+            histLabel: 'Syst. uncert.',
             kwargs: {
-                      line_color: 797, line_width: 1, line_style: 1,
-                      marker_color: 797, marker_style: 20, marker_size: 1,
-                      fill_color: 797, fill_alpha: 0.5, fill_style: 3001,
+                      line_color: 1, line_width: 1, line_style: 1,
+                      marker_color: 1, marker_style: 20, marker_size: 1,
+                      fill_color: 1, fill_alpha: 0.5, fill_style: 3001,
                       draw_option: 'p e2 same',
-                      leg_add: False,
-                      leg_option: 'p',
+                      leg_option: 'f',
+                    }
+          },
+        ],
+      lines: 
+        [
+          {
+            lineSpecs: {
+                        x1: 0.0,
+                        x2: 0.405,
+                        y1: 1.,
+                        y2: 1.,
+                        name: '#it{C}(#it{k}*) = 1'
+                      },
+            kwargs: {
+                      line_color: 16, # Gray
+                      line_width: 2,
+                      line_style: 2,
+                    }
+          },
+        ],
+      pavetexts:
+        [
+          {
+            position: [0.3, 0.21, 0.5, 0.45],
+            text: ['ALICE', 'Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV', 
+                   'FT0C Centrality 0-10%', 'p-^{3}He #oplus #bar{p}-^{3}#bar{He}'],
+            kwargs: {
+                      border_size: 0, fill_color: 0, fill_style: 0, 
+                      text_size: 0.04, text_font: 42, 
                     }
           },
         ],
@@ -1208,8 +1910,8 @@ plots:
         [
           {
           bool: 1,
-          xmin: 0.42, xmax: 0.82,
-          ymin: 0.27, ymax: 0.42,
+          xmin: 0.62, xmax: 0.82,
+          ymin: 0.21, ymax: 0.45,
           kwargs: {
                     border_size: 0, nColumns: 1, textSize: 600,
                     fill_color: 0, draw_option: 'same',

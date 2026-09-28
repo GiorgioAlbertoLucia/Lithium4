@@ -1,0 +1,582 @@
+#
+# Configuration file for plots
+#
+
+outPath: /home/galucia/Lithium4/figures/root/event_loss.root
+
+plots:
+  [
+
+    { # event loss vs centrality
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 100.,
+            name: 'event_loss_vs_centrality',
+            title: '; FT0C Centrality (%); Event Loss',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.05,
+            name: 'event_loss_vs_centrality',
+            title: '; FT0C Centrality (%); Event Loss',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2023/EventLoss/hEventLossVsCentrality,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2024/EventLoss/hEventLossVsCentrality,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2025/EventLoss/hEventLossVsCentrality,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 428, line_width: 2, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, text_size: 0.04,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/event_loss/event_loss.pdf
+    },
+
+    { # event loss analysis
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 2,
+            xmin: -0.5,
+            xmax: 1.5,
+            name: 'event_loss_analysis',
+            title: '; FT0C Centrality (%); Event Loss',
+            bin_labels: ['0-10%', '10-50%'],
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.05,
+            name: 'event_loss_vs_centrality',
+            title: '; FT0C Centrality (%); Event Loss',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+          bottom_margin: 0.15,
+          x_title_size: 0.045,
+          y_title_size: 0.045,
+          x_label_size: 0.06,
+          #y_label_size: 0.03,
+          x_title_offset: 1.2,
+          #y_title_offset: 1.4,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2023/EventLoss/hEventLossVsCentralityAnalysis,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2024/EventLoss/hEventLossVsCentralityAnalysis,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2025/EventLoss/hEventLossVsCentralityAnalysis,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 428, line_width: 2, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, text_size: 0.04,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/event_loss/event_loss_analysis.pdf
+    },
+
+    { # event splitting vs centrality
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 100.,
+            name: 'event_splitting_vs_centrality',
+            title: '; FT0C Centrality (%); 1 / Event Splitting',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.05,
+            name: 'event_splitting_vs_centrality',
+            title: '; FT0C Centrality (%); 1 / Event Splitting',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2023/EventSplitting/hEventSplittingVsCentrality,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2024/EventSplitting/hEventSplittingVsCentrality,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2025/EventSplitting/hEventSplittingVsCentrality,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 428, line_width: 2, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, text_size: 0.04,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/event_loss/event_splitting.pdf
+    },
+
+    { # event splitting analysis
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 2,
+            xmin: -0.5,
+            xmax: 1.5,
+            name: 'event_splitting_analysis',
+            title: '; FT0C Centrality (%); 1 / Event Splitting',
+            bin_labels: ['0-10%', '10-50%'],
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.05,
+            name: 'event_splitting_vs_centrality',
+            title: '; FT0C Centrality (%); 1 / Event Splitting',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+          bottom_margin: 0.15,
+          x_title_size: 0.045,
+          y_title_size: 0.045,
+          x_label_size: 0.06,
+          #y_label_size: 0.03,
+          x_title_offset: 1.2,
+          #y_title_offset: 1.4,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2023/EventSplitting/hEventSplittingVsCentralityAnalysis,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2024/EventSplitting/hEventSplittingVsCentralityAnalysis,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2025/EventSplitting/hEventSplittingVsCentralityAnalysis,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 428, line_width: 2, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, text_size: 0.04,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/event_loss/event_splitting_analysis.pdf
+    },
+
+    { # event correction vs centrality
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 2,
+            xmin: -0.5,
+            xmax: 1.5,
+            name: 'event_correction_vs_centrality',
+            title: '; FT0C Centrality (%); Event Loss / Event Splitting',
+            bin_labels: ['0-10%', '10-50%'],
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.05,
+            name: 'event_splitting_vs_centrality',
+            title: '; FT0C Centrality (%); Event Loss / Event Splitting',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+          bottom_margin: 0.15,
+          x_title_size: 0.045,
+          y_title_size: 0.045,
+          x_label_size: 0.06,
+          #y_label_size: 0.03,
+          x_title_offset: 1.2,
+          #y_title_offset: 1.4,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2023/EventCorrection/hEventCorrectionVsCentrality,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2024/EventCorrection/hEventCorrectionVsCentrality,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2025/EventCorrection/hEventCorrectionVsCentrality,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 428, line_width: 2, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, text_size: 0.04,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/event_loss/event_correction.pdf
+    },
+
+    { # event splitting vs centrality
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 100.,
+            name: 'signal_loss_vs_centrality',
+            title: '; FT0C Centrality (%); Signal Loss',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.05,
+            name: 'signal_loss_vs_centrality',
+            title: '; FT0C Centrality (%); Signal Loss',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2023/SignalLoss/hSignalLossVsCentrality,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2024/SignalLoss/hSignalLossVsCentrality,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2025/SignalLoss/hSignalLossVsCentrality,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 428, line_width: 2, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, text_size: 0.04,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/event_loss/signal_loss.pdf
+    },
+
+    { # signal loss analysis
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 2,
+            xmin: -0.5,
+            xmax: 1.5,
+            name: 'signal_loss_analysis',
+            title: '; FT0C Centrality (%); Signal Loss',
+            bin_labels: ['0-10%', '10-50%'],
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 1.05,
+            name: 'signal_loss_vs_centrality',
+            title: '; FT0C Centrality (%); Signal Loss',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+          bottom_margin: 0.15,
+          x_title_size: 0.045,
+          y_title_size: 0.045,
+          x_label_size: 0.06,
+          #y_label_size: 0.03,
+          x_title_offset: 1.2,
+          #y_title_offset: 1.4,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2023/SignalLoss/hSignalLossVsCentralityAnalysis,
+            histLabel: '2023 pass5',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2024/SignalLoss/hSignalLossVsCentralityAnalysis,
+            histLabel: '2024 pass3',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/event_loss/EventCorrection.root,
+            histName: 2025/SignalLoss/hSignalLossVsCentralityAnalysis,
+            histLabel: '2025 pass1',
+            kwargs: {
+                      line_color: 428, line_width: 2, line_style: 1,
+                      marker_color: 428, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist p e1 same',
+                      leg_option: 'pl',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, text_size: 0.04,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/event_loss/signal_loss_analysis.pdf
+    },
+
+
+  ]

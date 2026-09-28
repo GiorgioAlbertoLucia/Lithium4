@@ -1,0 +1,86 @@
+#
+# Configuration file for plots
+#
+
+outPath: /home/galucia/Lithium4/figures/root/models.root
+
+plots:
+  [
+
+    { # li4 signal
+      axisSpecs: 
+        [
+          # x axis
+          {
+            nbins: 100,
+            xmin: 0.,
+            xmax: 0.4,
+            name: 'li4_signal_sigma_variations',
+            title: '^{4}Li; #it{k}* (GeV/#it{c}); #it{C}(#it{k}*)',
+          },
+          # y axis
+          {
+            nbins: 0,
+            xmin: 0.,
+            xmax: 2400.05,
+            name: 'li4_signal_sigma_variations',
+            title: '^{4}Li; #it{k}* (GeV/#it{c}); #it{C}(#it{k}*)',
+          },
+        ],
+      canvas:
+        {
+          logy: False,
+          left_margin: 0.15,
+        },
+      hists:
+        [
+          {
+            inPath: /home/galucia/Lithium4/femto/models/li4_contribution_proper_sill.root,
+            histName: hCkHist,
+            histLabel: '#Gamma_{^{4}Li}',
+            kwargs: {
+                      line_color: 797, line_width: 2, line_style: 1,
+                      marker_color: 797, marker_style: 20, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/femto/models/li4_contribution_proper_sill.root,
+            histName: hCkHist_SigmaDown,
+            histLabel: '#Gamma_{^{4}Li} - 10%',
+            kwargs: {
+                      line_color: 601, line_width: 2, line_style: 1,
+                      marker_color: 601, marker_style: 21, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+          {
+            inPath: /home/galucia/Lithium4/femto/models/li4_contribution_proper_sill.root,
+            histName: hCkHist_SigmaUp,
+            histLabel: '#Gamma_{^{4}Li} + 10%',
+            kwargs: {
+                      line_color: 418, line_width: 2, line_style: 1,
+                      marker_color: 418, marker_style: 22, marker_size: 1,
+                      draw_option: 'hist same',
+                      leg_option: 'l',
+                    }
+          },
+        ],
+      legends:
+        [
+          {
+          bool: 1,
+          xmin: 0.52, xmax: 0.82,
+          ymin: 0.27, ymax: 0.52,
+          kwargs: {
+                    border_size: 0, nColumns: 1, text_size: 0.05,
+                    fill_color: 0, draw_option: 'same',
+                  }
+          },
+        ],
+      outPDF:  /home/galucia/Lithium4/figures/output/li4_signal_sigma_variations.pdf
+    },
+
+  ]
