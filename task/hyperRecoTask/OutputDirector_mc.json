@@ -1,0 +1,10 @@
+{
+  "OutputDirector": {
+    "debug_mode": true,
+    "resfile": "AO2D_lit_mc",
+    "OutputDescriptors": [
+      
+    ],
+    "ntfmerge": 1
+  }
+}

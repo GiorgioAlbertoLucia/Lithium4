@@ -1,0 +1,402 @@
+{
+  "mult-cent-table": {
+    "generatorName": "PYTHIA",
+    "processRun3": "1",
+    "processRun2": "0",
+    "minNclsMFTTrack": "5",
+    "enabledTables": {
+      "values": [
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ],
+        [
+          -1
+        ]
+      ]
+    },
+    "maxPtGlobalTrack": "1e+10",
+    "doNTrackStudies": "1",
+    "ccdbPathCentrality": "Centrality/Estimators",
+    "doVertexZeq": "1",
+    "ccdbPathVtxZ": "Centrality/Calibration",
+    "minNclsITSibGlobalTrack": "1",
+    "reconstructionPass": "",
+    "minNclsITSGlobalTrack": "5",
+    "processMonteCarlo": "1",
+    "processRun3WithGlobalCounters": "0",
+    "processMFT": "0",
+    "minEtaMFTTrack": "-3.9",
+    "processCentralityRun2": "0",
+    "processMonteCarlo2Mults": "1",
+    "embedINELgtZEROselection": "0",
+    "minPtGlobalTrack": "0.15",
+    "maxDCAxyToPVMFTTrack": "2",
+    "maxEtaMFTTrack": "-2",
+    "autoConfigureProcess": "0",
+    "ccdburl": "http://alice-ccdb.cern.ch",
+    "processCentralityRun3": "1"
+  },
+  "eventselection-run3": {
+    "evselOpts.NumberOfOrbitsPerTF": "-1",
+    "timestamp.fatalOnInvalidTimestamp": "0",
+    "evselOpts.TimeRangeVetoOnCollNarrow": "0.25",
+    "evselOpts.VzDiffNsigma": "3",
+    "evselOpts.maxDiffZvtxFT0vsPV": "3",
+    "bcselOpts.checkRunDurationLimits": "0",
+    "evselOpts.amIneeded": "-1",
+    "evselOpts.EpsilonVzDiffVetoInROF": "0.3",
+    "evselOpts.isMC": "-1",
+    "bcselOpts.ITSROFrameStartBorderMargin": "-1",
+    "timestamp.isRun2MC": "-1",
+    "bcselOpts.TimeFrameStartBorderMargin": "-1",
+    "evselOpts.FT0CamplPerCollCutVetoOnCollInROF": "5000",
+    "timestamp.orbit-reset-path": "CTP/Calib/OrbitReset",
+    "evselOpts.TimeIntervalForOccupancyCalculationMin": "-40",
+    "evselOpts.TimeRangeVetoOnCollStrict": "10",
+    "bcselOpts.maxInactiveChipsPerLayer": {
+      "values": [
+        8,
+        8,
+        8,
+        111,
+        111,
+        195,
+        195
+      ]
+    },
+    "lumiOpts.amIneeded": "-1",
+    "evselOpts.confSigmaBCforHighPtTracks": "4",
+    "evselOpts.FT0CamplPerCollCutVetoOnCollInTimeRange": "8000",
+    "bcselOpts.ITSROFrameEndBorderMargin": "-1",
+    "evselOpts.VzDiffMargin": "0.2",
+    "bcselOpts.amIneeded": "-1",
+    "evselOpts.TimeIntervalForOccupancyCalculationMax": "100",
+    "ccdburl": "http://alice-ccdb.cern.ch",
+    "evselOpts.muonSelection": "0",
+    "evselOpts.UseWeightsForOccupancyEstimator": "1",
+    "bcselOpts.TimeFrameEndBorderMargin": "-1",
+    "bcselOpts.NumberOfOrbitsPerTF": "-1",
+    "timestamp.verbose": "0"
+  },
+  "tof-signal": {
+    "parametrizationPath": "TOF/Calib/Params",
+    "fatalOnPassNotAvailable": "0",
+    "timeShiftCCDBPathPosMC": "",
+    "paramFileName": "",
+    "processRun3": "1",
+    "enableTimeDependentResponse": "1",
+    "processRun2": "0",
+    "ccdb-path-grplhcif": "GLO/Config/GRPLHCIF",
+    "collisionSystem": "-1",
+    "enableQaHistograms": "0",
+    "timeShiftCCDBPathPos": "Analysis/PID/TOFOffsetPos",
+    "ccdb-timestamp": "-1",
+    "autoSetProcessFunctions": "1",
+    "timeShiftCCDBPathNeg": "Analysis/PID/TOFOffsetPos",
+    "reconstructionPass": "metadata",
+    "timeShiftCCDBPathNegMC": "",
+    "ccdb-url": "http://alice-ccdb.cern.ch",
+    "reconstructionPassDefault": "unanchored"
+  },
+  "tof-event-time": {
+    "computeEvTimeWithTOF": "1",
+    "minMomentum": "0.5",
+    "maxNtracksInSet": "10",
+    "sel8TOFEvTime": "0",
+    "maxMomentum": "2",
+    "maxEvTimeTOF": "100000",
+    "processRun3": "1",
+    "computeEvTimeWithFT0": "1",
+    "processRun2": "0"
+  },
+  "hyper-reco-task": {
+    "lutPath": "GLO/Param/MatLUT",
+    "processDataWithFlow": "0",
+    "processDataTracked": "0",
+    "dcapvPi": "0",
+    "hypcospa": "0.99",
+    "processEventLossMC": "1",
+    "binsFT0CMult": {
+      "values": [
+        4000,
+        0,
+        4000
+      ]
+    },
+    "dcapvHe": "0",
+    "hypdcaDau": "1",
+    "cfgEvSelkNoSameBunchPileup": "1",
+    "eta": "1",
+    "binsImpactPar": {
+      "values": [
+        100,
+        0,
+        20
+      ]
+    },
+    "piDauPdg": "211",
+    "cfgBetheBlochParams": {
+      "values": [
+        [
+          -321.34,
+          0.6539,
+          1.591,
+          0.8225,
+          2.363,
+          0.09
+        ]
+      ]
+    },
+    "rigidityBins": {
+      "values": [
+        200,
+        -10,
+        10
+      ]
+    },
+    "cfgSkimmedProcessing": "0",
+    "geoPath": "GLO/Config/GeometryAligned",
+    "customVertexerTimeMargin": "800",
+    "processData": "0",
+    "mcSignalOnly": "1",
+    "centBins": {
+      "values": [
+        100,
+        0,
+        100
+      ]
+    },
+    "cfgEvSelkIsGoodZvtxFT0vsPV": "1",
+    "d_bz": "-999",
+    "ccdb-url": "http://alice-ccdb.cern.ch",
+    "skipAmbiTracks": "0",
+    "TPCRigidityMinHe": "0.8",
+    "isEventUsedForEPCalibration": "1",
+    "binsPt": {
+      "values": [
+        20,
+        0,
+        10
+      ]
+    },
+    "hyperPDG": "1010010030",
+    "ptMin": "1.5",
+    "grpPath": "GLO/GRP/GRP",
+    "disableITSROFCut": "0",
+    "processDataWithCollID": "0",
+    "binsMult": {
+      "values": [
+        4000,
+        0,
+        4000
+      ]
+    },
+    "zVtxBins": {
+      "values": [
+        100,
+        -20,
+        20
+      ]
+    },
+    "nTPCClusMinHe": "-1",
+    "pidPath": "",
+    "nSigmaMaxHe": "5",
+    "binsCent": {
+      "values": [
+        10,
+        0,
+        100
+      ]
+    },
+    "nTPCClusMinPi": "-1",
+    "cfgCompensatePIDinTracking": "0",
+    "dedxBins": {
+      "values": [
+        1000,
+        0,
+        1000
+      ]
+    },
+    "nTPCCrossedRowsMinHe": "100",
+    "processMCTracked": "0",
+    "useCustomVertexer": "1",
+    "nSigmaBins": {
+      "values": [
+        200,
+        -5,
+        5
+      ]
+    },
+    "hypmasswidth": "0.06",
+    "nTPCCrossedRowsMinPi": "60",
+    "processMC": "0",
+    "grpmagPath": "GLO/Config/GRPMagField",
+    "cfgMaterialCorrection": "0",
+    "heDauPDG": "1000020030"
+  },
+  "tof-pid-merge": {
+    "enableParticle": {
+      "values": [
+        [
+          -1,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ],
+        [
+          -1,
+          -1
+        ]
+      ]
+    },
+    "processRun2BetaM": "0",
+    "processRun3": "1",
+    "processRun2": "0",
+    "enableTOFParamsForBetaMass": "0",
+    "processRun3BetaM": "1",
+    "enableQaHistograms": "0"
+  }
+}
