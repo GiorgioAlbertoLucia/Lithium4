@@ -45,9 +45,9 @@ struct CentralityConfig {
 
 const std::vector<CentralityConfig> kCentralities = {
     {"010",  false},
-    {"1030", false},
-    {"3050", false},
-    {"5080", false},
+    //{"1030", false},
+    //{"3050", false},
+    //{"5080", false},
     //{"050",  true},
     //{"080",  true},
     {"1050", true},
@@ -55,8 +55,8 @@ const std::vector<CentralityConfig> kCentralities = {
 };
 
 const std::vector<const char*> SIGNS = {
-    //"Antimatter",
-    //"Matter",
+    "Antimatter",
+    "Matter",
     "Both"
 };
 
@@ -68,10 +68,11 @@ namespace Config {
     
     
     const char* SIGNAL_FILE = "/home/galucia/Lithium4/femto/models/li4_contribution_proper_sill.root";
-    const char* BACKGROUND_FILE = "/home/galucia/Lithium4/femto/models/LHC25_PbPb_pass1_lambda_models.root";
+    const char* SIGNAL_NAME = "hCkHist"; // hCkHist or hCkHist_GroundStateOnly
+    const char* BACKGROUND_FILE = "/home/galucia/Lithium4/femto/models/lambda_models_LL_10.root";
 
-    //const char* OUTPUT_FILE = "output/yield_upper_limit.root"; 
-    const char* OUTPUT_FILE = "output/yield_upper_limit_syst_010.root"; 
+    const char* OUTPUT_FILE = "output/yield_upper_limit_LL_syst.root"; 
+    //const char* OUTPUT_FILE = "output/yield_upper_limit_syst_GroundStateOnly.root"; 
     
     const int N_ITERATIONS = 10000;
     const int PRINT_INTERVAL = 100;
@@ -79,11 +80,11 @@ namespace Config {
     
     const double KSTAR_MIN = 0.0;
     const double KSTAR_MAX = 0.4;
-    const double KSTAR_MAX_BIN_COUNTING = 0.15;
+    const double KSTAR_MAX_BIN_COUNTING = 0.25;
     const double PREFIT_MIN = 0.2;
     const double PREFIT_MAX = 0.4;
     const double REFERENCE_KSTAR_FOR_BKG_NORMALIZATION = 0.3; // in the flat region
-    const double REFERENCE_KSTAR_FOR_SIG_NORMALIZATION = 0.07; // in the flat region
+    const double REFERENCE_KSTAR_FOR_SIG_NORMALIZATION = 0.07; // in the peak region
 
     //SamplingMethod SAMPLING_METHOD = SamplingMethod::POISSONIAN;
     YieldExtrationMethod YIELD_EXTRACTION_METHOD = YieldExtrationMethod::FIT;
@@ -271,7 +272,7 @@ void prepareSignalModel(RooRealVar &kstar, RooDataSet* &signal_data, RooKeysPdf*
         std::cerr << "Error: Cannot open CATS file" << std::endl;
         return;
     }
-    auto h_correlation_signal = (TH1F*)file->Get("hCkHist");
+    auto h_correlation_signal = (TH1F*)file->Get(Config::SIGNAL_NAME);
     if (!h_correlation_signal) {
         std::cerr << "Error: Cannot load signal histogram" << std::endl;
         file->Close();
@@ -919,7 +920,7 @@ void computeYieldAndUpperLimit() {
                 h_chi2_fit->Fill(result.chi2);
             }
             
-            TF1 f_gaus("f_gaus", "gaus", -800, 800);
+            TF1 f_gaus("f_gaus", "gaus", -800, 1400);
             h_raw_yield->Fit(&f_gaus, "RMS+");
             gStyle->SetOptFit(1);
 

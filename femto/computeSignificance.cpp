@@ -6,6 +6,8 @@
 #include <vector>
 #include <deque>
 #include <numeric>
+
+#include <TGraphAsymmErrors.h>
 #include <TFile.h>
 #include <TH1F.h>
 #include <TGraph.h>
@@ -14,14 +16,35 @@
 
 namespace InputData {
     const char * inputMixedFile = "/home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root";
-    const char * inputCorrectionFile = "models/LHC25_PbPb_pass1_lambda_models.root";
-    const char * inputChi2File = "/home/galucia/Lithium4/femto/output/PbPb_fit_correlation_function_hadronpid__smoothened_finer_binning_smeared_lambda.root";
-    const char * OutputFile = "/home/galucia/Lithium4/femto/output/significance.root";
+    const char * inputCorrectionFile = "models/lambda_models_LL_10.root";
+    //const char * inputCorrectionFile = "models/lambda_models_coulomb_10.root";
+    const char * inputChi2File = "/home/galucia/Lithium4/femto/output/PbPb_fit_correlation_function_hadronpid__smoothened_finer_binning_LL_10.root";
+    const char * outputFile = "/home/galucia/Lithium4/femto/output/significance_LL_010_1050.root";
+
+    const std::vector<std::string> bkgVariationHistNames = {
+    //};
+        "nominal/hLambdaSigmaCorrectedCk_Smeared_nominal",
+        "nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_higher",
+        "nominal/hLambdaSigmaCorrectedCk_Smeared_nominal_lower",
+        "upper/hLambdaSigmaCorrectedCk_Smeared_upper",
+        "upper/hLambdaSigmaCorrectedCk_Smeared_upper_higher",
+        "upper/hLambdaSigmaCorrectedCk_Smeared_upper_lower",
+        "lower/hLambdaSigmaCorrectedCk_Smeared_lower",
+        "lower/hLambdaSigmaCorrectedCk_Smeared_lower_higher",
+        "lower/hLambdaSigmaCorrectedCk_Smeared_lower_lower   ",
+    };
 };
 
 namespace {
-    const float kstarMin = 0.02;
+    const float kstarMin = 0.0;
     const float kstarMax = 0.4;
+    
+    const int N_ITERATIONS = 1000000; // 1 million
+    const int N_BINS = 40; // 40 bins (this has to match the binning of the input mixed event histogram)
+    const int N_BINS_WINDOW = 4; // 6 bins for the window
+
+    const int NBINS_CHI2 = 1600;
+    const float CHI2_MAX_VALUE = 160;
 };
 
 enum class MatterMode { Matter, Antimatter, Both };
@@ -33,16 +56,58 @@ struct CentralityConfig {
 
 const std::vector<CentralityConfig> kCentralities = {
     {"010",  false},
-    {"1030", false},
-    {"3050", false},
-    {"5080", false},    
-    {"050",  true },
-    {"080",  true },
+    //{"1030", false},
+    //{"3050", false},
+    //{"5080", false},    
+    //{"050",  true },
+    //{"080",  true },
     {"1050", true },
-    {"1080", true },
+    //{"1080", true },
 };
 
-void loadSameMixedSingle(TH1F *& hSame, TH1F *& hMixed, const char* centrality, const bool directComputation, const bool isMatter = false) {
+enum class BkgVariation { Nominal, Low, High };
+
+const char* bkgVariationSuffix(BkgVariation var) {
+    switch (var) {
+        case BkgVariation::Low:  return "_bkg_low";
+        case BkgVariation::High: return "_bkg_high";
+        default: return "";
+    }
+}
+
+TH1F* buildBkgEnvelope(TFile* fileCorrection, const std::string& baseDir, TH1F* hRef,
+                       const std::vector<std::string>& variationNames, bool useMax) {
+
+    TH1F* hEnvelope = (TH1F*)hRef->Clone(useMax ? "hBkgEnvelopeHigh" : "hBkgEnvelopeLow");
+    hEnvelope->Reset();
+    hEnvelope->SetDirectory(0);
+
+    std::vector<TH1F*> variations;
+    for (const auto& name : variationNames) {
+        std::string fullName = baseDir + "/" + name;
+        auto h = (TH1F*)fileCorrection->Get(fullName.c_str());
+        if (!h) {
+            std::cerr << "Warning: could not find variation histogram " << fullName << std::endl;
+            continue;
+        }
+        variations.push_back(h);
+    }
+
+    for (int ibin = 1; ibin <= hEnvelope->GetNbinsX(); ++ibin) {
+        double kstar = hEnvelope->GetBinCenter(ibin);
+        double extremum = useMax ? -1e300 : 1e300;
+        for (auto h : variations) {
+            double value = h->Interpolate(kstar); // handles differing binning, as in build_bkg_envelope
+            extremum = useMax ? std::max(extremum, value) : std::min(extremum, value);
+        }
+        hEnvelope->SetBinContent(ibin, extremum);
+    }
+
+    return hEnvelope;
+}
+
+void loadSameMixedSingle(TH1F *& hSame, TH1F *& hMixed, const char* centrality, const bool directComputation, 
+                         const BkgVariation bkgVariation, const bool isMatter = false) {
 
     TFile *fileMixed = TFile::Open(InputData::inputMixedFile);
     std::string mixedHistName = std::string(isMatter ? "CorrelationMatter/Default/hMixedEvent" 
@@ -52,8 +117,17 @@ void loadSameMixedSingle(TH1F *& hSame, TH1F *& hMixed, const char* centrality, 
     hMixed = (TH1F*)fileMixed->Get(mixedHistName.c_str());
     
     TFile *fileCorrection = TFile::Open(InputData::inputCorrectionFile);
-    std::string corrName = std::string(isMatter ? "Matter/" : "Antimatter/") + centrality + "/hLambdaSigmaCorrectedCk";
-    auto hCorrection = (TH1F*)fileCorrection->Get(corrName.c_str());
+    std::string baseDir = std::string(isMatter ? "Matter/" : "Antimatter/") + centrality;
+    std::string nominalName = baseDir + "/hLambdaSigmaCorrectedCk";
+    auto hCorrectionNominal = (TH1F*)fileCorrection->Get(nominalName.c_str());
+
+    TH1F* hCorrection = nullptr;
+    if (bkgVariation == BkgVariation::Nominal) {
+        hCorrection = (TH1F*)hCorrectionNominal->Clone("hCorrectionTmp");
+    } else {
+        hCorrection = buildBkgEnvelope(fileCorrection, baseDir, hCorrectionNominal,
+                                        InputData::bkgVariationHistNames, bkgVariation == BkgVariation::High);
+    }
     hCorrection->SetDirectory(0);
     fileCorrection->Close();
 
@@ -70,16 +144,17 @@ void loadSameMixedSingle(TH1F *& hSame, TH1F *& hMixed, const char* centrality, 
     delete hCorrection;
 }
 
-void loadSameMixed(TH1F *& hSame, TH1F *& hMixed, const char* centrality, const bool directComputation, const MatterMode matterMode) {
+void loadSameMixed(TH1F *& hSame, TH1F *& hMixed, const char* centrality, const bool directComputation, 
+                   const BkgVariation bkgVariation, const MatterMode matterMode) {
 
     TH1F *hSameMatter = nullptr, *hMixedMatter = nullptr;
     TH1F *hSameAnti  = nullptr, *hMixedAnti  = nullptr;
 
     if (matterMode == MatterMode::Matter || matterMode == MatterMode::Both) {
-        loadSameMixedSingle(hSameMatter, hMixedMatter, centrality, directComputation, true);
+        loadSameMixedSingle(hSameMatter, hMixedMatter, centrality, directComputation, bkgVariation, true);
     }
     if (matterMode == MatterMode::Antimatter || matterMode == MatterMode::Both) {
-        loadSameMixedSingle(hSameAnti, hMixedAnti, centrality, directComputation, false);
+        loadSameMixedSingle(hSameAnti, hMixedAnti, centrality, directComputation, bkgVariation, false);
     }
 
     if (matterMode == MatterMode::Both) {
@@ -124,10 +199,11 @@ void runMcChi2(TH1F *& hChi2, TH1F *& hChi2FarFromSignal,
                const int N_ITERATIONS = 1000000 /* 1 mln */,
                const char* centrality = "010",
                const bool directComputation = false,
-               const MatterMode matterMode = MatterMode::Antimatter) {
+               const MatterMode matterMode = MatterMode::Antimatter,
+               const BkgVariation bkgVariation = BkgVariation::Nominal) {
 
     TH1F* hSame, * hMixed;
-    loadSameMixed(hSame, hMixed, centrality, directComputation, matterMode);
+    loadSameMixed(hSame, hMixed, centrality, directComputation, bkgVariation, matterMode);
     auto hCorrelation = (TH1F*)hSame->Clone("hCorrelation");
     std::cout << "Cloned histogram for correlation function." << std::endl;
     computeCorrelationFunction(hSame, hMixed, hCorrelation);
@@ -141,9 +217,10 @@ void runMcChi2(TH1F *& hChi2, TH1F *& hChi2FarFromSignal,
     const int N_WINDOW_BINS = runningChi2Histograms.size() - windowChi2Histograms.size();
     std::deque<float> chi2Deque;
     chi2Deque.resize(N_WINDOW_BINS);
+    std::vector<std::vector<uint64_t>> runningChi2Counts(N_BINS, std::vector<uint64_t>(runningChi2Histograms[0]->GetNbinsX(), 0));
 
     for (int iter = 0; iter < N_ITERATIONS; ++iter) {
-        if (iter % 10000 == 0) {
+        if (iter % static_cast<int>(N_ITERATIONS / 100) == 0) {
             std::cout << "Processing iteration: " << iter << "/" << N_ITERATIONS << std::endl;
         }
         hSameIter->Reset();
@@ -180,7 +257,10 @@ void runMcChi2(TH1F *& hChi2, TH1F *& hChi2FarFromSignal,
             } else {
                 chi2FarFromSignal += chi2;
             }
-            runningChi2Histograms[ibin-1]->Fill(chi2Cumulated);
+            
+            //runningChi2Histograms[ibin-1]->Fill(chi2Cumulated);
+            int idx = std::min(NBINS_CHI2 - 1, std::max(0, (int)(chi2Cumulated / CHI2_MAX_VALUE * NBINS_CHI2)));
+            runningChi2Counts[ibin-1][idx]++;
             
             chi2Deque.pop_front();
             chi2Deque.push_back(chi2);
@@ -197,6 +277,12 @@ void runMcChi2(TH1F *& hChi2, TH1F *& hChi2FarFromSignal,
 
         hChi2->Fill(chi2Limited);
         hChi2FarFromSignal->Fill(chi2FarFromSignal);
+    }
+
+    for (int ibin = 0; ibin < N_BINS; ++ibin) {
+        for (int idx = 0; idx < NBINS_CHI2; ++idx) {
+            runningChi2Histograms[ibin]->SetBinContent(idx+1, runningChi2Counts[ibin][idx]);
+        }
     }
 
     outfile->cd();
@@ -220,14 +306,17 @@ void displayRunningResult(TH1F *& hChi2, std::vector<TH1F *> & runningChi2Histog
                           TDirectory * outfile, float kstarBinCenters[],
                           const char * centrality,
                           const MatterMode matterMode,
+                          std::vector<double>& outSignificance,
+                          std::vector<double>& outPvalue,
                           const char * suffix = "",
+                          const BkgVariation bkgVariation = BkgVariation::Nominal,
                           const int N_BINS = 40 /* 40 bins */,
                           const int N_ITERATIONS = 1000000 /* 1 mln */) {
 
 
     auto infile = TFile::Open(InputData::inputChi2File);
     std::string matterLabel = (matterMode == MatterMode::Matter) ? "Matter" : (matterMode == MatterMode::Antimatter) ? "Antimatter" : "";
-    std::string chi2Name = std::string(matterLabel) + "" + centrality + "/model/chi2";
+    std::string chi2Name = std::string(matterLabel) + "" + centrality + "/model/chi2" + bkgVariationSuffix(bkgVariation) + "_stat_only";
     auto hChi2Data = (TH1F*)infile->Get(chi2Name.c_str());
     
     std::vector<double> runningChi2(hChi2Data->GetNbinsX());
@@ -247,20 +336,43 @@ void displayRunningResult(TH1F *& hChi2, std::vector<TH1F *> & runningChi2Histog
     TGraph *gRunningSignificance = new TGraph(N_BINS);
     gRunningSignificance->SetTitle("Running Significance;#it{k}* (GeV/#it{c});Significance");
 
-    for (int ibin = 0; ibin < N_BINS; ++ibin) {
-        runningChi2Histograms[ibin]->Write();
-        const float kstar = kstarBinCenters[ibin];
-        const float chi2Value = runningChi2[ibin];
-        //const float chi2Value = runningChi2[ibin] / (ibin+1); // reduced chi2
-        const float pvalue = runningChi2Histograms[ibin]->Integral(runningChi2Histograms[ibin]->FindBin(chi2Value), runningChi2Histograms[ibin]->GetNbinsX()+1) / N_ITERATIONS;
-        const float significance = TMath::NormQuantile(1. - pvalue/2.);
+    outSignificance.assign(N_BINS, 0.0);
+    outPvalue.assign(N_BINS, 0.0);
 
+    for (int ibin = 0; ibin < N_BINS; ++ibin) {
+        
+        const float chi2Value = runningChi2[ibin];
+        const float kstar = kstarBinCenters[ibin];
+        
+        TF1 *fGamma = new TF1(Form("fGamma_%d_%s", ibin, suffix), "[0]*ROOT::Math::gamma_pdf(x,[1],[2],0)", 2, 200);
+        fGamma->SetParameters(runningChi2Histograms[ibin]->Integral("width"), ibin/2., 0.5); // rough starting guess: shape~ndof, scale~2
+        runningChi2Histograms[ibin]->Fit(fGamma, "RLQ"); // "L" = log-likelihood fit, much better behaved for tails than chi2 fit
+
+        double k     = fGamma->GetParameter(1);
+        double theta = fGamma->GetParameter(2);
+        //double pvalue = 1.0 - ROOT::Math::gamma_cdf(chi2Value, k, theta);
+        //double significance = TMath::NormQuantile(1. - pvalue/2.);
+        double pvalue = ROOT::Math::gamma_cdf_c(chi2Value, k, theta);
+        double significance = std::sqrt(2.0) * TMath::ErfcInverse(pvalue);
+        std::cout << "Bin " << ibin << ", k* = " << kstar << ", chi2 = " << chi2Value << ", p-value = " << pvalue << ", significance = " << significance << std::endl;
+
+        runningChi2Histograms[ibin]->Write();
+        // //const float chi2Value = runningChi2[ibin] / (ibin+1); // reduced chi2
+        // const float pvalue = runningChi2Histograms[ibin]->Integral(runningChi2Histograms[ibin]->FindBin(chi2Value), runningChi2Histograms[ibin]->GetNbinsX()+1) / N_ITERATIONS;
+        // const float significance = TMath::NormQuantile(1. - pvalue/2.);
+        
         gRunningPvalue->SetPoint(ibin, kstar, pvalue);
         gRunningSignificance->SetPoint(ibin, kstar, significance);
+
+        outSignificance[ibin] = significance;
+        outPvalue[ibin] = pvalue;
+
+        //delete fGamma;
     }
     gRunningPvalue->SetMarkerStyle(20);
     gRunningPvalue->Write(Form("gRunningPvalue%s", suffix));
     gRunningSignificance->SetMarkerStyle(20);
+    gRunningSignificance->SetMaximum(10.0);
     gRunningSignificance->Write(Form("gRunningSignificance%s", suffix));
 
     delete hChi2Data;
@@ -270,14 +382,7 @@ void displayRunningResult(TH1F *& hChi2, std::vector<TH1F *> & runningChi2Histog
 
 void computeSignificance() {
 
-    const int N_ITERATIONS = 1000000; // 1 million
-    const int N_BINS = 40; // 40 bins (this has to match the binning of the input mixed event histogram)
-    const int N_BINS_WINDOW = 4; // 6 bins for the window
-
-    const int NBINS_CHI2 = 1600;
-    const float CHI2_MAX_VALUE = 160;
-
-    auto outfile = TFile::Open(InputData::OutputFile, "RECREATE");
+    auto outfile = TFile::Open(InputData::outputFile, "RECREATE");
     auto hChi2 = new TH1F("hChi2", "Chi2 Distribution;#chi^{2};Counts", NBINS_CHI2, 0, CHI2_MAX_VALUE);
     auto hChi2FarFromSignal = new TH1F("hChi2FarFromSignal", "Chi2 Distribution (far from signal);#chi^{2};Counts", NBINS_CHI2, 0, CHI2_MAX_VALUE);
     
@@ -302,16 +407,47 @@ void computeSignificance() {
             const char* label = (mode == MatterMode::Matter) ? "Matter" 
                             : (mode == MatterMode::Antimatter) ? "Antimatter" 
                             : "Both";
-            hChi2->Reset();
-            hChi2FarFromSignal->Reset();
-            for (auto& h : runningChi2Histograms) h->Reset();
-            for (auto& h : windowChi2Histograms)  h->Reset();
+            
+            std::vector<double> sigNominal, sigLow, sigHigh, pvalNominal, pvalLow, pvalHigh;
+            for (auto bkgVariation : {BkgVariation::Nominal, BkgVariation::Low, BkgVariation::High}) {
+                hChi2->Reset();
+                hChi2FarFromSignal->Reset();
+                for (auto& h : runningChi2Histograms) h->Reset();
+                for (auto& h : windowChi2Histograms)  h->Reset();
 
-            auto outdir = outfile->mkdir(Form("%s%s", label, cent.name));
-            runMcChi2(hChi2, hChi2FarFromSignal, runningChi2Histograms, windowChi2Histograms,
-                    kstarBinCenters, outdir, N_BINS, N_ITERATIONS, cent.name, cent.directComputation, mode);
-            displayRunningResult(hChi2, runningChi2Histograms, outdir, kstarBinCenters,
-                                cent.name, mode, Form("%s%s", label, cent.name), N_BINS, N_ITERATIONS);
+                auto outdir = outfile->mkdir(Form("%s%s%s", label, cent.name, bkgVariationSuffix(bkgVariation)));
+                runMcChi2(hChi2, hChi2FarFromSignal, runningChi2Histograms, windowChi2Histograms,
+                        kstarBinCenters, outdir, N_BINS, N_ITERATIONS, cent.name, cent.directComputation, mode, bkgVariation);
+                
+                std::vector<double> sig, pval;
+                displayRunningResult(hChi2, runningChi2Histograms, outdir, kstarBinCenters,
+                                    cent.name, mode, sig, pval,
+                                    Form("%s%s%s", label, cent.name, bkgVariationSuffix(bkgVariation)),
+                                    bkgVariation, N_BINS, N_ITERATIONS);
+
+                if (bkgVariation == BkgVariation::Nominal) { sigNominal = sig; pvalNominal = pval; }
+                else if (bkgVariation == BkgVariation::Low)  { sigLow  = sig; pvalLow  = pval; }
+                else if (bkgVariation == BkgVariation::High) { sigHigh = sig; pvalHigh = pval; }
+            }
+
+            auto outdirNominal = outfile->GetDirectory(Form("%s%s", label, cent.name));
+            outdirNominal->cd();
+
+            TGraphAsymmErrors *gRunningSignificanceWithUnc = new TGraphAsymmErrors(N_BINS);
+            gRunningSignificanceWithUnc->SetTitle("Running Significance (with bkg variation uncertainty);#it{k}* (GeV/#it{c});Significance");
+            gRunningSignificanceWithUnc->SetMarkerStyle(20);
+
+            for (int ibin = 0; ibin < N_BINS; ++ibin) {
+                double central = sigNominal[ibin];
+                double a = sigLow[ibin] - central;
+                double b = sigHigh[ibin] - central;
+                double errLow  = std::max(0.0, -std::min(a, b)); // lower error: how far below nominal the smaller of low/high falls
+                double errHigh = std::max(0.0,  std::max(a, b)); // upper error: how far above nominal the larger of low/high falls
+
+                gRunningSignificanceWithUnc->SetPoint(ibin, kstarBinCenters[ibin], central);
+                gRunningSignificanceWithUnc->SetPointError(ibin, 0., 0., errLow, errHigh);
+            }
+            gRunningSignificanceWithUnc->Write(Form("gRunningSignificanceWithUnc%s%s", label, cent.name));
         };
 
         runForMode(MatterMode::Antimatter);
