@@ -1,14 +1,16 @@
 input_data:   [
-                #'/data/galucia/lithium/MC/LHC25g11_new.root',
-                #'/data/galucia/lithium/MC/LHC26e5_new.root',
-                '/data/galucia/lithium/MC/LHC26e6_new.root',
+                #'/data/galucia/lithium/MC/LHC25g11.root',
+                #'/data/galucia/lithium/MC/LHC26e5.root',
+                '/data/galucia/lithium/MC/LHC26e6.root',
+                #/home/galucia/Lithium4/task/he3HadronFemto/AO2D_lit_mc.root
                 #'/data/galucia/QA/LHC26c6/AO2D.root',
                 ]
 tree_names:   ['O2he3hadtable', 'O2he3hadtablemc', 'O2he3hadmult']
 mode:         'DF'
 #output_file:  'output/PbPb/LHC25g11_efficiency.root'
 #output_file:  'output/PbPb/LHC26e5_efficiency.root'
-output_file:  'output/PbPb/LHC26e6_efficiency.root'
+output_file:  'output/PbPb/LHC26e6_efficiency_no_tof.root'
+#output_file:  'checks/local_check.root'
 
 selections:     [
                 # quality cuts
@@ -27,12 +29,12 @@ selections:     [
                  '(std::abs(fNSigmaDCAxyHe3) < 5)',
                  '(std::abs(fNSigmaDCAzHe3) < 5)',
                  #'(fClusterSizeCosLamHe3 > 4)',
-                 '(fNSigmaITSHe3 > -1.5)',
+                 '(fNSigmaITSHe3 > -2.)',
                  #'(fMassTOFHe3 > 2 || fMassTOFHe3 < 0)',
 
                  '(std::abs(fNSigmaTPCHad) < 2)',
                  #'(std::abs(fNSigmaTPCHadPr) < 2)',
-                 '((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2))',  # TOF hard cut
+                 #'((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2))',  # TOF hard cut
                  #'((std::abs(fPtHad) < 0.8) || (fNSigmaTOFHad > -99.))', # TOF hit
                  #'((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2) || (fNSigmaTOFHad < -9.9))', # TOF veto
                  ##'(fNSigmaITSHad > -2.)', ## ITS pid not implemented in mc
@@ -95,6 +97,12 @@ parameterisation: {
     kITSParams_He: [2.5734, 1.3620, 5.1383],  # He 
     kITSResolutionParams_Pr: [0.1575, 0., 0.],
     kITSResolutionParams_He: [0.1124, -0.0100, 0.],
+    
+    # PbPb MC 25g11
+    ### kITSParamsMC_Pr: [1.5273, 1.8027, 2.8959],
+    ### kITSParamsMC_He: [2.4882, 1.7105, 7.3087],
+    ### kITSResolutionParamsMC_Pr: [0.1300, 0., 0.],
+    ### kITSResolutionParamsMC_He: [0.0885, 0.0015, -0.0010],
 
     # PbPb MC 26e5
     ### kITSParamsMC_Pr: [1.5516, 1.7196, 3.0265], # Pr from Ka fitting
@@ -107,22 +115,16 @@ parameterisation: {
     kITSParamsMC_He: [2.4464, 1.6754, 7.4016],  # He 
     kITSResolutionParamsMC_Pr: [0.1778, 0.0655, 0.9722],
     kITSResolutionParamsMC_He: [0.094, 0., 0.],
-    
-    # PbPb MC 25g11
-    ### kITSParamsMC_Pr: [1.5273, 1.8027, 2.8959],
-    ### kITSParamsMC_He: [2.4882, 1.7105, 7.3087],
-    ### kITSResolutionParamsMC_Pr: [0.1300, 0., 0.],
-    ### kITSResolutionParamsMC_He: [0.0885, 0.0015, -0.0010],
       
     kPrTOFParams: [0.9452, -0.0098, 0.0039],
     kPrTOFResolutionParams: [-0.0069, 0.0289],
 
     # LHC25g11
-    #kHePidTrkParamsPt: [0.3101, -0.1759, 0.0262],
+    kHePidTrkParamsPt: [0.3101, -0.1759, 0.0262],
     #kHePidTrkParamsP: [1.1157, -0.9171, 0.1987],
 
     # LHC26e6
-    kHePidTrkParamsPt: [-0.023, 0.032, 0.227],
+    ### kHePidTrkParamsPt: [-0.023, 0.032, 0.227],
 
     kHePidTrkParamsP: [0., -0., 0.],
 }

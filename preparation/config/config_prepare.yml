@@ -60,13 +60,13 @@ selections:     [
                  '(fNClsTPCHe3 > 110)',
                  
                  #'((fPtHe3 < 2.25) || (fPIDtrkHe3 == 7))',
-                 #'((fPtHe3 < 2.5) || (fPIDtrkHe3 == 7))',
+                 '((fPtHe3 < 2.5) || (fPIDtrkHe3 == 7))',
                  #'((fPIDtrkHe3 == 6) || (fPIDtrkHe3 == 7) || (fPIDtrkHe3 == 8))',
-                 '((fPIDtrkHe3 == 7))',
+                 #'((fPIDtrkHe3 == 7))',
                  
                  '((-2. < fNSigmaTPCHe3) && (fNSigmaTPCHe3 < 2.))',
-                 '(std::abs(fNSigmaDCAxyHe3) < 3)',
-                 '(std::abs(fNSigmaDCAzHe3) < 3)',
+                 '(std::abs(fNSigmaDCAxyHe3) < 5)',
+                 '(std::abs(fNSigmaDCAzHe3) < 5)',
                  #'(fClusterSizeCosLamHe3 > 4)',
                  '(fNSigmaITSHe3 > -1.5)',
                  #'(fMassTOFHe3 > 2 || fMassTOFHe3 < 0)',
@@ -81,8 +81,8 @@ selections:     [
                  #'((std::abs(fPtHad) < 0.9) || (std::abs(fNSigmaTOFHad) < 2))',  # TOF hard cut at higher pt
                  #'((std::abs(fPtHad) < 0.8) || (std::abs(fNSigmaTOFHad) < 2) || (fNSigmaTOFHad < -9.9))', # TOF veto
                  '(fNSigmaITSHad > -2.)',
-                 '(std::abs(fNSigmaDCAxyHad) < 3)',
-                 '(std::abs(fNSigmaDCAzHad) < 3)',
+                 '(std::abs(fNSigmaDCAxyHad) < 5)',
+                 '(std::abs(fNSigmaDCAzHad) < 5)',
                 ]
 
 parameterisation: {
