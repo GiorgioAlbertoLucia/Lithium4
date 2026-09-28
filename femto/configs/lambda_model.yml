@@ -29,7 +29,7 @@ ck_input:
     '080': hcats_CF_r=5.50_fm
     '1050': hcats_CF_r=4.90_fm
     '1080': hcats_CF_r=4.91_fm
-  variations:
+  variations_radius:
     '010': {nominal: hcats_CF_r=6.12_fm, lower: hcats_CF_r=5.44_fm, upper: hcats_CF_r=6.80_fm}
     '1030': {nominal: hcats_CF_r=5.18_fm, lower: hcats_CF_r=4.57_fm, upper: hcats_CF_r=5.80_fm}
     '3050': {nominal: hcats_CF_r=4.09_fm, lower: hcats_CF_r=3.54_fm, upper: hcats_CF_r=4.64_fm}
@@ -50,7 +50,7 @@ sigma_ck_input:
     '080': hhe3_Sigma_plus_CF_r=5.50_fm
     '1050': hhe3_Sigma_plus_CF_r=4.90_fm
     '1080': hhe3_Sigma_plus_CF_r=4.91_fm
-  variations:
+  variations_radius:
     '010': {nominal: hhe3_Sigma_plus_CF_r=6.12_fm, lower: hhe3_Sigma_plus_CF_r=5.44_fm, upper: hhe3_Sigma_plus_CF_r=6.80_fm}
     '1030': {nominal: hhe3_Sigma_plus_CF_r=5.18_fm, lower: hhe3_Sigma_plus_CF_r=4.57_fm, upper: hhe3_Sigma_plus_CF_r=5.80_fm}
     '3050': {nominal: hhe3_Sigma_plus_CF_r=4.09_fm, lower: hhe3_Sigma_plus_CF_r=3.54_fm, upper: hhe3_Sigma_plus_CF_r=4.64_fm}

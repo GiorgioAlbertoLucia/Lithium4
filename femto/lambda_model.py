@@ -4,15 +4,16 @@
 
 import numpy as np
 
-from ROOT import TFile, TDirectory, TCanvas, TLegend, TTree, TF1, \
-                 RooDataSet, RooKeysPdf, RooRealVar, RooFit, RooDataHist
+from ROOT import (TFile, TDirectory, TCanvas, TLegend, TTree, TF1, \
+                  RooDataSet, RooKeysPdf, RooRealVar, RooFit, RooDataHist,
+                  RooMsgService, RooFit)
 
 from torchic.core.histogram import load_hist, HistLoadInfo
 from torchic.utils.root import set_root_object, init_legend
 from torchic.utils.colors import get_color
 from torchic.roopdf.roopdf_utils import init_roopdf
 import argparse
-from core.config_loader import load_yaml, build_hist_load_info_dict, build_hist_load_info_variations
+from core.config_loader import load_yaml, build_hist_load_info_dict, build_hist_load_info_variations_radius, build_hist_load_info_variations_model_params
 
 LAMBDA_MODIFICATION_FACTOR = None
 LAMBDA_VARIATION = None
@@ -20,6 +21,7 @@ LAMBDA_VARIATION = None
 INPUT_CK_PATH = None
 INPUT_SIGMA_CK_PATH = None
 INPUT_CK_VARIATIONS = None
+INPUT_CK_MODEL_PARAM_VARIATIONS = None
 INPUT_SIGMA_CK_VARIATIONS = None
 
 CENTRALITY_BINS = None
@@ -125,15 +127,56 @@ def smoothen_histogram(hist, outfile, n_events:int=100_000, xmin:float=0.02, xma
     
     return keys_pdf
 
-def apply_lambda_correction(h_out, h_ck, h_sigma_ck, lambda_param_hist, lambda_sigma_hist, scale: float = 1.0):
-    for ibin in range(1, h_out.GetNbinsX() + 1):
-        kstar = h_out.GetBinCenter(ibin)
+def compute_lambda_corrected_values(kstars, ck_values, lambda_param_hist, scale: float = 1.0,
+                                     sigma_ck_values=None, lambda_sigma_hist=None):
+    '''
+    Compute the lambda-corrected correlation value at each kstar point.
+    If sigma_ck_values/lambda_sigma_hist are provided, includes the Sigma contamination term;
+    otherwise applies the plain lambda*ck + (1-lambda) correction.
+    '''
+    corrected = []
+    for i, (kstar, ck) in enumerate(zip(kstars, ck_values)):
         lam = lambda_param_hist.GetBinContent(lambda_param_hist.FindBin(kstar)) * scale
         lam = min(max(lam, 0.), 1.)  # Ensure lambda is between 0 and 1
-        lam_s = lambda_sigma_hist.GetBinContent(lambda_sigma_hist.FindBin(kstar))
-        ck = h_ck.GetBinContent(ibin)
-        sig = h_sigma_ck.GetBinContent(h_sigma_ck.FindBin(kstar))
-        h_out.SetBinContent(ibin, lam * ck + lam_s * sig + (1 - lam - lam_s))
+        if (lam-0) < 1e-12:
+            lam = 1. # lambda = 0 happens for no entries in the kstar histogram
+
+        if lambda_sigma_hist is not None:
+            lam_s = lambda_sigma_hist.GetBinContent(lambda_sigma_hist.FindBin(kstar))
+            sig = sigma_ck_values[i]
+        else:
+            lam_s, sig = 0., 0.
+
+        corrected.append(lam * ck + lam_s * sig + (1 - lam - lam_s))
+    return corrected
+
+def fill_hist_from_weighted_average(h_out, kstars, values):
+    '''
+    Fill h_out bin-by-bin by averaging all (kstar, value) pairs whose kstar falls
+    within that bin's edges. Works regardless of whether `kstars` shares h_out's binning.
+    '''
+    for ibin in range(1, h_out.GetNbinsX()+1):
+        kstar_low = h_out.GetBinLowEdge(ibin)
+        kstar_high = h_out.GetBinLowEdge(ibin+1)
+
+        val_sum, count = 0., 0
+        for kstar, val in zip(kstars, values):
+            if kstar_low <= kstar < kstar_high:
+                val_sum += val
+                count += 1
+
+        if count > 0:
+            h_out.SetBinContent(ibin, val_sum / count)
+    return h_out
+
+def apply_lambda_correction(h_out, h_ck, h_sigma_ck, lambda_param_hist, lambda_sigma_hist, scale: float = 1.0):
+    kstars = [h_ck.GetBinCenter(jbin) for jbin in range(1, h_ck.GetNbinsX()+1)]
+    ck_values = [h_ck.GetBinContent(jbin) for jbin in range(1, h_ck.GetNbinsX()+1)]
+    sigma_values = [h_sigma_ck.GetBinContent(h_sigma_ck.FindBin(kstar)) for kstar in kstars]
+
+    corrected = compute_lambda_corrected_values(kstars, ck_values, lambda_param_hist, scale=scale,
+                                                 sigma_ck_values=sigma_values, lambda_sigma_hist=lambda_sigma_hist)
+    fill_hist_from_weighted_average(h_out, kstars, corrected)
         
 def produce_lambda_with_modified_values(sign:str, centrality:str, h_theoretical_Ck, h_theoretical_Sigma_Ck,
                                         outdir:TDirectory, modification_factor:float):
@@ -236,41 +279,24 @@ def apply_resolution_smearing(h_correlation_function, outdir:TDirectory, resolut
     h_mixed_event = load_hist(INPUT_MIXED_EVENT_REFERENCE_PATH, 'QA/hKstar')
     mixed_fit = TF1('mixed_fit', 'pol3', 0.01, 0.4)
     h_mixed_event.Fit(mixed_fit, 'RMS+')
-    
-    # match the binning of the resolution histogram to that of the correlation function
-    
-    h_resolution_reference = h_resolution.ProjectionX('hResolutionReference', 2, 2)
-    h_correlation_function_matched = h_correlation_function.Clone(f'{h_correlation_function.GetName()}_matched_for_smearing')
-    for ibin in range(1, h_correlation_function_matched.GetNbinsX()+1):
-        if h_correlation_function_matched.GetBinCenter(ibin) < 0.01: 
-            h_correlation_function_matched.SetBinContent(ibin, 0.)
 
-    h_correlation_function_matched = match_bin_width_correlation_function(h_resolution_reference, h_correlation_function_matched, kstar_threshold=0.7)
+    # no binning-matching needed anymore: the resolution slices are described by
+    # analytic Crystal Ball fits, so we can sample h_correlation_function directly
+    # at any kstar_gen, independent of its own binning.
+    h_smeared_correlation_function = h_correlation_function.Clone(f'{h_correlation_function.GetName()}_smeared')
 
-    #outdir_check = outdir.mkdir('ResolutionSmearingCheck')
-    #outdir_check.cd()
-    #h_resolution_reference.Write('hResolutionReference')
-    #h_correlation_function_matched.Write('hCorrelationFunction_MatchedForSmearing')
-    #h_mixed_event.Write('hMixedEventForSmearing')
-
-    h_smeared_correlation_function = h_correlation_function_matched.Clone(f'{h_correlation_function_matched.GetName()}_smeared')
-
-    for ibin in range(1, h_correlation_function_matched.GetNbinsX()+1):
+    for ibin in range(1, h_smeared_correlation_function.GetNbinsX()+1):
 
         smeared_value, weight, total_weight = 0., 0., 0.
-        kstar = h_correlation_function_matched.GetBinCenter(ibin)
+        kstar = h_smeared_correlation_function.GetBinCenter(ibin)
         resolution_bin = h_resolution.GetXaxis().FindBin(kstar)
         h_resolution_slice = h_resolution.ProjectionX(f'hResolutionSlice_kstar_{kstar:.3f}', resolution_bin, resolution_bin)
 
-        #outdir_check.cd()
-        #h_resolution_slice.Write()
-        
         for jbin in range(1, h_resolution_slice.GetNbinsX()+1):
-            
+
             kstar_gen = h_resolution_slice.GetBinCenter(jbin)
-            #mixed_weight = h_mixed_event.GetBinContent(h_mixed_event.FindBin(kstar_gen))
             mixed_weight = mixed_fit.Eval(kstar_gen)
-            
+
             fit_entry = resolution_fits.get(resolution_bin)
             slice_val = 0.
             if fit_entry is not None:
@@ -280,19 +306,16 @@ def apply_resolution_smearing(h_correlation_function, outdir:TDirectory, resolut
             else:
                 slice_val = h_resolution_slice.GetBinContent(jbin)
             weight = slice_val * mixed_weight if 0.01 < kstar_gen < 0.7 else 0.
-            
-            #weight = h_resolution_slice.GetBinContent(jbin) * mixed_weight if 0.01 < kstar_gen < 0.7 else 0.  
-            
-            # skip the region where the corrected correlation function is not defined
-            correlation_value = h_correlation_function_matched.GetBinContent(jbin)
-            
+
+            # evaluate the correlation function directly at kstar_gen, regardless of its binning
+            correlation_value = h_correlation_function.GetBinContent(h_correlation_function.FindBin(kstar_gen))
+
             smeared_value += correlation_value * weight
             total_weight += weight
 
         if total_weight > 0:
             smeared_value /= total_weight
             h_smeared_correlation_function.SetBinContent(ibin, smeared_value)
-
 
     return h_smeared_correlation_function
 
@@ -315,20 +338,16 @@ def produce_lambda_models(sign:str, centrality:str, outdir:TDirectory, resolutio
     h_lambda_corrected_Ck = h_theoretical_Ck.Clone(f'hLambdaCorrectedCk')
     h_lambda_Sigma_corrected_Ck = h_theoretical_Ck.Clone(f'hLambdaSigmaCorrectedCk')
 
-    for ibin in range(1, h_lambda_corrected_Ck.GetNbinsX()+1):
-        
-        kstar = h_lambda_corrected_Ck.GetBinCenter(ibin)
-        lambda_param = h_lambda_parameter.GetBinContent(h_lambda_parameter.FindBin(kstar))
-        original_value = h_theoretical_Ck.GetBinContent(ibin)
+    kstars = [h_theoretical_Ck.GetBinCenter(jbin) for jbin in range(1, h_theoretical_Ck.GetNbinsX()+1)]
+    ck_values = [h_theoretical_Ck.GetBinContent(jbin) for jbin in range(1, h_theoretical_Ck.GetNbinsX()+1)]
+    sigma_values = [h_theoretical_Sigma_Ck.GetBinContent(h_theoretical_Sigma_Ck.FindBin(kstar)) for kstar in kstars]
 
-        lambda_Sigma_param = h_lambda_Sigma_parameter.GetBinContent(h_lambda_Sigma_parameter.FindBin(kstar))
-        Sigma_value = h_theoretical_Sigma_Ck.GetBinContent(h_theoretical_Sigma_Ck.FindBin(kstar))
-        
-        lambda_corrected_value = lambda_param * original_value + (1.0 - lambda_param)
-        h_lambda_corrected_Ck.SetBinContent(ibin, lambda_corrected_value)
+    theoretical_corrected = compute_lambda_corrected_values(kstars, ck_values, h_lambda_parameter)
+    theoretical_Sigma_corrected = compute_lambda_corrected_values(kstars, ck_values, h_lambda_parameter,
+                                                                    sigma_ck_values=sigma_values, lambda_sigma_hist=h_lambda_Sigma_parameter)
 
-        lambda_Sigma_corrected_value = lambda_param * original_value + lambda_Sigma_param * Sigma_value + (1 - lambda_param - lambda_Sigma_param) * 1.0
-        h_lambda_Sigma_corrected_Ck.SetBinContent(ibin, lambda_Sigma_corrected_value)
+    fill_hist_from_weighted_average(h_lambda_corrected_Ck, kstars, theoretical_corrected)
+    fill_hist_from_weighted_average(h_lambda_Sigma_corrected_Ck, kstars, theoretical_Sigma_corrected)
 
     modification_factor = LAMBDA_VARIATION
     (h_lambda_parameter_higher_lambda, h_lambda_parameter_lower_lambda,
@@ -341,7 +360,6 @@ def produce_lambda_models(sign:str, centrality:str, outdir:TDirectory, resolutio
     #h_correlation_reference = load_hist(EXPERIMENTAL_CK_PATH, EXPERIMENTAL_CK_NAME)
     #h_lambda_corrected_Ck_matched = match_bin_width_correlation_function(h_correlation_reference, h_lambda_corrected_Ck)
     #h_lambda_Sigma_corrected_Ck_matched = match_bin_width_correlation_function(h_correlation_reference, h_lambda_Sigma_corrected_Ck)
-    
     
     h_lambda_Sigma_smeared_Ck = apply_resolution_smearing(h_lambda_Sigma_corrected_Ck, outdir, resolution_fits)
     
@@ -437,7 +455,7 @@ def produce_lambda_models_with_variations(sign: str, centrality: str, outdir: TD
         raise ValueError("INPUT_CK_VARIATIONS and INPUT_SIGMA_CK_VARIATIONS must be set. Please set them before calling this function.")
     
     # only 010 and 1050 are computed 
-    centrality_dir = 'centrality_10_50' if centrality == '010' else 'centrality_10_50'
+    centrality_dir = 'centrality_0_10' if centrality == '010' else 'centrality_10_50'
     h_lambda_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{centrality_dir}/{sign}/hLambdaParameters')
     h_lambda_Sigma_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{centrality_dir}/{sign}/hLambdaSigmaParameters')
     
@@ -503,7 +521,44 @@ def produce_lambda_models_with_variations(sign: str, centrality: str, outdir: TD
         outdir.cd()
         canvas_summary.Write(f'cRadiusVariations_{sign}_{centrality}')
 
+def produce_lambda_models_with_model_param_variations(sign: str, centrality: str, outdir: TDirectory, resolution_fits: dict):
+
+    if not INPUT_LAMBDA_PARAMETER_PATH:
+        raise ValueError("INPUT_LAMBDA_PARAMETER_PATH is not set. Please set it before calling this function.")
+    if not INPUT_CK_MODEL_PARAM_VARIATIONS:
+        raise ValueError("INPUT_CK_MODEL_PARAM_VARIATIONS must be set. Please set it before calling this function.")
+
+    centrality_dir = 'centrality_0_10' if centrality == '010' else 'centrality_10_50'
+    h_lambda_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{centrality_dir}/{sign}/hLambdaParameters')
+    h_lambda_Sigma_parameter = load_hist(INPUT_LAMBDA_PARAMETER_PATH, f'{centrality_dir}/{sign}/hLambdaSigmaParameters')
+
+    # Sigma contamination does not depend on the model parameters, so the nominal
+    # Sigma Ck is reused for every variation.
+    h_theoretical_Sigma_Ck = load_hist(INPUT_SIGMA_CK_PATH[centrality])
+
+    for variation_name in INPUT_CK_MODEL_PARAM_VARIATIONS[centrality]:
+
+        variation_dir = outdir.mkdir(variation_name)
+
+        h_theoretical_Ck = load_hist(INPUT_CK_MODEL_PARAM_VARIATIONS[centrality][variation_name])
+
+        h_lambda_Sigma_corrected_Ck = h_theoretical_Ck.Clone('hLambdaSigmaCorrectedCk')
+        apply_lambda_correction(h_lambda_Sigma_corrected_Ck, h_theoretical_Ck, h_theoretical_Sigma_Ck,
+                                h_lambda_parameter, h_lambda_Sigma_parameter)
+
+        h_lambda_Sigma_smeared_Ck = apply_resolution_smearing(h_lambda_Sigma_corrected_Ck, variation_dir, resolution_fits)
+
+        variation_dir.cd()
+        set_root_object(h_lambda_Sigma_corrected_Ck, title='; #it{k}* (MeV/c); C(#it{k}*)', line_width=2)
+        set_root_object(h_lambda_Sigma_smeared_Ck, title='; #it{k}* (MeV/c); C(#it{k}*)', line_width=2)
+        h_lambda_Sigma_corrected_Ck.Write('hLambdaSigmaCorrectedCk')
+        h_lambda_Sigma_smeared_Ck.Write(f'hLambdaSigmaCorrectedCk_Smeared_{variation_name}')
+
+
 if __name__ == '__main__':
+    
+    RooMsgService.instance().setGlobalKillBelow(5) # 3 = WARNING, 4 = ERROR, 5 = FATAL
+    RooFit.PrintLevel(-1)
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', default='configs/lambda_model.yaml',
@@ -517,8 +572,9 @@ if __name__ == '__main__':
 
     INPUT_CK_PATH = build_hist_load_info_dict(cfg['ck_input'])
     INPUT_SIGMA_CK_PATH = build_hist_load_info_dict(cfg['sigma_ck_input'])
-    INPUT_CK_VARIATIONS = build_hist_load_info_variations(cfg['ck_input']) if 'variations' in cfg['ck_input'] else None
-    INPUT_SIGMA_CK_VARIATIONS = build_hist_load_info_variations(cfg['sigma_ck_input']) if 'variations' in cfg['sigma_ck_input'] else None
+    INPUT_CK_VARIATIONS = build_hist_load_info_variations_radius(cfg['ck_input']) if 'variations_radius' in cfg['ck_input'] else None
+    INPUT_CK_MODEL_PARAM_VARIATIONS = build_hist_load_info_variations_model_params(cfg['ck_input']) if 'variations_model_params' in cfg['ck_input'] else None
+    INPUT_SIGMA_CK_VARIATIONS = build_hist_load_info_variations_radius(cfg['sigma_ck_input']) if 'variations_radius' in cfg['sigma_ck_input'] else None
 
     INPUT_LAMBDA_PARAMETER_PATH = cfg['paths']['lambda_parameters']
     INPUT_RESOLUTION_PATH = cfg['paths']['resolution']
@@ -546,5 +602,8 @@ if __name__ == '__main__':
 
             if INPUT_CK_VARIATIONS and INPUT_SIGMA_CK_VARIATIONS:
                 produce_lambda_models_with_variations(sign, centrality, outdir, resolution_fits)
+            
+            if INPUT_CK_MODEL_PARAM_VARIATIONS:
+                produce_lambda_models_with_model_param_variations(sign, centrality, outdir, resolution_fits)
             
     outfile.Close()

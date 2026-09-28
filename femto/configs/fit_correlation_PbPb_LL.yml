@@ -3,17 +3,11 @@ data:
   suffix: PbPb
   selection: Default
 
-input_models_path: /home/galucia/Lithium4/femto/models/lambda_models_10.root
+input_models_path: /home/galucia/Lithium4/femto/models/lambda_models_LL_10.root
 
 centrality_bins:
-  - '050'
   - '010'
-  - '1030'
-  - '3050'
   - '1050'
-  - '5080'
-  - '080'
-  - '1080'
 
 fit_options:
   ground_state_only: false
@@ -23,6 +17,7 @@ fit_options:
   lambda_to_zero: false
   lambda_variation: 10
   match_ratio: false
+  LL: true
 
 available_bkgs:
   - nominal/hLambdaSigmaCorrectedCk_Smeared_nominal
@@ -39,5 +34,15 @@ available_signals:
   - hCkHist
   - hCkHist_SigmaUp
   - hCkHist_SigmaDown
+
+available_model_param_variations:
+  - aRe_1s0_up/hLambdaSigmaCorrectedCk_Smeared_aRe_1s0_up
+  - aRe_1s0_down/hLambdaSigmaCorrectedCk_Smeared_aRe_1s0_down
+  - r_1s0_up/hLambdaSigmaCorrectedCk_Smeared_r_1s0_up
+  - r_1s0_down/hLambdaSigmaCorrectedCk_Smeared_r_1s0_down
+  - aRe_3s1_up/hLambdaSigmaCorrectedCk_Smeared_aRe_3s1_up
+  - aRe_3s1_down/hLambdaSigmaCorrectedCk_Smeared_aRe_3s1_down
+  - r_3s1_up/hLambdaSigmaCorrectedCk_Smeared_r_3s1_up
+  - r_3s1_down/hLambdaSigmaCorrectedCk_Smeared_r_3s1_down
 
 systematics_file: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root

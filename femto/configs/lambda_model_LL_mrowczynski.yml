@@ -1,0 +1,37 @@
+# configs/lambda_models_010.yaml
+lambda_modification_factor: 0.1
+lambda_variation: 0.10
+
+centrality_bins:
+  - '010'
+  - '1050'
+
+paths:
+  lambda_parameters: /home/galucia/Lithium4/calibration/output/lambda_parameters.root
+  resolution: /data/galucia/lithium/MC/AnalysisResults_LHC25g11.root
+  mixed_event_reference: /home/galucia/Lithium4/preparation/output/PbPb/LHC25_PbPb_pass1_hadronpid_event_mixing.root
+  output_model: /home/galucia/Lithium4/femto/models/lambda_models_LL_mrowczynski_10.root
+
+ck_input:
+  root_file: /home/galucia/PhaseShiftAnalysis/numerical_lednicky/pHe/output/pHe3_LL_radius_coalescence_GeV.root
+  centralities:
+    '010': Rs3.78/combined/combined_h3.78_aRe-11.26_aIm0.00_r1.65_GeV_h3.78_aRe-9.06_aIm0.00_r1.36_GeV
+    '1050': Rs3.00/combined/combined_h3.00_aRe-11.26_aIm0.00_r1.65_GeV_h3.00_aRe-9.06_aIm0.00_r1.36_GeV
+  variations_radius:
+    '010':
+      nominal: Rs3.78/combined/combined_h3.78_aRe-11.26_aIm0.00_r1.65_GeV_h3.78_aRe-9.06_aIm0.00_r1.36_GeV
+      lower: Rs3.70/combined/combined_h3.70_aRe-11.26_aIm0.00_r1.65_GeV_h3.70_aRe-9.06_aIm0.00_r1.36_GeV
+      upper: Rs3.85/combined/combined_h3.85_aRe-11.26_aIm0.00_r1.65_GeV_h3.85_aRe-9.06_aIm0.00_r1.36_GeV
+    '1050': 
+      nominal: Rs3.00/combined/combined_h3.00_aRe-11.26_aIm0.00_r1.65_GeV_h3.00_aRe-9.06_aIm0.00_r1.36_GeV
+      lower: Rs2.96/combined/combined_h2.96_aRe-11.26_aIm0.00_r1.65_GeV_h2.96_aRe-9.06_aIm0.00_r1.36_GeV
+      upper: Rs3.04/combined/combined_h3.04_aRe-11.26_aIm0.00_r1.65_GeV_h3.04_aRe-9.06_aIm0.00_r1.36_GeV
+  
+sigma_ck_input:
+  root_file: /home/galucia/phemto/output/he3Sigma_coalescence_rescaled.root
+  centralities:
+    '010': hhe3_Sigma_plus_CF_r=6.12_fm
+    '1050': hhe3_Sigma_plus_CF_r=4.90_fm
+  variations_radius:
+    '010': {nominal: hhe3_Sigma_plus_CF_r=6.12_fm, lower: hhe3_Sigma_plus_CF_r=6.02_fm, upper: hhe3_Sigma_plus_CF_r=6.23_fm}
+    '1050': {nominal: hhe3_Sigma_plus_CF_r=4.90_fm, lower: hhe3_Sigma_plus_CF_r=4.85_fm, upper: hhe3_Sigma_plus_CF_r=4.94_fm}

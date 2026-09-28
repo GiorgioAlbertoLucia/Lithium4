@@ -1,0 +1,23 @@
+data:
+  input_path: /home/galucia/Lithium4/preparation/output/PbPb/correlation_PbPb_hadronpid.root
+  suffix: PbPb
+  selection: Default
+
+input_models_path: /home/galucia/Lithium4/femto/models/lambda_models_coulomb_10.root
+
+centrality_bins:
+  - '010'
+  - '1050'
+
+fit_options:
+  ground_state_only: false
+  use_smoothening: true
+  finer_binning: true
+  lambda_to_one: false
+  lambda_to_zero: false
+  lambda_variation: 10
+  match_ratio: false
+  LL: false
+  coulomb: true
+
+systematics_file: /home/galucia/Lithium4/preparation/output/PbPb/systematic_uncertainties.root

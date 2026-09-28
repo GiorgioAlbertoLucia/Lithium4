@@ -9,9 +9,10 @@ from core.model_fitter import ModelFitter
 from core.plot_correlation_over_nsigma import plot_correlation_over_nsigma
 from torchic.core.histogram import load_hist, AxisSpec, HistLoadInfo
 from torchic.utils.terminal_colors import TerminalColors as tc
+from torchic.utils.root import silence_roofit
 
 from dataclasses import dataclass, field
-from typing import Dict
+from typing import Dict, List
 
 import argparse
 from core.config_loader import load_yaml
@@ -26,6 +27,7 @@ CENTRALITY_BINS = None
 
 AVAILABLE_BKGS = None
 AVAILABLE_SIGNALS = None
+AVAILABLE_MODEL_PARAM_VARIATIONS = None
 SYSTEMATICS_FILE_PATH = None
 
 @dataclass
@@ -37,6 +39,8 @@ class FitOptions:
     lambda_to_zero: bool = False
     lambda_variation: float = 10
     match_ratio: bool = False
+    LL: bool = False
+    coulomb: bool = False
 
     _SUFFIX_MAP: Dict[str, str] = field(default_factory=lambda : {
         'ground_state_only': '_ground_state_only',
@@ -44,6 +48,8 @@ class FitOptions:
         'finer_binning': '_finer_binning',
         'lambda_to_one': '_dummy_fraction_to_one',
         'lambda_to_zero': '_dummy_fraction_to_zero',
+        'LL': '_LL',
+        'coulomb': '_Coulomb',
     }, repr=False)
 
     def _lambda_variation_suffix(self) -> str:
@@ -97,10 +103,33 @@ def prepare_centrality_dict(mode: str, opts: FitOptions):
         'h_mixed_event_name': h_mixed_event_names,
     }
 
+def build_bkg_envelope(h_bkg_variations: List[List[TH1F]], h_ref: TH1F, name_prefix: str = 'h_bkg_envelope') -> tuple:
+    '''
+    Build the lower and upper envelope histograms across all background variations
+    (possibly with different binning), sampled on h_ref's binning via interpolation.
+    Returns (h_bkg_low, h_bkg_high), suitable for compute_chi2_stat_only.
+    '''
+    all_variations = [h for group in h_bkg_variations for h in group]
+    if not all_variations:
+        return None, None
+
+    h_bkg_low = h_ref.Clone(f'{name_prefix}_low')
+    h_bkg_low.Reset()
+    h_bkg_high = h_ref.Clone(f'{name_prefix}_high')
+    h_bkg_high.Reset()
+
+    for ibin in range(1, h_ref.GetNbinsX() + 1):
+        kstar_value = h_ref.GetBinCenter(ibin)
+        values = [h_var.Interpolate(kstar_value) for h_var in all_variations]
+        h_bkg_low.SetBinContent(ibin, min(values))
+        h_bkg_high.SetBinContent(ibin, max(values))
+
+    return h_bkg_low, h_bkg_high
+
 def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str, mixed_event_input_path:str, 
                     h_bkg_name:str, h_data_name:str, h_same_event_name:str, h_mixed_event_name:str,
-                    output_pdf:str, mode:str='', centrality:str='',
-                    use_smoothening:bool=False, run_variations:bool=False, run_sigma_variations:bool=False,
+                    output_pdf:str, mode:str='', centrality:str='', use_smoothening:bool=False, 
+                    run_variations:bool=False, run_sigma_variations:bool=False, run_model_param_variations:bool=False,
                    variations_bkg_path:str=''):
 
     workspace = RooWorkspace('roows')
@@ -115,10 +144,6 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
         raise ValueError('Signal histogram file path and name must be provided in SIGNAL_HIST_LOAD_INFO.')
     if not SYSTEMATICS_FILE_PATH:
         raise ValueError('Systematics file path must be provided in SYSTEMATICS_FILE_PATH.')
-    if not AVAILABLE_BKGS:
-        raise ValueError('List of available backgrounds must be provided in AVAILABLE_BKGS.')
-    if not AVAILABLE_SIGNALS:
-        raise ValueError('List of available signals must be provided in AVAILABLE_SIGNALS.')
     if not INPUT_SUFFIX:
         raise ValueError('INPUT_SUFFIX must be provided in the configuration.')
 
@@ -169,9 +194,20 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
                                    save_normalisation_value=True) #, use_chi2_method=False)
     model_fitter.fit_model(h_correlation_function, signal_name='signal_pdf', norm_range='bkg_fit_range',
                            data_label=sign_label)
+    signal_normalisation, signal_normalisation_error = model_fitter.fractions['signal_pdf'].getVal(), model_fitter.fractions['signal_pdf'].getError()
+    print(f'Signal normalisation (fraction of signal in the correlation function): {signal_normalisation:.3f} ± {signal_normalisation_error:.3f}')
+    
     bkg_normalisation_value = model_fitter.get_bkg_value_at_reference_kstar()
     model_fitter.save_to_workspace()
-    model_fitter.compute_chi2(h_correlation_function, h_systematics)
+    
+    h_available_bkgs_lambdaR = [load_hist(variations_bkg_path, f'{sign}/{centrality}/{bkg_rel_name}') for bkg_rel_name in AVAILABLE_BKGS] if AVAILABLE_BKGS is not None and len(AVAILABLE_BKGS) > 0 else []
+    h_available_bkgs_pars = [load_hist(variations_bkg_path, f'{sign}/{centrality}/{model_param_rel_name}') for model_param_rel_name in AVAILABLE_MODEL_PARAM_VARIATIONS] if AVAILABLE_BKGS is not None and len(AVAILABLE_BKGS) > 0 else []
+    h_bkg_variations = [h_available_bkgs_lambdaR, h_available_bkgs_pars]
+    h_bkg_low, h_bkg_high = build_bkg_envelope(h_bkg_variations, h_bkg) if len(h_bkg_variations) > 0 else (None, None)
+    
+    model_fitter.compute_chi2_stat_only(h_correlation_function, h_systematics, h_bkg_low, h_bkg_high)
+    model_fitter.compute_chi2_new(h_correlation_function, h_systematics, h_bkg, h_bkg_variations, suffix=f'_{sign}_{centrality}')
+    
     model_fitter.compute_raw_yield(h_same_event, h_mixed_event, 'signal_pdf', 'bkg_pdf')
     #plot_correlation_over_nsigma(outfile, output_pdf, [KSTAR_MIN, KSTAR_MAX], mode, centrality)
     plot_correlation_over_nsigma(outfile, output_pdf, [0.001, KSTAR_MAX], sign, centrality, 
@@ -182,7 +218,7 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
                                  )
     del workspace, signal_fitter, bkg_fitter, model_fitter
 
-    if run_variations:
+    if run_variations and AVAILABLE_BKGS is not None and len(AVAILABLE_BKGS) > 0:
         h_raw_yields = TH1F('hRawYieldVariations', 'Raw yield variations;Raw yield;Counts', 1600, -200, 1400)
         raw_yields = []
         h_raw_yields_radii = TH1F('hRawYieldVariationsRadii', 'Raw yield variations;Raw yield;Counts', 1600, -200, 1400)
@@ -201,7 +237,7 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
 
             h_var_bkg = load_hist(variations_bkg_path, var_bkg_name)
             var_bkg_fitter = BkgFitter('bkg', kstar_spec, var_dir, var_workspace)
-            var_bkg_fitter.init_bkg(bkg_init_mode, h_var_bkg, rho=0.1)
+            var_bkg_fitter.init_bkg(bkg_init_mode, h_var_bkg, rho=0.1) #rho=0.1)
             var_bkg_fitter.title = 'Coulomb + strong interaction'
             var_bkg_fitter.save_to_workspace()
 
@@ -218,7 +254,7 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
             var_model_fitter.fit_model(h_correlation_function, signal_name='signal_pdf',
                                        norm_range='bkg_fit_range', data_label=sign_label)
             var_model_fitter.save_to_workspace()
-            var_model_fitter.compute_chi2(h_correlation_function, h_systematics)
+            var_model_fitter.compute_chi2_stat_only(h_correlation_function, h_systematics, h_bkg_low, h_bkg_high)
             var_raw_yield = var_model_fitter.compute_raw_yield(h_same_event, h_mixed_event, 'signal_pdf', 'bkg_pdf')
 
             h_raw_yields.Fill(var_raw_yield)
@@ -231,7 +267,7 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
             
             del var_workspace, var_signal_fitter, var_bkg_fitter, var_model_fitter
         
-        if run_sigma_variations:
+        if run_sigma_variations and AVAILABLE_SIGNALS is not None and len(AVAILABLE_SIGNALS) > 0:
             h_sigma_raw_yields = TH1F('hRawYieldSigmaVariations', 'Raw yield variations;Raw yield;Counts', 1600, -200, 1400)
             sign = 'Both' if mode == '' else mode
             
@@ -264,32 +300,72 @@ def fitting_routine(outfile:TDirectory, bkg_input_path:str, data_input_path:str,
                 var_model_fitter.fit_model(h_correlation_function, signal_name='signal_pdf',
                                            norm_range='bkg_fit_range', data_label=sign_label)
                 var_model_fitter.save_to_workspace()
-                var_model_fitter.compute_chi2(h_correlation_function, h_systematics)
+                var_model_fitter.compute_chi2_stat_only(h_correlation_function, h_systematics, h_bkg_low, h_bkg_high)
                 var_raw_yield = var_model_fitter.compute_raw_yield(h_same_event, h_mixed_event, 'signal_pdf', 'bkg_pdf')
             
                 h_sigma_raw_yields.Fill(var_raw_yield)
                 
                 del var_workspace, var_signal_fitter, var_bkg_fitter, var_model_fitter
 
-        canvas = TCanvas('cRawYieldVariations', 'Raw yield variations', 800, 600)
-        h_raw_yields.Draw()
-        std_dev = np.std(raw_yields, ddof=1)
-        text = TLatex(0.15, 0.85, f'#sigma = {std_dev:.2f}')
-        text.SetNDC()
-        text.SetTextSize(0.04)
-        text.Draw()
-        
-        outfile.cd()
-        h_raw_yields.Write()
-        h_sigma_raw_yields.Write()
-        h_raw_yields_radii.Write()
-        h_raw_yields_lambda.Write()
-        canvas.Write()
-        
+        if run_model_param_variations and AVAILABLE_MODEL_PARAM_VARIATIONS is not None and len(AVAILABLE_MODEL_PARAM_VARIATIONS) > 0:
+            h_raw_yields_model_params = TH1F('hRawYieldModelParamVariations', 'Raw yield variations;Raw yield;Counts', 1600, -200, 1400)
+
+            for i, model_param_rel_name in enumerate(AVAILABLE_MODEL_PARAM_VARIATIONS):
+                model_param_name = f'{sign}/{centrality}/{model_param_rel_name}'
+                var_dir = outfile.mkdir(f'model_param_variations/var_{i}')
+                var_workspace = RooWorkspace('roows_var')
+
+                var_signal_fitter = SignalFitter('signal', kstar_spec, var_dir, var_workspace)
+                var_signal_fitter.init_signal(signal_init_mode, h_signal)
+                var_signal_fitter.title = '^{4}Li'
+                var_signal_fitter.save_to_workspace()
+
+                h_var_bkg = load_hist(variations_bkg_path, model_param_name)
+                var_bkg_fitter = BkgFitter('bkg', kstar_spec, var_dir, var_workspace)
+                var_bkg_fitter.init_bkg(bkg_init_mode, h_var_bkg, rho=0.1)
+                var_bkg_fitter.title = 'Coulomb + strong interaction'
+                var_bkg_fitter.save_to_workspace()
+
+                var_model_fitter = ModelFitter('model', kstar_spec, var_dir, ['signal_pdf'], ['bkg_pdf'], var_workspace,
+                                               extended=True, title='^{4}Li + interaction')
+                var_model_fitter.fractions['signal_pdf'].setRange(0., 1.)
+                var_model_fitter.fractions['signal_pdf'].setVal(0.3)
+                var_model_fitter.fractions['signal_pdf'].SetTitle('#it{A}_{^{4}Li}')
+                var_model_fitter.fractions['bkg_pdf'].SetTitle('#it{A}_{Coulomb + strong}')
+
+                var_model_fitter.load_data(h_correlation_function, h_correlation_function.GetName())
+                var_model_fitter.prefit_background(h_correlation_function, range_limits=(0.2, 0.4),
+                                                   range_name='bkg_fit_range', save_normalisation_value=True)
+                var_model_fitter.fit_model(h_correlation_function, signal_name='signal_pdf',
+                                           norm_range='bkg_fit_range', data_label=sign_label)
+                var_model_fitter.save_to_workspace()
+                var_model_fitter.compute_chi2_stat_only(h_correlation_function, h_systematics, h_bkg_low, h_bkg_high)
+                var_raw_yield = var_model_fitter.compute_raw_yield(h_same_event, h_mixed_event, 'signal_pdf', 'bkg_pdf')
+
+                h_raw_yields_model_params.Fill(var_raw_yield)
+
+                del var_workspace, var_signal_fitter, var_bkg_fitter, var_model_fitter
+
+            canvas = TCanvas('cRawYieldVariations', 'Raw yield variations', 800, 600)
+            h_raw_yields.Draw()
+            std_dev = np.std(raw_yields, ddof=1)
+            text = TLatex(0.15, 0.85, f'#sigma = {std_dev:.2f}')
+            text.SetNDC()
+            text.SetTextSize(0.04)
+            text.Draw()
+            
+            outfile.cd()
+            h_raw_yields.Write()
+            h_sigma_raw_yields.Write()
+            h_raw_yields_radii.Write()
+            h_raw_yields_lambda.Write()
+            h_raw_yields_model_params.Write()   
+            canvas.Write()
 
 if __name__ == '__main__':
 
     gStyle.SetOptStat(0)
+    silence_roofit()  # Suppress RooFit messages for cleaner output
     
     
     parser = argparse.ArgumentParser()
@@ -304,9 +380,11 @@ if __name__ == '__main__':
     INPUT_SUFFIX = cfg['data']['suffix']
     SELECTION = cfg['data']['selection']
     SELECTION_SUFFIX = f'_{SELECTION}' if SELECTION != 'Default' else ''
+    INPUT_MODELS_PATH = cfg['input_models_path']
 
-    AVAILABLE_BKGS = cfg['available_bkgs']
-    AVAILABLE_SIGNALS = cfg['available_signals']
+    AVAILABLE_BKGS = cfg.get('available_bkgs', None)
+    AVAILABLE_SIGNALS = cfg.get('available_signals', None)
+    AVAILABLE_MODEL_PARAM_VARIATIONS = cfg.get('available_model_param_variations', None)
     SYSTEMATICS_FILE_PATH = cfg['systematics_file']
     CENTRALITY_BINS = cfg['centrality_bins']
     
@@ -340,13 +418,13 @@ if __name__ == '__main__':
             prefix = INPUT_SUFFIX if INPUT_SUFFIX != 'PbPb' else 'LHC25_PbPb_pass1'
             
             #INPUT_MODELS_PATH = f'models/{prefix}_lambda_models{lambda_to_one_suffix}{lambda_to_zero_suffix}.root'
-            INPUT_MODELS_PATH = f'models/lambda_models{lambda_suffix}.root'
+            
             output_pdf = f'figures/{INPUT_SUFFIX}{SELECTION_SUFFIX}/fit_correlation_function_hadronpid_{name}{suffix}.pdf' 
             
             fitting_routine(outdir, bkg_input_path=INPUT_MODELS_PATH, data_input_path=data_input, mixed_event_input_path=mixed_event_input_path, 
                             h_bkg_name=h_bkg_name, h_data_name=h_data_name, h_same_event_name=h_same_event_name, h_mixed_event_name=h_mixed_event_name,
                             output_pdf=output_pdf, mode=mode, centrality=centrality,
-                            use_smoothening=opts.use_smoothening, run_variations=True, run_sigma_variations=True, 
+                            use_smoothening=opts.use_smoothening, run_variations=True, run_sigma_variations=True, run_model_param_variations=True, 
                             variations_bkg_path=INPUT_MODELS_PATH)
     
     print('Output written to', tc.CYAN+outfile.GetName()+tc.RESET)

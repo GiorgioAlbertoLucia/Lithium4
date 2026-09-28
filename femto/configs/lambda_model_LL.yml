@@ -13,14 +13,45 @@ paths:
   output_model: /home/galucia/Lithium4/femto/models/lambda_models_LL_10.root
 
 ck_input:
-  root_file: /home/galucia/PhaseShiftAnalysis/numerical_lednicky/pHe/output/comparison_pHe3_LL.root
+  root_file: /home/galucia/PhaseShiftAnalysis/numerical_lednicky/pHe/output/pHe3_LL_radius_corrected_GeV.root
+  root_file_variations_model_params: /home/galucia/PhaseShiftAnalysis/numerical_lednicky/pHe/output/pHe3_LL_radius_variations_GeV.root
   centralities:
-    '010': Rs4.33/combined/combined_4.33_aRe-9.06_aIm0.00_r1.36
-    '1050': Rs3.46/combined/combined_3.46_aRe-9.06_aIm0.00_r1.36
+    '010': Rs4.33/combined/combined_h4.33_aRe-11.26_aIm0.00_r1.65_GeV_h4.33_aRe-9.06_aIm0.00_r1.36_GeV
+    '1050': Rs3.46/combined/combined_h3.46_aRe-11.26_aIm0.00_r1.65_GeV_h3.46_aRe-9.06_aIm0.00_r1.36_GeV
+  variations_radius:
+    '010':
+      nominal: Rs4.33/combined/combined_h4.33_aRe-11.26_aIm0.00_r1.65_GeV_h4.33_aRe-9.06_aIm0.00_r1.36_GeV
+      lower: Rs4.26/combined/combined_h4.26_aRe-11.26_aIm0.00_r1.65_GeV_h4.26_aRe-9.06_aIm0.00_r1.36_GeV
+      upper: Rs4.41/combined/combined_h4.41_aRe-11.26_aIm0.00_r1.65_GeV_h4.41_aRe-9.06_aIm0.00_r1.36_GeV
+    '1050': 
+      nominal: Rs3.46/combined/combined_h3.46_aRe-11.26_aIm0.00_r1.65_GeV_h3.46_aRe-9.06_aIm0.00_r1.36_GeV
+      lower: Rs3.43/combined/combined_h3.43_aRe-11.26_aIm0.00_r1.65_GeV_h3.43_aRe-9.06_aIm0.00_r1.36_GeV
+      upper: Rs3.49/combined/combined_h3.49_aRe-11.26_aIm0.00_r1.65_GeV_h3.49_aRe-9.06_aIm0.00_r1.36_GeV
+  variations_model_params:
+    '010':
+      aRe_1s0_up:   Rs4.33/combined/combined_h4.33_aRe-11.30_aIm0.00_r1.65_GeV_h4.33_aRe-9.06_aIm0.00_r1.36_GeV
+      aRe_1s0_down: Rs4.33/combined/combined_h4.33_aRe-11.22_aIm0.00_r1.65_GeV_h4.33_aRe-9.06_aIm0.00_r1.36_GeV
+      r_1s0_up:     Rs4.33/combined/combined_h4.33_aRe-11.26_aIm0.00_r1.94_GeV_h4.33_aRe-9.06_aIm0.00_r1.36_GeV
+      r_1s0_down:   Rs4.33/combined/combined_h4.33_aRe-11.26_aIm0.00_r1.36_GeV_h4.33_aRe-9.06_aIm0.00_r1.36_GeV
+      aRe_3s1_up:   Rs4.33/combined/combined_h4.33_aRe-11.26_aIm0.00_r1.65_GeV_h4.33_aRe-9.10_aIm0.00_r1.36_GeV
+      aRe_3s1_down: Rs4.33/combined/combined_h4.33_aRe-11.26_aIm0.00_r1.65_GeV_h4.33_aRe-9.14_aIm0.00_r1.36_GeV
+      r_3s1_up:     Rs4.33/combined/combined_h4.33_aRe-11.26_aIm0.00_r1.65_GeV_h4.33_aRe-9.06_aIm0.00_r1.61_GeV
+      r_3s1_down:   Rs4.33/combined/combined_h4.33_aRe-11.26_aIm0.00_r1.65_GeV_h4.33_aRe-9.06_aIm0.00_r1.11_GeV
+    '1050':
+      aRe_1s0_up:   Rs3.46/combined/combined_h3.46_aRe-11.30_aIm0.00_r1.65_GeV_h3.46_aRe-9.06_aIm0.00_r1.36_GeV
+      aRe_1s0_down: Rs3.46/combined/combined_h3.46_aRe-11.22_aIm0.00_r1.65_GeV_h3.46_aRe-9.06_aIm0.00_r1.36_GeV
+      r_1s0_up:     Rs3.46/combined/combined_h3.46_aRe-11.26_aIm0.00_r1.94_GeV_h3.46_aRe-9.06_aIm0.00_r1.36_GeV
+      r_1s0_down:   Rs3.46/combined/combined_h3.46_aRe-11.26_aIm0.00_r1.36_GeV_h3.46_aRe-9.06_aIm0.00_r1.36_GeV
+      aRe_3s1_up:   Rs3.46/combined/combined_h3.46_aRe-11.26_aIm0.00_r1.65_GeV_h3.46_aRe-9.10_aIm0.00_r1.36_GeV
+      aRe_3s1_down: Rs3.46/combined/combined_h3.46_aRe-11.26_aIm0.00_r1.65_GeV_h3.46_aRe-9.14_aIm0.00_r1.36_GeV
+      r_3s1_up:     Rs3.46/combined/combined_h3.46_aRe-11.26_aIm0.00_r1.65_GeV_h3.46_aRe-9.06_aIm0.00_r1.61_GeV
+      r_3s1_down:   Rs3.46/combined/combined_h3.46_aRe-11.26_aIm0.00_r1.65_GeV_h3.46_aRe-9.06_aIm0.00_r1.11_GeV
   
 sigma_ck_input:
   root_file: /home/galucia/phemto/output/he3Sigma_recomputed_rescaled.root
   centralities:
     '010': hhe3_Sigma_plus_CF_r=6.12_fm
     '1050': hhe3_Sigma_plus_CF_r=4.90_fm
-  
+  variations_radius:
+    '010': {nominal: hhe3_Sigma_plus_CF_r=6.12_fm, lower: hhe3_Sigma_plus_CF_r=6.02_fm, upper: hhe3_Sigma_plus_CF_r=6.23_fm}
+    '1050': {nominal: hhe3_Sigma_plus_CF_r=4.90_fm, lower: hhe3_Sigma_plus_CF_r=4.85_fm, upper: hhe3_Sigma_plus_CF_r=4.94_fm}
